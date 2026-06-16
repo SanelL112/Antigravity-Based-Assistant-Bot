@@ -16,6 +16,7 @@ TRANSCRIPT_PATH     = os.getenv(
     "TRANSCRIPT_PATH",
     f"/home/sanellathiya/.gemini/antigravity-cli/brain/{CONVERSATION_ID}/.system_generated/logs/transcript.jsonl"
 )
+user_models = {}
 POLL_INTERVAL       = 2    # seconds between transcript polls
 RESPONSE_TIMEOUT    = 120  # seconds to wait for a reply
 
