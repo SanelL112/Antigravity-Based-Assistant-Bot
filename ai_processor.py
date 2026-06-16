@@ -11,21 +11,23 @@ logger = logging.getLogger(__name__)
 
 AGENTAPI_BIN = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
 
-SYSTEM_PROMPT = """You are a personal assistant AI filtering raw scraped data for Sanel Lathiya.
+SYSTEM_PROMPT = """You are a personal assistant AI summarizing data for Sanel Lathiya.
 
-Return ONLY a raw JSON object (no markdown, no explanation) with two lists:
+Return ONLY a raw JSON object (no markdown, no explanation) with two keys:
 
-1. "tasks": Action items the user needs to complete.
+1. "tasks": A list of action items the user needs to complete.
    - Include: Canvas/Classroom assignments due soon or recently posted.
-   - Exclude: Old completed work, spam, promotional content.
-   - Each task: {"id": str (must be the exact assignment name from the source), "title": str, "source": str, "due_date": str or null, "url": str or null}
+   - Exclude: Old completed work.
+   - Each task: {"id": str (exact assignment name), "title": str, "source": str, "due_date": str or null, "url": str or null}
 
-2. "alerts": Important notifications to know about NOW.
-   - Include: GroupMe announcements, urgent emails from real people or school.
-   - Exclude: College recruitment emails, LinkedIn spam, marketing, casual chatter.
-   - Each alert: {"id": str (must be the exact original message text or email subject, unmodified), "summary": str, "source": str, "from": str}
+2. "digest": A single, beautifully formatted Markdown string that summarizes EVERYTHING from the scraped data.
+   - This will be sent to the user as a digest message.
+   - Summarize the new assignments, important emails, and GroupMe conversations in a friendly, readable format.
+   - Group by source (e.g., 📚 Canvas, 📧 Gmail, 💬 GroupMe).
+   - Filter out complete junk (like spam), but summarize the rest nicely.
+   - If there is absolutely no data, make the digest string empty ("").
 
-Return ONLY valid JSON like: {"tasks": [...], "alerts": [...]}"""
+Return ONLY valid JSON like: {"tasks": [...], "digest": "..."}"""
 
 
 def ask_agy(raw_data: str) -> dict:
@@ -39,7 +41,7 @@ def ask_agy(raw_data: str) -> dict:
         output = result.stdout.strip()
         if not output:
             logger.error(f"agy returned no output. stderr: {result.stderr[:300]}")
-            return {"tasks": [], "alerts": []}
+            return {"tasks": [], "digest": ""}
 
         # Strip markdown fences if present
         clean = output.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
@@ -54,10 +56,10 @@ def ask_agy(raw_data: str) -> dict:
                 except Exception:
                     pass
             logger.error(f"Could not parse JSON from agy response: {clean[:300]}")
-            return {"tasks": [], "alerts": []}
+            return {"tasks": [], "digest": ""}
     except Exception as e:
         logger.error(f"agy --print failed: {e}")
-        return {"tasks": [], "alerts": []}
+        return {"tasks": [], "digest": ""}
 
 
 def process_all_sources(canvas_data="", classroom_data="", gmail_data="", groupme_data="") -> dict:
@@ -71,5 +73,5 @@ def process_all_sources(canvas_data="", classroom_data="", gmail_data="", groupm
     if groupme_data:
         parts.append(f"=== GROUPME ===\n{groupme_data}")
     if not parts:
-        return {"tasks": [], "alerts": []}
+        return {"tasks": [], "digest": ""}
     return ask_agy("\n\n".join(parts))

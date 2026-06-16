@@ -190,11 +190,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for job in current_jobs:
         job.schedule_removal()
     
-    context.job_queue.run_repeating(check_updates, interval=300, first=5, chat_id=chat_id, name=str(chat_id))
+    context.job_queue.run_repeating(check_updates, interval=14400, first=5, chat_id=chat_id, name=str(chat_id))
     
     await update.message.reply_text(
         "👋 Hey! I'm your personal Antigravity assistant.\n\n"
-        "🟢 **Background Automation is ACTIVE.** I will now silently check your Canvas and GroupMe every 5 minutes and text you if there are new updates.\n\n"
+        "🟢 **Background Automation is ACTIVE.** I will now check your Canvas, Gmail, Classroom, and GroupMe and send you a comprehensive digest every 4 hours.\n\n"
         "You can also message me anytime to run a specific command."
     )
 
@@ -245,6 +245,32 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_models[chat_id] = args[0]
     await update.message.reply_text(f"Model switched to *{args[0]}* ✅", parse_mode="Markdown")
 
+
+async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    msg = await context.bot.send_message(chat_id=chat_id, text="⏳ Generating your summary digest... This might take a minute.")
+    
+    import sys
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from scrapers.canvas_scraper import get_upcoming_assignments
+    from scrapers.groupme_scraper import get_latest_messages
+    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments
+    from ai_processor import process_all_sources
+    
+    canvas = get_upcoming_assignments()
+    classroom = get_classroom_assignments()
+    gmail = get_unread_emails()
+    groupme = get_latest_messages("102851186")
+    
+    ai_result = process_all_sources(canvas, classroom, gmail, groupme)
+    digest = ai_result.get("digest", "Nothing to report right now!")
+    
+    await context.bot.delete_message(chat_id=chat_id, message_id=msg.message_id)
+    try:
+        await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}", parse_mode="Markdown")
+    except Exception:
+        await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}")
+
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -258,6 +284,7 @@ if __name__ == "__main__":
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("model", model_command))
+    app.add_handler(CommandHandler("summary", summary_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("🤖 Antigravity Telegram bridge is running...")
