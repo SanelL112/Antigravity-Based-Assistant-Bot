@@ -34,9 +34,13 @@ def ask_agy(raw_data: str) -> dict:
     prompt = SYSTEM_PROMPT + "\n\nHere is the raw data:\n\n" + raw_data
     logger.info("Calling agy --print for data filtering...")
     try:
+        env = os.environ.copy()
+        # Isolate the scraper's conversation history from the user's chat history
+        env["HOME"] = "/home/sanel/scraper_home"
+        os.makedirs("/home/sanel/scraper_home", exist_ok=True)
         result = subprocess.run(
             [AGENTAPI_BIN, "--print", prompt],
-            capture_output=True, text=True, timeout=120
+            capture_output=True, text=True, timeout=120, env=env
         )
         output = result.stdout.strip()
         if not output:
