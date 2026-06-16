@@ -155,7 +155,7 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     
     # 1. Notion Tasks
     for task in ai_result.get("tasks", []):
-        thash = get_hash(task.get("title", ""))
+        thash = get_hash(task.get("id", task.get("title", "")))
         if thash not in state.setdefault("seen_tasks", []):
             add_task_to_notion(
                 title=task.get("title"),
@@ -168,7 +168,7 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
             
     # 2. Telegram Alerts
     for alert in ai_result.get("alerts", []):
-        ahash = get_hash(alert.get("summary", ""))
+        ahash = get_hash(alert.get("id", alert.get("summary", "")))
         if ahash not in state.setdefault("seen_alerts", []):
             text = f"🔔 **New Alert from {alert.get('source')}**\nFrom: {alert.get('from', 'Unknown')}\n\n{alert.get('summary')}"
             await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")

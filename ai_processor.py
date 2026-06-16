@@ -18,12 +18,12 @@ Return ONLY a raw JSON object (no markdown, no explanation) with two lists:
 1. "tasks": Action items the user needs to complete.
    - Include: Canvas/Classroom assignments due soon or recently posted.
    - Exclude: Old completed work, spam, promotional content.
-   - Each task: {"title": str, "source": str, "due_date": str or null, "url": str or null}
+   - Each task: {"id": str (must be the exact assignment name from the source), "title": str, "source": str, "due_date": str or null, "url": str or null}
 
 2. "alerts": Important notifications to know about NOW.
    - Include: GroupMe announcements, urgent emails from real people or school.
    - Exclude: College recruitment emails, LinkedIn spam, marketing, casual chatter.
-   - Each alert: {"summary": str, "source": str, "from": str}
+   - Each alert: {"id": str (must be the exact original message text or email subject, unmodified), "summary": str, "source": str, "from": str}
 
 Return ONLY valid JSON like: {"tasks": [...], "alerts": [...]}"""
 
