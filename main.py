@@ -84,9 +84,17 @@ def get_new_responses(after_step: int) -> list[str]:
 
 async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> str:
     """Uses agy --print for a direct response. Works standalone on Debian."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "r") as f:
+            digest_context = f.read()
+    except Exception:
+        digest_context = "No recent data available."
+
     system = (
-        "You are a smart personal assistant for Sanel Lathiya. "
-        "Answer helpfully and concisely."
+        f"You are a smart personal assistant for Sanel Lathiya. "
+        f"Here is the latest data digest that you recently sent to the user:\n\n{digest_context}\n\n"
+        f"Use this context if the user asks you about their assignments, emails, or messages. "
+        f"If their request is unrelated to the digest, ignore it. Answer helpfully and concisely."
     )
     full_prompt = system + chr(10) + chr(10) + 'User: ' + user_message
     model = user_models.get(chat_id, "flash")
@@ -264,7 +272,13 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     ai_result = process_all_sources(canvas, classroom, gmail, groupme)
     digest = ai_result.get("digest", "Nothing to report right now!")
-    
+    if digest and digest != "Nothing to report right now!":
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "w") as f:
+                f.write(digest)
+        except Exception:
+            pass
+            
     await context.bot.delete_message(chat_id=chat_id, message_id=msg.message_id)
     try:
         await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}", parse_mode="Markdown")
