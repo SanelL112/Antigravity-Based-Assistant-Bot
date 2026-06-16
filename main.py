@@ -96,9 +96,23 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         f"Use this context if the user asks you about their assignments, emails, or messages. "
         f"If their request is unrelated to the digest, ignore it. Answer helpfully and concisely."
     )
-    full_prompt = system + chr(10) + chr(10) + 'User: ' + user_message
+    
+    # Custom conversational memory
+    history_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"chat_history_{chat_id}.txt")
+    try:
+        with open(history_file, "r") as f:
+            chat_history = f.read()
+    except Exception:
+        chat_history = ""
+        
+    # Cap history length to avoid huge prompts
+    if len(chat_history) > 4000:
+        chat_history = "...\n" + chat_history[-4000:]
+        
+    full_prompt = system + chr(10) + chr(10) + "--- PAST CONVERSATION ---\n" + chat_history + "\n--- END CONVERSATION ---\n\nUser: " + user_message
+    
     model = user_models.get(chat_id, "flash")
-    logger.info(f"agy --continue --print model={model}: {user_message[:60]}")
+    logger.info(f"agy --print model={model}: {user_message[:60]}")
     try:
         result = await asyncio.wait_for(
             asyncio.get_event_loop().run_in_executor(
@@ -114,6 +128,11 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         if not out:
             logger.error(f"Empty agy output. stderr: {result.stderr[:300]}")
             return "⚠️ No response from assistant. Please try again."
+            
+        # Append turn to custom history file
+        with open(history_file, "a") as f:
+            f.write(f"User: {user_message}\nModel: {out}\n\n")
+            
         return out
     except asyncio.TimeoutError:
         return "⏳ Assistant is taking too long. Try again shortly."
