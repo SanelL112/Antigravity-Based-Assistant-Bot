@@ -81,37 +81,36 @@ def get_new_responses(after_step: int) -> list[str]:
 
 # ── Bridge logic ───────────────────────────────────────────────────────────────
 
-async def send_to_antigravity_and_wait(user_message: str) -> str:
-    """
-    1. Record the current last step_index.
-    2. Send the message to the Antigravity conversation via agentapi.
-    3. Poll the transcript until a new PLANNER_RESPONSE appears.
-    4. Return that response text.
-    """
-    before_step = get_last_step_index()
-
-    # Send the message
+async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> str:
+    """Uses agy --print for a direct response. Works standalone on Debian."""
+    system = (
+        "You are a smart personal assistant for Sanel Lathiya. "
+        "Answer helpfully and concisely."
+    )
+    full_prompt = system + chr(10) + chr(10) + 'User: ' + user_message
+    model = user_models.get(chat_id, "flash")
+    logger.info(f"agy --continue --print model={model}: {user_message[:60]}")
     try:
-        subprocess.run(
-            [AGENTAPI_BIN, "send-message", CONVERSATION_ID, user_message],
-            capture_output=True, text=True, check=True
+        result = await asyncio.wait_for(
+            asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: subprocess.run(
+                    [AGENTAPI_BIN, "--continue", "--print", "--model=" + model, full_prompt],
+                    capture_output=True, text=True, timeout=RESPONSE_TIMEOUT
+                )
+            ),
+            timeout=RESPONSE_TIMEOUT + 5
         )
-        logger.info(f"Sent to Antigravity (after step {before_step}): {user_message[:80]}")
-    except subprocess.CalledProcessError as e:
-        logger.error(f"agentapi send-message failed: {e.stderr}")
-        return "⚠️ Failed to reach the assistant. Please try again."
-
-    # Poll for reply
-    elapsed = 0
-    while elapsed < RESPONSE_TIMEOUT:
-        await asyncio.sleep(POLL_INTERVAL)
-        elapsed += POLL_INTERVAL
-        replies = get_new_responses(before_step)
-        if replies:
-            # Take the last (most complete) PLANNER_RESPONSE
-            return replies[-1]
-
-    return "⏳ The assistant is taking too long to respond. Try again shortly."
+        out = result.stdout.strip()
+        if not out:
+            logger.error(f"Empty agy output. stderr: {result.stderr[:300]}")
+            return "⚠️ No response from assistant. Please try again."
+        return out
+    except asyncio.TimeoutError:
+        return "⏳ Assistant is taking too long. Try again shortly."
+    except Exception as e:
+        logger.error(f"agy error: {e}")
+        return "⚠️ Failed to reach assistant."
 
 
 # ── Background Automation ──────────────────────────────────────────────────────
@@ -209,7 +208,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text="⏳ Thinking..."
     )
 
-    reply = await send_to_antigravity_and_wait(user_text)
+    reply = await send_to_antigravity_and_wait(user_text, chat_id)
 
     # Delete the thinking message
     await context.bot.delete_message(chat_id=chat_id, message_id=thinking_msg.message_id)
@@ -217,12 +216,33 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Telegram messages max out at 4096 chars; split if needed
     max_len = 4096
     for i in range(0, len(reply), max_len):
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=reply[i:i+max_len],
+        try:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=reply[i:i+max_len],
+                parse_mode="Markdown"
+            )
+        except Exception:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=reply[i:i+max_len]
+            )
+
+
+
+async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    args = context.args
+    valid = ["flash", "pro", "flash_lite"]
+    if not args or args[0] not in valid:
+        current = user_models.get(chat_id, "flash")
+        await update.message.reply_text(
+            f"Current model: *{current}*\n\nUsage: `/model flash` | `/model pro` | `/model flash_lite`",
             parse_mode="Markdown"
         )
-
+        return
+    user_models[chat_id] = args[0]
+    await update.message.reply_text(f"Model switched to *{args[0]}* ✅", parse_mode="Markdown")
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
@@ -236,6 +256,7 @@ if __name__ == "__main__":
 
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("model", model_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("🤖 Antigravity Telegram bridge is running...")
