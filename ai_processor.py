@@ -33,7 +33,7 @@ def ask_agy(raw_data: str) -> dict:
     logger.info("Calling agy --print for data filtering...")
     try:
         result = subprocess.run(
-            [AGENTAPI_BIN, "--print", "--model=flash", prompt],
+            [AGENTAPI_BIN, "--print", prompt],
             capture_output=True, text=True, timeout=120
         )
         output = result.stdout.strip()

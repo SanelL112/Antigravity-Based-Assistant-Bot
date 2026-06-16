@@ -95,7 +95,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
             asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: subprocess.run(
-                    [AGENTAPI_BIN, "--continue", "--print", "--model=" + model, full_prompt],
+                    [AGENTAPI_BIN, "--continue", "--print", full_prompt],
                     capture_output=True, text=True, timeout=RESPONSE_TIMEOUT
                 )
             ),
