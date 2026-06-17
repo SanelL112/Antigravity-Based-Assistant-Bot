@@ -314,43 +314,36 @@ async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat_id != 8534649457:
         await context.bot.send_message(chat_id=chat_id, text="❌ Unauthorized.")
         return
-        
+
     cmd = " ".join(context.args)
     if not cmd:
         await context.bot.send_message(chat_id=chat_id, text="Usage: `/bash <command>`", parse_mode="Markdown")
         return
-        
+
     msg = await context.bot.send_message(chat_id=chat_id, text=f"💻 Running: `{cmd}`...", parse_mode="Markdown")
     try:
-        import subprocess
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
+        # Run with full root access via sudo
+        full_cmd = "echo 'Forgot@2023' | sudo -S bash -c " + repr(cmd)
+        result = subprocess.run(full_cmd, shell=True, capture_output=True, text=True, timeout=60)
         output = result.stdout + result.stderr
+        # Strip the sudo password prompt line
+        output = "\n".join(line for line in output.splitlines() if not line.startswith("[sudo]"))
         if not output.strip():
             output = "(No output)"
-            
-        # truncate if too long
-        if len(output) > 4000:
-            output = output[:4000] + "... (truncated)"
-            
-        await context.bot.edit_message_text(
-            chat_id=chat_id, 
-            message_id=msg.message_id, 
-            text=f"💻 **Command:** `{cmd}`
-
-```
-{output}
-```", 
-            parse_mode="Markdown"
-        )
+        if len(output) > 3800:
+            output = output[:3800] + "\n... (truncated)"
+        reply = "💻 **`" + cmd + "`**\n\n```\n" + output + "\n```"
+        try:
+            await context.bot.edit_message_text(
+                chat_id=chat_id, message_id=msg.message_id, text=reply, parse_mode="Markdown"
+            )
+        except Exception:
+            await context.bot.edit_message_text(
+                chat_id=chat_id, message_id=msg.message_id, text=reply
+            )
     except Exception as e:
         await context.bot.edit_message_text(
-            chat_id=chat_id, 
-            message_id=msg.message_id, 
-            text=f"❌ **Error executing command:**
-```
-{e}
-```", 
-            parse_mode="Markdown"
+            chat_id=chat_id, message_id=msg.message_id, text="❌ Error: " + str(e)
         )
 
 # ── Entry point ────────────────────────────────────────────────────────────────
