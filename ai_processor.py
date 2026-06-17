@@ -69,18 +69,66 @@ DIGEST_ASSEMBLY_PROMPT = (
 # ── agy helper ────────────────────────────────────────────────────────────────
 
 def call_agy(prompt: str, timeout: int = 180) -> str:
-    """Call agy --print with no conversation state. Returns stdout text."""
+    """Call agy --print using a PTY so it doesn't hang on pipe detection."""
+    import pty, select, time, os as _os
     try:
-        result = subprocess.run(
+        master, slave = pty.openpty()
+        proc = subprocess.Popen(
             [AGENTAPI_BIN, "--print", prompt],
-            capture_output=True, text=True, timeout=timeout
+            stdin=slave, stdout=slave, stderr=slave,
+            close_fds=True
         )
-        return result.stdout.strip()
+        _os.close(slave)
+
+        output_chunks = []
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            try:
+                r, _, _ = select.select([master], [], [], 1.0)
+                if r:
+                    try:
+                        chunk = _os.read(master, 4096)
+                        output_chunks.append(chunk)
+                    except OSError:
+                        break
+            except Exception:
+                break
+            if proc.poll() is not None:
+                # Drain any remaining output
+                try:
+                    while True:
+                        r, _, _ = select.select([master], [], [], 0.2)
+                        if r:
+                            chunk = _os.read(master, 4096)
+                            output_chunks.append(chunk)
+                        else:
+                            break
+                except OSError:
+                    pass
+                break
+
+        proc.wait(timeout=5) if proc.poll() is None else None
+        try:
+            _os.close(master)
+        except OSError:
+            pass
+
+        raw = b"".join(output_chunks).decode("utf-8", errors="replace")
+        # Strip ANSI escape codes and carriage returns
+        import re
+        clean = re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', raw)
+        clean = clean.replace('\r\n', '\n').replace('\r', '\n').strip()
+        return clean
+
     except subprocess.TimeoutExpired:
         logger.error(f"agy timed out after {timeout}s")
+        try:
+            proc.kill()
+        except Exception:
+            pass
         return ""
     except Exception as e:
-        logger.error(f"agy error: {e}")
+        logger.error(f"agy pty error: {e}")
         return ""
 
 
