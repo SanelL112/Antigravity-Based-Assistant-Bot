@@ -193,16 +193,20 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
             state["seen_tasks"].append(thash)
             logger.info(f"Pushed task to Notion: {task.get('title')}")
             
-    # 2. Telegram Alerts
-    for alert in ai_result.get("alerts", []):
-        ahash = get_hash(alert.get("id", alert.get("summary", "")))
-        if ahash not in state.setdefault("seen_alerts", []):
-            text = f"🔔 **New Alert from {alert.get('source')}**\nFrom: {alert.get('from', 'Unknown')}\n\n{alert.get('summary')}"
-            await context.bot.send_message(chat_id=chat_id, text=text, parse_mode="Markdown")
-            state["seen_alerts"].append(ahash)
+    # 2. Telegram Digest
+    digest = ai_result.get("digest", "")
+    if digest and digest != "Nothing to report right now!":
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "w") as f:
+                f.write(digest)
+        except Exception:
+            pass
+        try:
+            await context.bot.send_message(chat_id=chat_id, text=f"📊 **Periodic Digest**\n\n{digest}", parse_mode="Markdown")
+        except Exception:
+            await context.bot.send_message(chat_id=chat_id, text=f"📊 **Periodic Digest**\n\n{digest}")
             
     state["seen_tasks"] = state.get("seen_tasks", [])[-50:]
-    state["seen_alerts"] = state.get("seen_alerts", [])[-50:]
     save_state(state)
     logger.info("Background job: Complete.")
 
@@ -304,6 +308,51 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception:
         await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}")
 
+
+async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    if chat_id != 8534649457:
+        await context.bot.send_message(chat_id=chat_id, text="❌ Unauthorized.")
+        return
+        
+    cmd = " ".join(context.args)
+    if not cmd:
+        await context.bot.send_message(chat_id=chat_id, text="Usage: `/bash <command>`", parse_mode="Markdown")
+        return
+        
+    msg = await context.bot.send_message(chat_id=chat_id, text=f"💻 Running: `{cmd}`...", parse_mode="Markdown")
+    try:
+        import subprocess
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
+        output = result.stdout + result.stderr
+        if not output.strip():
+            output = "(No output)"
+            
+        # truncate if too long
+        if len(output) > 4000:
+            output = output[:4000] + "... (truncated)"
+            
+        await context.bot.edit_message_text(
+            chat_id=chat_id, 
+            message_id=msg.message_id, 
+            text=f"💻 **Command:** `{cmd}`
+
+```
+{output}
+```", 
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        await context.bot.edit_message_text(
+            chat_id=chat_id, 
+            message_id=msg.message_id, 
+            text=f"❌ **Error executing command:**
+```
+{e}
+```", 
+            parse_mode="Markdown"
+        )
+
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -326,6 +375,7 @@ if __name__ == "__main__":
 
     app.add_handler(CommandHandler("model", model_command))
     app.add_handler(CommandHandler("summary", summary_command))
+    app.add_handler(CommandHandler("bash", bash_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("🤖 Antigravity Telegram bridge is running...")
