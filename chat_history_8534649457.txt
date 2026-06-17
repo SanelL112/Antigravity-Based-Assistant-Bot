@@ -1,0 +1,6 @@
+User: Test
+Model: Hello! I am ready and online. Let me know if you need any help with your daily digest, such as checking your assignments for the AHA summer program, reviewing your recent emails, or catching up on the STEM in Space group chat updates.
+
+User: Test
+Model: I am still here and ready to help! If you have any questions about your assignments, emails, or group chats from the daily digest, feel free to ask. For example, I can remind you about the AHA summer program assignments, summarize your recent emails, or tell you what Shlok Bhatt mentioned in GroupMe.
+

@@ -165,14 +165,14 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     state = load_state()
     
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from scrapers.canvas_scraper import get_upcoming_assignments
+    from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments
     from ai_processor import process_all_sources
     from notion_client import add_task_to_notion
     
     logger.info("Background job: Scraping sources...")
-    canvas = get_upcoming_assignments()
+    canvas = get_all_canvas_data()
     classroom = get_classroom_assignments()
     gmail = get_unread_emails()
     groupme = get_latest_messages("102851186")
@@ -283,12 +283,12 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     import sys
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from scrapers.canvas_scraper import get_upcoming_assignments
+    from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments
     from ai_processor import process_all_sources
     
-    canvas = get_upcoming_assignments()
+    canvas = get_all_canvas_data()
     classroom = get_classroom_assignments()
     gmail = get_unread_emails()
     groupme = get_latest_messages("102851186")

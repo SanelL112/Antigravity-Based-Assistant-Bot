@@ -3,7 +3,7 @@ Description=Personal Assistant Telegram Bot
 After=network.target
 
 [Service]
-User=root
+User=sanel
 WorkingDirectory=/opt/personal-assistant-bot
 ExecStart=/opt/personal-assistant-bot/venv/bin/python main.py
 Restart=always
