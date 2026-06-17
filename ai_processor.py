@@ -69,14 +69,11 @@ DIGEST_ASSEMBLY_PROMPT = (
 # ── agy helper ────────────────────────────────────────────────────────────────
 
 def call_agy(prompt: str, timeout: int = 180) -> str:
-    """Call agy --print with an isolated scraper HOME. Returns stdout text."""
-    env = os.environ.copy()
-    env["HOME"] = "/home/sanel/scraper_home"
-    os.makedirs("/home/sanel/scraper_home", exist_ok=True)
+    """Call agy --print with no conversation state. Returns stdout text."""
     try:
         result = subprocess.run(
             [AGENTAPI_BIN, "--print", prompt],
-            capture_output=True, text=True, timeout=timeout, env=env
+            capture_output=True, text=True, timeout=timeout
         )
         return result.stdout.strip()
     except subprocess.TimeoutExpired:
