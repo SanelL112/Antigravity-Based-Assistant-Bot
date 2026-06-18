@@ -97,8 +97,38 @@ TOPIC_KEYWORDS = {
     ],
 }
 
-def detect_topic(message: str) -> str:
-    """Detect conversation topic from message keywords. Returns 'server', 'school', or 'general'."""
+async def detect_topic(message: str) -> str:
+    """Detect conversation topic using local Ollama model. Returns 'server', 'school', or 'general'."""
+    prompt = (
+        "You are a topic classifier. Categorize the following message into exactly one of these three categories: "
+        "'server' (code, linux, bot, bash, errors, git, docker, processes), "
+        "'school' (canvas, homework, notion tasks, grades, clubs, google classroom), "
+        "or 'general' (anything else, small talk, unrelated questions). "
+        "Reply with ONLY the category name in lowercase and nothing else.\n\n"
+        f"Message: {message}"
+    )
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"temperature": 0.0}
+                },
+                timeout=10.0
+            )
+        if response.status_code == 200:
+            result = response.json().get("response", "").strip().lower()
+            if "server" in result: return "server"
+            if "school" in result: return "school"
+            return "general"
+    except Exception as e:
+        logger.error(f"Ollama topic detection failed: {e}")
+    
+    # Fallback to simple keyword matching if Ollama fails
     msg_lower = message.lower()
     scores = {topic: 0 for topic in TOPIC_KEYWORDS}
     for topic, keywords in TOPIC_KEYWORDS.items():
@@ -120,7 +150,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         digest_context = "No recent data available."
 
     # Detect topic and load the matching history file
-    topic = detect_topic(user_message)
+    topic = await detect_topic(user_message)
     history_dir = os.path.dirname(os.path.abspath(__file__))
     history_file = os.path.join(history_dir, f"chat_history_{chat_id}_{topic}.txt")
     logger.info(f"Topic detected: {topic} -> {os.path.basename(history_file)}")
