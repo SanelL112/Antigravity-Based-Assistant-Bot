@@ -50,6 +50,14 @@ SOURCE_PROMPTS = {
         "Do NOT write JSON. Just clean readable text.\n\n"
         "Raw GroupMe data:\n{data}"
     ),
+    "classroom_announcements": (
+        "You are summarizing Google Classroom announcements for Sanel Lathiya's personal assistant bot.\n"
+        "Given the raw announcements below, produce a SHORT plain-text summary (max 6 bullet points).\n"
+        "Focus only on NEW, important announcements (things teachers just posted).\n"
+        "If nothing important, write: 'No new Classroom announcements.'\n"
+        "Do NOT write JSON. Just clean readable text.\n\n"
+        "Raw Classroom Announcements:\n{data}"
+    ),
 }
 
 DIGEST_ASSEMBLY_PROMPT = (
@@ -57,7 +65,7 @@ DIGEST_ASSEMBLY_PROMPT = (
     "Below are pre-processed summaries from each data source. "
     "Assemble them into ONE beautifully formatted Markdown digest message to send via Telegram.\n\n"
     "Rules:\n"
-    "- Use emoji section headers: 📚 Canvas, 🏫 Google Classroom, 📧 Gmail, 💬 GroupMe\n"
+    "- Use emoji section headers: 📚 Canvas, 🏫 Google Classroom, 📢 Classroom Announcements, 📧 Gmail, 💬 GroupMe\n"
     "- Keep each section concise. Skip sections that say 'No urgent updates'.\n"
     "- End with a friendly one-liner.\n"
     "- Return ONLY the Markdown text, no JSON, no explanation.\n\n"
@@ -200,13 +208,14 @@ def assemble_digest(summaries: dict) -> dict:
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 
-def process_all_sources(canvas_data="", classroom_data="", gmail_data="", groupme_data="") -> dict:
+def process_all_sources(canvas_data="", classroom_data="", gmail_data="", groupme_data="", classroom_announcements_data="") -> dict:
     """Process each source separately via agy, then assemble into final digest."""
     sources = {
         "canvas": canvas_data,
         "classroom": classroom_data,
         "gmail": gmail_data,
         "groupme": groupme_data,
+        "classroom_announcements": classroom_announcements_data,
     }
 
     summaries = {}

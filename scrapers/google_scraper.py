@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/classroom.courses.readonly',
-    'https://www.googleapis.com/auth/classroom.coursework.me.readonly'
+    'https://www.googleapis.com/auth/classroom.coursework.me.readonly',
+    'https://www.googleapis.com/auth/classroom.announcements.readonly'
 ]
 
 CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), '..', 'credentials.json')
@@ -112,9 +113,51 @@ def get_classroom_assignments():
         logger.error(f"Error fetching Classroom data: {e}")
         return f"Error connecting to Google Classroom: {e}"
 
+
+def get_classroom_announcements(limit=10):
+    """Fetch recent announcements from all active Google Classroom courses."""
+    creds = get_google_credentials()
+    if not creds:
+        return "Google API credentials not configured."
+
+    try:
+        service = build('classroom', 'v1', credentials=creds)
+        results = service.courses().list(courseStates=['ACTIVE']).execute()
+        courses = results.get('courses', [])
+
+        if not courses:
+            return "No active Google Classroom courses found."
+
+        result = ["📢 **Google Classroom Announcements:**"]
+        for course in courses:
+            try:
+                announcements = service.courses().announcements().list(
+                    courseId=course['id'],
+                    announcementStates=['PUBLISHED'],
+                    pageSize=limit
+                ).execute()
+                items = announcements.get('announcements', [])
+                for item in items:
+                    text = item.get('text', '(no text)').replace('\n', ' ').strip()
+                    if len(text) > 200:
+                        text = text[:200] + '...'
+                    result.append(f"[{course['name']}] {text}")
+            except Exception as e:
+                logger.warning(f"Could not fetch announcements for {course['name']}: {e}")
+
+        if len(result) == 1:
+            return "No recent Classroom announcements found."
+
+        return "\n".join(result)
+    except Exception as e:
+        logger.error(f"Error fetching Classroom announcements: {e}")
+        return f"Error connecting to Google Classroom: {e}"
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     print("Testing Gmail API...")
     print(get_unread_emails())
-    print("\nTesting Google Classroom API...")
+    print("\nTesting Google Classroom Assignments...")
     print(get_classroom_assignments())
+    print("\nTesting Google Classroom Announcements...")
+    print(get_classroom_announcements())

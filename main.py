@@ -276,19 +276,20 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
-    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments
+    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
     
     logger.info("Watchdog: Scraping sources...")
     try:
         canvas = get_all_canvas_data()
         classroom = get_classroom_assignments()
+        classroom_ann = get_classroom_announcements()
         gmail = get_unread_emails()
         groupme = get_latest_messages("102851186")
     except Exception as e:
         logger.error(f"Watchdog scrape error: {e}")
         return
 
-    raw_data = f"CANVAS:\n{canvas[:1000]}\n\nCLASSROOM:\n{classroom[:1000]}\n\nGMAIL:\n{gmail[:1000]}\n\nGROUPME:\n{groupme[:1000]}"
+    raw_data = f"CANVAS:\n{canvas[:800]}\n\nCLASSROOM:\n{classroom[:800]}\n\nCLASSROOM ANNOUNCEMENTS:\n{classroom_ann[:800]}\n\nGMAIL:\n{gmail[:800]}\n\nGROUPME:\n{groupme[:800]}"
     
     prompt = (
         "You are an urgent alert watchdog. Read the following recent school and email notifications.\n"
@@ -332,18 +333,19 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
-    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments
+    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
     from ai_processor import process_all_sources
     from notion_client import add_task_to_notion
     
     logger.info("Background job: Scraping sources...")
     canvas = get_all_canvas_data()
     classroom = get_classroom_assignments()
+    classroom_ann = get_classroom_announcements()
     gmail = get_unread_emails()
     groupme = get_latest_messages("102851186")
     
     logger.info("Background job: Processing with AI...")
-    ai_result = process_all_sources(canvas, classroom, gmail, groupme)
+    ai_result = process_all_sources(canvas, classroom, gmail, groupme, classroom_ann)
     
     # 1. Notion Tasks
     for task in ai_result.get("tasks", []):
