@@ -355,7 +355,11 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
                 title=task.get("title"),
                 source=task.get("source"),
                 due_date=task.get("due_date"),
-                url=task.get("url")
+                url=task.get("url"),
+                priority=task.get("priority", "medium"),
+                status="Not started",
+                start_value=task.get("start_value", 0),
+                end_value=task.get("end_value", 100),
             )
             state["seen_tasks"].append(thash)
             logger.info(f"Pushed task to Notion: {task.get('title')}")

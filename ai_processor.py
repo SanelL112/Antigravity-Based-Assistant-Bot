@@ -71,7 +71,7 @@ DIGEST_ASSEMBLY_PROMPT = (
     "- Return ONLY the Markdown text, no JSON, no explanation.\n\n"
     "Summaries:\n{summaries}\n\n"
     "Also return a JSON list of tasks on the LAST LINE in this exact format (one line):\n"
-    "TASKS_JSON:[{{\"id\":\"...\",\"title\":\"...\",\"source\":\"...\",\"due_date\":null,\"url\":null}}]"
+    "TASKS_JSON:[{\"id\":\"...\",\"title\":\"...\",\"source\":\"...\",\"due_date\":null,\"priority\":\"medium\",\"start_value\":0,\"end_value\":100}]"
 )
 
 # ── agy helper ────────────────────────────────────────────────────────────────
