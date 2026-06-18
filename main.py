@@ -576,6 +576,40 @@ async def priority_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=chat_id, text="❌ Failed to update Notion.")
 
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Downloads a photo sent to the bot, saves it, and asks the AI to process it."""
+    chat_id = update.effective_chat.id
+    if chat_id != 8534649457:
+        await update.message.reply_text("❌ Unauthorized user.")
+        return
+        
+    msg = await update.message.reply_text("📸 Downloading image...")
+    
+    # Get the largest resolution photo
+    photo_file = await update.message.photo[-1].get_file()
+    download_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_homework.jpg")
+    await photo_file.download_to_drive(download_path)
+    
+    caption = update.message.caption or ""
+    await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="🔍 Processing image with AI...")
+    
+    # Pass the image path in the user prompt so the AI can use view_file to look at it
+    prompt = f"I just sent you a photo of my homework/assignment. The image is saved locally at {download_path}. Use your view_file tool to look at the image. If there's an assignment, push it to my Notion Tracker. Please tell me what you extracted!"
+    if caption:
+        prompt += f"\n\nI also added this caption: {caption}"
+        
+    # Send it to the same AI handler used for text messages
+    response = await send_to_antigravity_and_wait(prompt, chat_id)
+    
+    try:
+        await context.bot.edit_message_text(
+            chat_id=chat_id, message_id=msg.message_id, text=response, parse_mode="Markdown"
+        )
+    except Exception:
+        await context.bot.edit_message_text(
+            chat_id=chat_id, message_id=msg.message_id, text=response
+        )
+
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -603,6 +637,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("summary", summary_command))
     app.add_handler(CommandHandler("bash", bash_command))
     app.add_handler(CommandHandler("p", priority_command))
+    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("🤖 Antigravity Telegram bridge is running...")
