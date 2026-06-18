@@ -1,3 +1,3 @@
-* **Notion**: A new device logged into your account (Security notice).
-* **Google**: Security alert.
-* **BigFuture**: Scholarship deadline is June 30.
+* **Google Security Alert**: Action may be required to secure your Google account.
+* **Notion Security Alert**: A new device has logged into your Notion account.
+* **BigFuture Scholarship Deadline**: Reminder that the scholarship deadline is June 30.

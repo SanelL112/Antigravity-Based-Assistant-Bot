@@ -58,6 +58,12 @@ SOURCE_PROMPTS = {
         "Do NOT write JSON. Just clean readable text.\n\n"
         "Raw Classroom Announcements:\n{data}"
     ),
+    "gdocs": (
+        "You are an offline filtering AI. Read the text of these recent Google Docs.\n"
+        "Extract ONLY the sentences that look like homework, assignments, or important dates.\n"
+        "If there is nothing important, reply exactly with: 'No urgent docs.'\n"
+        "Raw Docs Text:\n{data}"
+    ),
 }
 
 DIGEST_ASSEMBLY_PROMPT = (
@@ -140,6 +146,30 @@ def call_agy(prompt: str, timeout: int = 180, model: str = "pro") -> str:
         logger.error(f"agy pty error: {e}")
         return ""
 
+def call_local_llm(prompt: str) -> str:
+    """Calls Qwen2 0.5B via Ollama for fast, local, offline filtering."""
+    import requests
+    try:
+        res = requests.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": "qwen2:0.5b",
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0.0}
+            },
+            timeout=120.0
+        )
+        if res.status_code == 200:
+            return res.json().get("response", "").strip()
+        else:
+            logger.error(f"Ollama returned {res.status_code}")
+            return "Could not summarize locally."
+    except Exception as e:
+        logger.error(f"Ollama connection error: {e}")
+        return "Local LLM offline."
+
+
 
 # ── Per-source processing ─────────────────────────────────────────────────────
 
@@ -153,14 +183,14 @@ def process_source(name: str, data: str) -> str:
             f.write(summary)
         return summary
 
-    # Trim to 1500 chars per source to keep each agy call fast
+    # Trim to 1500 chars per source to keep the local LLM call fast and prevent context overflow
     trimmed = data[:1500] + ("\n[...trimmed...]" if len(data) > 1500 else "")
     prompt = SOURCE_PROMPTS[name].format(data=trimmed)
-    logger.info(f"Calling agy for {name} ({len(prompt)} chars)...")
+    logger.info(f"Calling LOCAL Qwen2 0.5B for {name} ({len(prompt)} chars)...")
 
-    summary = call_agy(prompt, timeout=180)
+    summary = call_local_llm(prompt)
     if not summary:
-        summary = f"Could not summarize {name} data."
+        summary = f"Could not summarize {name} data locally."
 
     with open(cache_file, "w") as f:
         f.write(summary)
@@ -179,6 +209,20 @@ def assemble_digest(summaries: dict) -> dict:
     # Save combined summaries to file for reference
     with open(os.path.join(CACHE_DIR, "combined_summaries.txt"), "w") as f:
         f.write(summary_text)
+        
+    # Read and inject local OCR / photo extracts
+    extracts_file = os.path.join(BOT_DIR, "important_extracts.txt")
+    if os.path.exists(extracts_file):
+        try:
+            with open(extracts_file, "r") as f:
+                extracts = f.read().strip()
+            if extracts:
+                summary_text += f"\n=== LOCAL PHOTO / OFFLINE EXTRACTS ===\n{extracts}\n\n"
+            # Clear the file now that it's in the digest
+            with open(extracts_file, "w") as f:
+                f.write("")
+        except Exception as e:
+            logger.error(f"Failed to read extracts: {e}")
 
     prompt = DIGEST_ASSEMBLY_PROMPT.format(summaries=summary_text)
     logger.info("Assembling final digest via agy...")

@@ -1,7 +1,12 @@
-Here are the latest Google Classroom announcements for the 2026 Summer SAT/ACT course:
+Here is a summary of the latest Google Classroom announcements:
 
-* **Upcoming Mock Exam (Day 13):** The first mock exam is scheduled in about a week. Students must submit a plan detailing their preparation routine starting today.
-* **Handwritten Formula Sheet:** An ongoing assignment to organize and write all important formulas by hand using class notes (AI tools like ChatGPT are strictly prohibited).
-* **Day 12 Math Assignment:** Solve the geometry problems regarding supplementary angles and a rectangle's diagonal.
-* **Day 11 Text Assignment:** Send your text response to the teacher at 678-429-1709.
-* **Day 7 Video Submission:** Submit your homework video for the Proportions, Lines, and Angles assignment.
+* **Mock Exam Preparation (Day 13)**: The first mock exam is scheduled in nearly a week. You must detail your daily routine/prep plan to ensure you are awake and alert.
+* **Formula Sheet Assignment (Day 8 / Ongoing)**: Create a handwritten formula sheet using only your notes. The use of ChatGPT or any other AI tools is strictly prohibited.
+* **Day 12 Math Practice**: Solve the posted supplement angle and rectangle diagonal math problems.
+* **Day 7 Homework Video**: Submit the video explaining your Day 7 homework (Proportions and Lines and Angles).
+* **Day 11 Halfway Update**: The course is halfway through content. Text the instructor at 678-429-1709 with the required information.
+* **ACT Question Set (6/13)**: Complete the Saturday ACT questions and reply with your honest feedback/opinion.
+
+---
+### Summary of Work
+Processed the raw Classroom announcements and produced a plain-text summary highlighting the most critical recent updates, homework submissions, and exam preparation requirements.

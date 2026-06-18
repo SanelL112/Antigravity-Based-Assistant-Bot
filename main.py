@@ -592,23 +592,60 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await photo_file.download_to_drive(download_path)
     
     caption = update.message.caption or ""
-    await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="🔍 Processing image with AI...")
-    
-    # Pass the image path in the user prompt so the AI can use view_file to look at it
-    prompt = f"I just sent you a photo of my homework/assignment. The image is saved locally at {download_path}. Use your view_file tool to look at the image. If there's an assignment, push it to my Notion Tracker. Please tell me what you extracted!"
-    if caption:
-        prompt += f"\n\nI also added this caption: {caption}"
-        
-    # Send it to the same AI handler used for text messages
-    response = await send_to_antigravity_and_wait(prompt, chat_id)
+    await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="🔍 Running local OCR (Tesseract)...")
     
     try:
+        import pytesseract
+        from PIL import Image
+        ocr_text = pytesseract.image_to_string(Image.open(download_path))
+        if not ocr_text.strip():
+            ocr_text = "(No text found in image)"
+    except Exception as e:
+        await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"❌ OCR Error: {e}")
+        return
+
+    await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="🧠 Filtering with local Qwen2 model...")
+    
+    prompt = (
+        "You are an offline filtering AI. Read the text extracted from this photo.\n"
+        "Extract ONLY the sentences that look like homework, assignments, or important dates.\n"
+        "If there is nothing important, reply exactly with: 'NO_ALERT'\n\n"
+        f"Caption: {caption}\nPhoto OCR Text:\n{ocr_text}"
+    )
+    
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "qwen2:0.5b",
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"temperature": 0.0}
+                },
+                timeout=120.0
+            )
+        if response.status_code == 200:
+            extracted = response.json().get("response", "").strip()
+            if extracted and "NO_ALERT" not in extracted.upper():
+                with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
+                    f.write(f"\n--- Photo Upload ---\n{extracted}\n")
+                reply = f"✅ Important text found and saved for the next digest!\n\n_Filtered preview:_\n{extracted}"
+            else:
+                reply = "🗑️ Local AI found no urgent assignments in this photo. Ignored."
+        else:
+            reply = "❌ Local LLM offline or returned an error."
+    except Exception as e:
+        reply = f"❌ Local LLM connection error: {e}"
+        
+    try:
         await context.bot.edit_message_text(
-            chat_id=chat_id, message_id=msg.message_id, text=response, parse_mode="Markdown"
+            chat_id=chat_id, message_id=msg.message_id, text=reply, parse_mode="Markdown"
         )
     except Exception:
         await context.bot.edit_message_text(
-            chat_id=chat_id, message_id=msg.message_id, text=response
+            chat_id=chat_id, message_id=msg.message_id, text=reply
         )
 
 # ── Entry point ────────────────────────────────────────────────────────────────
