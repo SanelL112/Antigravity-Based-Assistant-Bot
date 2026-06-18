@@ -14,7 +14,9 @@ SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/classroom.courses.readonly',
     'https://www.googleapis.com/auth/classroom.coursework.me.readonly',
-    'https://www.googleapis.com/auth/classroom.announcements.readonly'
+    'https://www.googleapis.com/auth/classroom.announcements.readonly',
+    'https://www.googleapis.com/auth/documents.readonly',
+    'https://www.googleapis.com/auth/drive.readonly'
 ]
 
 CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), '..', 'credentials.json')
@@ -152,6 +154,56 @@ def get_classroom_announcements(limit=10):
     except Exception as e:
         logger.error(f"Error fetching Classroom announcements: {e}")
         return f"Error connecting to Google Classroom: {e}"
+
+def get_recent_google_docs():
+    """Fetches text from Google Docs modified in the last 4 hours."""
+    creds = get_google_credentials()
+    if not creds:
+        return "Not authenticated."
+
+    try:
+        drive_service = build('drive', 'v3', credentials=creds, cache_discovery=False)
+        docs_service = build('docs', 'v1', credentials=creds, cache_discovery=False)
+
+        import datetime
+        four_hours_ago = (datetime.datetime.utcnow() - datetime.timedelta(hours=4)).isoformat() + "Z"
+        
+        # Search for Google Docs modified in the last 4 hours
+        query = f"mimeType='application/vnd.google-apps.document' and modifiedTime > '{four_hours_ago}' and trashed=false"
+        results = drive_service.files().list(q=query, fields="files(id, name)", pageSize=10).execute()
+        items = results.get('files', [])
+
+        if not items:
+            return "No recently modified Google Docs found."
+
+        output = ["Recent Google Docs:"]
+        for item in items:
+            doc_id = item['id']
+            title = item['name']
+            try:
+                # Fetch the document content
+                doc = docs_service.documents().get(documentId=doc_id).execute()
+                text_content = ""
+                for element in doc.get('body', {}).get('content', []):
+                    if 'paragraph' in element:
+                        for pe in element['paragraph']['elements']:
+                            if 'textRun' in pe:
+                                text_content += pe['textRun']['content']
+                
+                # Truncate if it's super long to save tokens
+                text_content = text_content.strip()
+                if len(text_content) > 1000:
+                    text_content = text_content[:1000] + "\n...[truncated]"
+                    
+                output.append(f"--- Doc: {title} ---\n{text_content}\n")
+            except Exception as e:
+                logger.warning(f"Could not read doc {title}: {e}")
+
+        return "\n".join(output)
+    except Exception as e:
+        logger.error(f"Error fetching Google Docs: {e}")
+        return f"Error connecting to Google Drive/Docs: {e}"
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

@@ -240,18 +240,36 @@ def assemble_digest(summaries: dict) -> dict:
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 
-def process_all_sources(canvas_data="", classroom_data="", gmail_data="", groupme_data="", classroom_announcements_data="") -> dict:
-    """Process each source separately via agy, then assemble into final digest."""
-    sources = {
-        "canvas": canvas_data,
-        "classroom": classroom_data,
-        "gmail": gmail_data,
-        "groupme": groupme_data,
-        "classroom_announcements": classroom_announcements_data,
+def process_all_sources(canvas_data: str, classroom_data: str, gmail_data: str, groupme_data: str, classroom_ann_data: str = "No recent announcements.", gdocs_data: str = "No recent docs.") -> dict:
+    """Passes all raw data through the AI pipeline."""
+    
+    # 1. Summarize each source (could run in parallel, but sequential is fine for now)
+    logger.info("Summarizing Canvas...")
+    canvas_summary = process_source("canvas", canvas_data)
+    
+    logger.info("Summarizing Google Classroom Assignments...")
+    classroom_summary = process_source("classroom", classroom_data)
+    
+    logger.info("Summarizing Google Classroom Announcements...")
+    classroom_ann_summary = process_source("classroom_announcements", classroom_ann_data)
+    
+    logger.info("Summarizing Gmail...")
+    gmail_summary = process_source("gmail", gmail_data)
+    
+    logger.info("Summarizing GroupMe...")
+    groupme_summary = process_source("groupme", groupme_data)
+    
+    logger.info("Summarizing Google Docs...")
+    gdocs_summary = process_source("gdocs", gdocs_data)
+    
+    # 2. Combine all summaries into one assembly block
+    summaries = {
+        "canvas": canvas_summary,
+        "classroom": classroom_summary,
+        "classroom_announcements": classroom_ann_summary,
+        "gmail": gmail_summary,
+        "groupme": groupme_summary,
+        "gdocs": gdocs_summary,
     }
-
-    summaries = {}
-    for name, data in sources.items():
-        summaries[name] = process_source(name, data)
-
+    
     return assemble_digest(summaries)

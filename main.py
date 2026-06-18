@@ -338,7 +338,7 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
-    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
+    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
     from ai_processor import process_all_sources
     from notion_client import add_task_to_notion, update_notion_task
     
@@ -348,9 +348,10 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     classroom_ann = get_classroom_announcements()
     gmail = get_unread_emails()
     groupme = get_latest_messages("102851186")
+    gdocs = get_recent_google_docs()
     
     logger.info("Background job: Processing with AI...")
-    ai_result = process_all_sources(canvas, classroom, gmail, groupme, classroom_ann)
+    ai_result = process_all_sources(canvas, classroom, gmail, groupme, classroom_ann, gdocs)
     
     # 1. Notion Tasks
     for task in ai_result.get("tasks", []):
