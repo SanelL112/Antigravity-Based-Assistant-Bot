@@ -92,20 +92,26 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
 
     system = (
         f"You are a powerful personal assistant AI for Sanel Lathiya running on his personal Debian server. "
-        f"You have the following capabilities:\n\n"
-        f"1. FULL ROOT SERVER ACCESS: You can run ANY shell command on the server as root via the /bash command. "
-        f"This includes installing software, editing files, managing services, viewing logs, restarting the bot, "
-        f"pulling code from GitHub, and anything else a root user can do. "
-        f"When Sanel asks you to do something on the server, tell him to use /bash <command> or offer to guide him. "
-        f"You can also suggest specific /bash commands for him to run.\n\n"
-        f"2. DIGEST & MONITORING: Every 4 hours you automatically scrape Canvas (assignments, announcements, pages), "
-        f"Google Classroom, Gmail, and GroupMe — then send Sanel a digest. "
-        f"He can also trigger this manually with /summary.\n\n"
-        f"3. NOTION INTEGRATION: New tasks from Canvas and Classroom are automatically pushed to his Notion Tasks Tracker.\n\n"
-        f"4. CONVERSATIONAL MEMORY: You remember past conversations via chat history files on the server.\n\n"
+        f"You have FULL ROOT ACCESS to the server and can execute any shell command automatically.\n\n"
+        f"CRITICAL INSTRUCTION — COMMAND EXECUTION:\n"
+        f"When Sanel asks you to DO something on the server (install software, restart services, check logs, "
+        f"edit files, run scripts, manage processes, etc.), you MUST execute it yourself immediately. "
+        f"Do NOT tell him to run /bash himself. Instead, wrap the shell command in <BASH> tags like this:\n"
+        f"<BASH>your command here</BASH>\n"
+        f"The system will automatically run that command as root and show him the output. "
+        f"You can chain multiple commands. Always include <BASH> tags when action is needed.\n\n"
+        f"Examples:\n"
+        f"- 'install htop' → <BASH>apt-get install -y htop</BASH>\n"
+        f"- 'restart the bot' → <BASH>systemctl restart bot</BASH>\n"
+        f"- 'show bot logs' → <BASH>journalctl -u bot -n 30 --no-pager</BASH>\n"
+        f"- 'what processes are running' → <BASH>ps aux --sort=-%cpu | head -20</BASH>\n\n"
+        f"OTHER CAPABILITIES:\n"
+        f"- Every 4 hours: auto-digest from Canvas, Classroom, Gmail, GroupMe\n"
+        f"- Notion: assignments auto-pushed to Tasks Tracker\n"
+        f"- /summary: manual digest trigger\n"
+        f"- /bash <cmd>: Sanel can also run commands directly himself\n\n"
         f"Here is the latest data digest:\n\n{digest_context}\n\n"
-        f"Use this context if Sanel asks about assignments, emails, or messages. "
-        f"Be direct, helpful, and concise. When asked what you can do, explain all capabilities above."
+        f"Be direct and take action immediately when asked. Never ask for permission."
     )
     
     # Custom conversational memory
@@ -139,7 +145,29 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         if not out:
             logger.error(f"Empty agy output. stderr: {result.stderr[:300]}")
             return "⚠️ No response from assistant. Please try again."
-            
+
+        # Auto-execute any <BASH>...</BASH> blocks in the response
+        import re as _re
+        def _run_bash(cmd):
+            try:
+                r = subprocess.run(
+                    f"echo 'Forgot@2023' | sudo -S bash -c {repr(cmd.strip())}",
+                    shell=True, capture_output=True, text=True, timeout=60
+                )
+                result_text = (r.stdout + r.stderr).strip()
+                result_text = "\n".join(l for l in result_text.splitlines() if not l.startswith("[sudo]"))
+                return result_text[:2000] if result_text else "(no output)"
+            except Exception as ex:
+                return f"Error: {ex}"
+
+        def _replace_bash(m):
+            cmd = m.group(1).strip()
+            logger.info(f"Auto-executing: {cmd[:80]}")
+            output = _run_bash(cmd)
+            return f"\n💻 `{cmd}`\n```\n{output}\n```"
+
+        out = _re.sub(r'<BASH>(.*?)</BASH>', _replace_bash, out, flags=_re.DOTALL)
+
         # Append turn to custom history file
         with open(history_file, "a") as f:
             f.write(f"User: {user_message}\nModel: {out}\n\n")
