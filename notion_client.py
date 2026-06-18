@@ -118,12 +118,52 @@ def add_task_to_notion(
             timeout=15,
         )
         res.raise_for_status()
-        logger.info(f"Pushed to Notion Tracker: {title}")
-        return True
+        page_id = res.json().get("id")
+        logger.info(f"Pushed to Notion Tracker: {title} (ID: {page_id})")
+        return page_id
     except Exception as e:
         logger.error(f"Failed to push to Notion: {e}")
         if "res" in locals():
             logger.error(res.text[:500])
+        return None
+
+def update_notion_task(page_id: str, priority: str = None, status: str = None):
+    """Updates an existing Notion task's priority and/or status."""
+    if not NOTION_API_KEY or NOTION_API_KEY == "your_notion_api_key":
+        return False
+        
+    headers = {
+        "Authorization": f"Bearer {NOTION_API_KEY}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28",
+    }
+    
+    properties = {}
+    if priority:
+        priority = priority.lower()
+        if priority in PRIORITY_OPTIONS:
+            properties["Priority"] = {"select": {"name": priority.capitalize()}}
+            
+    if status:
+        if status in STATUS_OPTIONS:
+            properties["Status"] = {"status": {"name": status}}
+            
+    if not properties:
+        return True
+        
+    data = {"properties": properties}
+    
+    try:
+        res = requests.patch(
+            f"https://api.notion.com/v1/pages/{page_id}",
+            headers=headers,
+            json=data,
+            timeout=15,
+        )
+        res.raise_for_status()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to update Notion page {page_id}: {e}")
         return False
 
 

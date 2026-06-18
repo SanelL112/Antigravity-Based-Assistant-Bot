@@ -263,8 +263,11 @@ def get_hash(text):
 def load_state():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r") as f:
-            return json.load(f)
-    return {"seen_tasks": [], "seen_alerts": []}
+            state = json.load(f)
+            if "pending_priorities" not in state:
+                state["pending_priorities"] = {}
+            return state
+    return {"seen_tasks": [], "seen_alerts": [], "pending_priorities": {}}
 
 def save_state(state):
     with open(STATE_FILE, "w") as f:
@@ -335,7 +338,7 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     from scrapers.groupme_scraper import get_latest_messages
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
     from ai_processor import process_all_sources
-    from notion_client import add_task_to_notion
+    from notion_client import add_task_to_notion, update_notion_task
     
     logger.info("Background job: Scraping sources...")
     canvas = get_all_canvas_data()
@@ -351,18 +354,31 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     for task in ai_result.get("tasks", []):
         thash = get_hash(task.get("id", task.get("title", "")))
         if thash not in state.setdefault("seen_tasks", []):
-            add_task_to_notion(
+            priority = task.get("priority", "medium").lower()
+            page_id = add_task_to_notion(
                 title=task.get("title"),
                 source=task.get("source"),
                 due_date=task.get("due_date"),
                 url=task.get("url"),
-                priority=task.get("priority", "medium"),
+                priority="medium" if priority == "unknown" else priority,
                 status="Not started",
                 start_value=task.get("start_value", 0),
                 end_value=task.get("end_value", 100),
             )
             state["seen_tasks"].append(thash)
-            logger.info(f"Pushed task to Notion: {task.get('title')}")
+            
+            if page_id and priority == "unknown":
+                short_id = thash[:6]
+                state.setdefault("pending_priorities", {})[short_id] = page_id
+                save_state(state)
+                await context.bot.send_message(
+                    chat_id=chat_id, 
+                    text=f"🤔 **New task pushed to Notion:**\n_{task.get('title')}_\n\nI couldn't determine the priority. Reply with `/p {short_id} high` (or medium/low) to set it!",
+                    parse_mode="Markdown"
+                )
+            else:
+                save_state(state)
+                logger.info(f"Pushed task to Notion: {task.get('title')}")
             
     # 2. Telegram Digest
     digest = ai_result.get("digest", "")
@@ -517,6 +533,33 @@ async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=chat_id, message_id=msg.message_id, text="❌ Error: " + str(e)
         )
 
+async def priority_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    if len(context.args) != 2:
+        await context.bot.send_message(chat_id=chat_id, text="Usage: `/p <short_id> <high/medium/low>`", parse_mode="Markdown")
+        return
+        
+    short_id, priority = context.args[0], context.args[1].lower()
+    if priority not in ["high", "medium", "low"]:
+        await context.bot.send_message(chat_id=chat_id, text="Priority must be high, medium, or low.")
+        return
+
+    state = load_state()
+    page_id = state.get("pending_priorities", {}).get(short_id)
+    if not page_id:
+        await context.bot.send_message(chat_id=chat_id, text=f"❌ Could not find pending task with ID `{short_id}`.", parse_mode="Markdown")
+        return
+
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from notion_client import update_notion_task
+    
+    if update_notion_task(page_id, priority=priority):
+        del state["pending_priorities"][short_id]
+        save_state(state)
+        await context.bot.send_message(chat_id=chat_id, text=f"✅ Task priority updated to **{priority.capitalize()}** in Notion!", parse_mode="Markdown")
+    else:
+        await context.bot.send_message(chat_id=chat_id, text="❌ Failed to update Notion.")
+
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -543,6 +586,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("model", model_command))
     app.add_handler(CommandHandler("summary", summary_command))
     app.add_handler(CommandHandler("bash", bash_command))
+    app.add_handler(CommandHandler("p", priority_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("🤖 Antigravity Telegram bridge is running...")
