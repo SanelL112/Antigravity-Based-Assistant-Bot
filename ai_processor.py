@@ -74,7 +74,7 @@ def call_agy(prompt: str, timeout: int = 180) -> str:
     try:
         master, slave = pty.openpty()
         proc = subprocess.Popen(
-            [AGENTAPI_BIN, "--print", prompt],
+            [AGENTAPI_BIN, "--model", "pro", "--print", prompt],
             stdin=slave, stdout=slave, stderr=slave,
             close_fds=True
         )
