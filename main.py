@@ -240,57 +240,57 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         logger.error(f"All models failed. Last error: {err_text}")
         return "⚠️ No response from assistant. Please try again."
 
-        # Auto-execute any <BASH>...</BASH> blocks in the response
-        import re as _re
-        
-        # Safety: block obviously destructive commands
-        BLOCKED_PATTERNS = ['rm -rf /', 'mkfs', 'dd if=', ':(){', 'fork bomb', '> /dev/sda', 'chmod -R 777 /', 'shutdown', 'reboot', 'init 0']
-        
-        def _run_bash(cmd):
-            # Safety check
-            for blocked in BLOCKED_PATTERNS:
-                if blocked in cmd.lower():
-                    logger.warning(f"BLOCKED dangerous command: {cmd[:80]}")
-                    return f"⛔ BLOCKED: Command matched safety filter ({blocked})"
-            try:
-                sudo_pw = SUDO_PASSWORD or os.getenv('SUDO_PASSWORD', '')
-                if sudo_pw:
-                    full_cmd = f"echo '{sudo_pw}' | sudo -S bash -c {repr(cmd.strip())}"
-                else:
-                    full_cmd = f"bash -c {repr(cmd.strip())}"
-                r = subprocess.run(
-                    full_cmd,
-                    shell=True, capture_output=True, text=True, timeout=60
-                )
-                result_text = (r.stdout + r.stderr).strip()
-                result_text = "\n".join(l for l in result_text.splitlines() if not l.startswith("[sudo]"))
-                return result_text[:2000] if result_text else "(no output)"
-            except Exception as ex:
-                return f"Error: {ex}"
-
-        def _replace_bash(m):
-            cmd = m.group(1).strip()
-            logger.info(f"Auto-executing: {cmd[:80]}")
-            output = _run_bash(cmd)
-            return f"\n💻 `{cmd}`\n```\n{output}\n```"
-
-        out = _re.sub(r'<BASH>(.*?)</BASH>', _replace_bash, out, flags=_re.DOTALL)
-
-        # Append turn to custom history file (with rotation)
-        with open(history_file, "a") as f:
-            f.write(f"User: {user_message}\nModel: {out}\n\n")
-        # Rotate if file exceeds 50KB to prevent unbounded growth
+    # Auto-execute any <BASH>...</BASH> blocks in the response
+    import re as _re
+    
+    # Safety: block obviously destructive commands
+    BLOCKED_PATTERNS = ['rm -rf /', 'mkfs', 'dd if=', ':(){', 'fork bomb', '> /dev/sda', 'chmod -R 777 /', 'shutdown', 'reboot', 'init 0']
+    
+    def _run_bash(cmd):
+        # Safety check
+        for blocked in BLOCKED_PATTERNS:
+            if blocked in cmd.lower():
+                logger.warning(f"BLOCKED dangerous command: {cmd[:80]}")
+                return f"⛔ BLOCKED: Command matched safety filter ({blocked})"
         try:
-            if os.path.getsize(history_file) > 50000:
-                with open(history_file, "r") as f:
-                    content = f.read()
-                with open(history_file, "w") as f:
-                    f.write(content[-40000:])  # Keep last 40KB
-                logger.info(f"Rotated history file: {os.path.basename(history_file)}")
-        except Exception:
-            pass
-            
-        return out
+            sudo_pw = SUDO_PASSWORD or os.getenv('SUDO_PASSWORD', '')
+            if sudo_pw:
+                full_cmd = f"echo '{sudo_pw}' | sudo -S bash -c {repr(cmd.strip())}"
+            else:
+                full_cmd = f"bash -c {repr(cmd.strip())}"
+            r = subprocess.run(
+                full_cmd,
+                shell=True, capture_output=True, text=True, timeout=60
+            )
+            result_text = (r.stdout + r.stderr).strip()
+            result_text = "\n".join(l for l in result_text.splitlines() if not l.startswith("[sudo]"))
+            return result_text[:2000] if result_text else "(no output)"
+        except Exception as ex:
+            return f"Error: {ex}"
+
+    def _replace_bash(m):
+        cmd = m.group(1).strip()
+        logger.info(f"Auto-executing: {cmd[:80]}")
+        output = _run_bash(cmd)
+        return f"\n💻 `{cmd}`\n```\n{output}\n```"
+
+    out = _re.sub(r'<BASH>(.*?)</BASH>', _replace_bash, out, flags=_re.DOTALL)
+
+    # Append turn to custom history file (with rotation)
+    with open(history_file, "a") as f:
+        f.write(f"User: {user_message}\nModel: {out}\n\n")
+    # Rotate if file exceeds 50KB to prevent unbounded growth
+    try:
+        if os.path.getsize(history_file) > 50000:
+            with open(history_file, "r") as f:
+                content = f.read()
+            with open(history_file, "w") as f:
+                f.write(content[-40000:])  # Keep last 40KB
+            logger.info(f"Rotated history file: {os.path.basename(history_file)}")
+    except Exception:
+        pass
+        
+    return out
 
 
 
