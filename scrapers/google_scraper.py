@@ -37,17 +37,8 @@ def get_google_credentials():
                 creds = None
                 
         if not creds:
-            if not os.path.exists(CREDENTIALS_PATH):
-                logger.error("credentials.json not found! You must download it from Google Cloud Console.")
-                return None
-            try:
-                # Note: On a remote headless server, run_local_server might not work directly. 
-                # You may need to run this script locally first, then upload the token.json.
-                flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
-                creds = flow.run_local_server(port=0, open_browser=False)
-            except Exception as e:
-                logger.error(f"Failed to authenticate: {e}")
-                return None
+            logger.error("Token is missing or failed to refresh. Please run authentication locally and upload a new token.json.")
+            return None
             
         with open(TOKEN_PATH, 'w') as token:
             token.write(creds.to_json())
@@ -138,7 +129,21 @@ def get_classroom_assignments():
                         except Exception:
                             pass
                     
-                    result.append(f"[{course['name']}] {title} — Due: {due_str}")
+                    materials = work.get('materials', [])
+                    mat_list = []
+                    for mat in materials:
+                        if 'driveFile' in mat and 'driveFile' in mat['driveFile']:
+                            df = mat['driveFile']['driveFile']
+                            mat_list.append(f"📎 {df.get('title')} ({df.get('alternateLink')})")
+                        elif 'link' in mat:
+                            l = mat['link']
+                            mat_list.append(f"🔗 {l.get('title')} ({l.get('url')})")
+                        elif 'youtubeVideo' in mat:
+                            y = mat['youtubeVideo']
+                            mat_list.append(f"▶️ {y.get('title')} ({y.get('alternateLink')})")
+                    
+                    mat_str = "\n    ".join(mat_list) if mat_list else "No attachments"
+                    result.append(f"[{course['name']}] {title} — Due: {due_str}\n    {mat_str}")
             except Exception as e:
                 logger.warning(f"Could not fetch coursework for {course['name']}: {e}")
                 
@@ -238,6 +243,30 @@ def get_recent_google_docs():
     except Exception as e:
         logger.error(f"Error fetching Google Docs: {e}")
         return f"Error connecting to Google Drive/Docs: {e}"
+
+def download_drive_file(file_id: str, output_path: str) -> bool:
+    """Downloads a file from Google Drive by file ID."""
+    from googleapiclient.http import MediaIoBaseDownload
+    import io
+    creds = get_google_credentials()
+    if not creds:
+        logger.error("No credentials available to download file.")
+        return False
+    try:
+        service = build('drive', 'v3', credentials=creds)
+        request = service.files().get_media(fileId=file_id)
+        fh = io.BytesIO()
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+        
+        with open(output_path, 'wb') as f:
+            f.write(fh.getvalue())
+        return True
+    except Exception as e:
+        logger.error(f"Failed to download file {file_id}: {e}")
+        return False
 
 
 if __name__ == "__main__":

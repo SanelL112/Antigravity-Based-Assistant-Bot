@@ -16,7 +16,7 @@ def get_canvas_instance():
     return Canvas(CANVAS_API_URL, CANVAS_API_TOKEN)
 
 def get_upcoming_assignments():
-    """Fetch upcoming assignments from Canvas for the current user."""
+    """Fetch recent assignments from Canvas for the current user."""
     canvas = get_canvas_instance()
     if not canvas:
         return "Canvas API token not configured."
@@ -28,17 +28,19 @@ def get_upcoming_assignments():
         assignments_text = []
         for course in courses:
             try:
-                assignments = course.get_assignments(bucket="upcoming")
+                # Fetch the 10 most recently updated assignments to catch new ones even without due dates
+                assignments = list(course.get_assignments(order_by="updated_at", order="desc"))[:10]
                 for assignment in assignments:
                     due_date = assignment.due_at if hasattr(assignment, 'due_at') and assignment.due_at else "No due date"
-                    assignments_text.append(f"[{course.name}] {assignment.name} - Due: {due_date}")
+                    updated_at = assignment.updated_at if hasattr(assignment, 'updated_at') and assignment.updated_at else "Unknown"
+                    assignments_text.append(f"[{course.name}] {assignment.name} - Due: {due_date} (Updated: {updated_at[:10]})")
             except Exception as e:
                 logger.warning(f"Could not fetch assignments for {course.name}: {e}")
 
         if not assignments_text:
-            return "No upcoming assignments found in your favorite courses!"
+            return "No recent assignments found in your favorite courses!"
 
-        return "📚 **Upcoming Canvas Assignments:**\n" + "\n".join(assignments_text)
+        return "📚 **Recent Canvas Assignments:**\n" + "\n".join(assignments_text)
 
     except Exception as e:
         logger.error(f"Error connecting to Canvas: {e}")

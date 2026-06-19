@@ -19,45 +19,39 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 SOURCE_PROMPTS = {
     "canvas": (
-        "You are a strict spam filter for Canvas data.\n"
-        "Read the raw data below. Does it contain any upcoming assignments, deadlines, or announcements?\n"
-        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "If YES, reply exactly with: IMPORTANT\n\n"
+        "Read the raw data below. Does it contain ANY upcoming assignments, deadlines, announcements, or anything else that might be useful?\n"
+        "If you are 100% sure it is empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
         "Raw Canvas data:\n{data}"
     ),
     "classroom": (
-        "You are a strict spam filter for Google Classroom data.\n"
-        "Read the raw data below. Does it contain any new assignments or homework?\n"
-        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "If YES, reply exactly with: IMPORTANT\n\n"
+        "Read the raw data below. Does it contain ANY assignments, homework, or classwork?\n"
+        "If you are 100% sure it is empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
         "Raw Classroom data:\n{data}"
     ),
     "gmail": (
-        "You are a strict spam filter for Gmail data.\n"
-        "Read the raw data below. Are there any emails from real people or important senders (not newsletters/spam)?\n"
-        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "If YES, reply exactly with: IMPORTANT\n\n"
+        "Read the raw data below. Does it contain ANY emails from real people, teachers, or important senders?\n"
+        "If you are 100% sure they are ALL spam or marketing, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "Otherwise, if there is ANY real email, reply exactly with: IMPORTANT\n\n"
         "Raw Gmail data:\n{data}"
     ),
     "groupme": (
-        "You are a strict spam filter for GroupMe.\n"
-        "Read the raw data below. Does it contain any new events or announcements?\n"
-        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "If YES, reply exactly with: IMPORTANT\n\n"
+        "Read the raw data below. Does it contain ANY new events, announcements, or conversations?\n"
+        "If you are 100% sure it is empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
         "Raw GroupMe data:\n{data}"
     ),
     "classroom_announcements": (
-        "You are a strict spam filter for Google Classroom announcements.\n"
-        "Read the raw data below. Are there any new announcements?\n"
-        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "If YES, reply exactly with: IMPORTANT\n\n"
+        "Read the raw data below. Does it contain ANY announcements or class posts?\n"
+        "If you are 100% sure it is empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
         "Raw Classroom Announcements:\n{data}"
     ),
     "gdocs": (
-        "You are a strict spam filter for Google Docs.\n"
-        "Read the raw data below. Does it contain explicit homework assignments or mandatory deadlines?\n"
-        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "If YES, reply exactly with: IMPORTANT\n\n"
+        "Read the raw Google Docs data below. Does it contain ANY notes, homework, or text?\n"
+        "If you are 100% sure it is completely empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
         "Raw Docs Text:\n{data}"
     ),
 }
@@ -170,7 +164,7 @@ def call_local_llm(prompt: str) -> str:
                     "stream": False,
                     "options": {"temperature": 0.0}
                 },
-                timeout=600
+                timeout=30
             )
             if res.status_code == 200:
                 return res.json().get("response", "").strip()
@@ -196,7 +190,7 @@ def call_local_llm(prompt: str) -> str:
 
 # ── Per-source processing ─────────────────────────────────────────────────────
 
-def process_source(name: str, data: str) -> str:
+def process_source(name: str, data: str, skip_llm_filter: bool = False) -> str:
     """Run agy for a single source. Saves result to cache file. Returns summary text."""
     cache_file = os.path.join(CACHE_DIR, f"{name}_summary.txt")
 
@@ -206,39 +200,43 @@ def process_source(name: str, data: str) -> str:
             f.write(summary)
         return summary
 
-    # Cap the data sent to Qwen at 4000 chars for classification only.
-    # The full raw data is still passed to agy if marked IMPORTANT.
-    classification_data = data[:4000] + ("\n[...trimmed for classification...]" if len(data) > 4000 else "")
-    prompt = SOURCE_PROMPTS[name].format(data=classification_data)
-    
-    # Inject user's dynamic learning rules
-    rules_file = os.path.join(BOT_DIR, "learning_rules.txt")
-    if os.path.exists(rules_file):
-        try:
-            with open(rules_file, "r") as f:
-                rules = f.read().strip()
-            if rules:
-                prompt += f"\n\nUSER'S CUSTOM RULES (MUST FOLLOW):\n{rules}\n"
-        except Exception:
-            pass
-            
-    # Inject the fallback and learning triggers
-    prompt += "\n\nCRITICAL RULE 1: If you are unsure if there is anything important, or you cannot understand the text, you MUST reply exactly with the word: UNSURE"
-    prompt += "\nCRITICAL RULE 2: If you see a completely new type of message, sender, or topic that you are not sure is important (and it's not in the custom rules), you MUST reply exactly in this format: [ASK_USER] Brief description of the new item."
-    
-    logger.info(f"Calling LOCAL Qwen2 0.5B for {name} ({len(prompt)} chars)...")
-
-    response = call_local_llm(prompt)
-    if not response or "UNSURE" in response.upper():
-        logger.info(f"Qwen2 returned empty or UNSURE for {name} — passing full raw data ({len(data)} chars) to agy.")
-        summary = data # Fallback to passing raw data to agy
-    elif "NO_IMPORTANT_UPDATES" in response.upper():
-        summary = f"No urgent {name} updates."
-    elif "[ASK_USER]" in response.upper():
-        summary = f"{response}\n\nRAW DATA:\n{data}"
-    else:
-        # It is IMPORTANT! Pass raw data to agy.
+    if skip_llm_filter:
+        logger.info(f"Bypassing LOCAL Qwen2 0.5B for high-signal source {name} — passing full raw data ({len(data)} chars).")
         summary = data
+    else:
+        # Cap the data sent to Qwen at 4000 chars for classification only.
+        # The full raw data is still passed to agy if marked IMPORTANT.
+        classification_data = data[:4000] + ("\n[...trimmed for classification...]" if len(data) > 4000 else "")
+        prompt = SOURCE_PROMPTS[name].format(data=classification_data)
+        
+        # Inject user's dynamic learning rules
+        rules_file = os.path.join(BOT_DIR, "learning_rules.txt")
+        if os.path.exists(rules_file):
+            try:
+                with open(rules_file, "r") as f:
+                    rules = f.read().strip()
+                if rules:
+                    prompt += f"\n\nUSER'S CUSTOM RULES (MUST FOLLOW):\n{rules}\n"
+            except Exception:
+                pass
+                
+        # Inject the fallback and learning triggers
+        prompt += "\n\nCRITICAL RULE 1: If you are unsure if there is anything important, or you cannot understand the text, you MUST reply exactly with the word: UNSURE"
+        prompt += "\nCRITICAL RULE 2: If you see a completely new type of message, sender, or topic that you are not sure is important (and it's not in the custom rules), you MUST reply exactly in this format: [ASK_USER] Brief description of the new item."
+        
+        logger.info(f"Calling LOCAL Qwen2 0.5B for {name} ({len(prompt)} chars)...")
+
+        response = call_local_llm(prompt)
+        if not response or "UNSURE" in response.upper():
+            logger.info(f"Qwen2 returned empty or UNSURE for {name} — passing full raw data ({len(data)} chars) to agy.")
+            summary = data # Fallback to passing raw data to agy
+        elif "NO_IMPORTANT_UPDATES" in response.upper():
+            summary = f"No urgent {name} updates."
+        elif "[ASK_USER]" in response.upper():
+            summary = f"{response}\n\nRAW DATA:\n{data}"
+        else:
+            # It is IMPORTANT! Pass raw data to agy.
+            summary = data
 
     with open(cache_file, "w") as f:
         f.write(summary)
@@ -254,8 +252,8 @@ def assemble_digest(summaries: dict) -> dict:
     for name, text in summaries.items():
         summary_text += f"=== {name.upper()} ===\n{text}\n\n"
 
-    # Save combined summaries to file for reference
-    with open(os.path.join(CACHE_DIR, "combined_summaries.txt"), "w") as f:
+    # Save combined summaries to file for reference (APPEND so memory consolidation can read the whole day)
+    with open(os.path.join(CACHE_DIR, "combined_summaries.txt"), "a") as f:
         f.write(summary_text)
         
     # Read and inject local OCR / photo extracts
@@ -347,22 +345,22 @@ def process_all_sources(canvas_data: str, classroom_data: str, gmail_data: str, 
     
     # 1. Summarize each source (could run in parallel, but sequential is fine for now)
     logger.info("Summarizing Canvas...")
-    canvas_summary = process_source("canvas", canvas_data)
+    canvas_summary = process_source("canvas", canvas_data, skip_llm_filter=True)
     
     logger.info("Summarizing Google Classroom Assignments...")
-    classroom_summary = process_source("classroom", classroom_data)
+    classroom_summary = process_source("classroom", classroom_data, skip_llm_filter=True)
     
     logger.info("Summarizing Google Classroom Announcements...")
-    classroom_ann_summary = process_source("classroom_announcements", classroom_ann_data)
+    classroom_ann_summary = process_source("classroom_announcements", classroom_ann_data, skip_llm_filter=True)
     
     logger.info("Summarizing Gmail...")
-    gmail_summary = process_source("gmail", gmail_data)
+    gmail_summary = process_source("gmail", gmail_data, skip_llm_filter=False)
     
     logger.info("Summarizing GroupMe...")
-    groupme_summary = process_source("groupme", groupme_data)
+    groupme_summary = process_source("groupme", groupme_data, skip_llm_filter=False)
     
     logger.info("Summarizing Google Docs...")
-    gdocs_summary = process_source("gdocs", gdocs_data)
+    gdocs_summary = process_source("gdocs", gdocs_data, skip_llm_filter=True)
     
     # 2. Combine all summaries into one assembly block
     summaries = {

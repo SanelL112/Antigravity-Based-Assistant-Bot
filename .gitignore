@@ -5,3 +5,8 @@ token.json
 state.json
 __pycache__/
 *.pyc
+
+*.txt
+*.json
+source_cache/
+scratch/

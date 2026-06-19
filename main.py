@@ -3,6 +3,8 @@ import json
 import logging
 import asyncio
 import subprocess
+import datetime
+import pytz
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
@@ -130,12 +132,12 @@ async def detect_topic(message: str, chat_id: int) -> str:
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "qwen2:0.5b",
+                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
                     "prompt": prompt,
                     "stream": False,
                     "options": {"temperature": 0.0}
                 },
-                timeout=120.0
+                timeout=45.0
             )
         if response.status_code == 200:
             result = response.json().get("response", "").strip().lower()
@@ -171,17 +173,16 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         f"CURRENT CONVERSATION TOPIC: {topic}\n"
         f"You are in a focused conversation about this topic. Stay on topic unless Sanel switches subjects.\n\n"
         f"CRITICAL INSTRUCTION — COMMAND EXECUTION:\n"
-        f"When Sanel asks you to DO something on the server (install software, restart services, check logs, "
-        f"edit files, run scripts, manage processes, etc.), you MUST execute it yourself immediately. "
-        f"Do NOT tell him to run /bash himself. Instead, wrap the shell command in <BASH> tags like this:\n"
+        f"You are operating in a pure text-generation mode. DO NOT use any of your built-in Antigravity tools (like run_command or write_file). "
+        f"When Sanel asks you to DO something on the server, you MUST instead wrap the shell command in <BASH> tags like this:\n"
         f"<BASH>your command here</BASH>\n"
-        f"The system will automatically run that command as root and show him the output. "
+        f"The system's python wrapper will automatically parse these tags and run that command as root, then show you the output in the next turn. "
         f"You can chain multiple commands. Always include <BASH> tags when action is needed.\n\n"
         f"OTHER CAPABILITIES:\n"
         f"- Every 4 hours: auto-digest from Canvas, Classroom, Gmail, GroupMe\n"
         f"- Notion: assignments auto-pushed to Tasks Tracker\n"
-        f"- Natural Language Notion Updates: If Sanel replies to you about a recent Notion task setting its priority (high/medium/low), status (Not started/In progress/Done), or start/end values, and he gives you an ID (like `1a2b3c...`), use a bash python script to update it. Example:\n"
-        f"<BASH>python3 -c 'from notion_client import update_notion_task; update_notion_task(\"the_long_id_here\", priority=\"high\", status=\"In progress\", start_value=10, end_value=50)'</BASH>\n"
+        f"- Natural Language Notion Pushes: When the background job alerts Sanel about a NEW task and asks him for priority/status, you MUST push it to Notion using the add_task_to_notion python script when he replies! Example:\n"
+        f"<BASH>python3 -c 'from notion_client import add_task_to_notion; add_task_to_notion(title=\"Math Homework\", priority=\"high\", status=\"Not started\", start_value=0, end_value=100)'</BASH>\n"
         f"- DYNAMIC LEARNING: If Sanel is answering a question about whether a certain type of message, email, or topic is important to track or ignore, you MUST save this rule to the local memory so the local filter AI can use it in the future. To do this, use a bash command:\n"
         f"<BASH>echo 'Ignore all emails from XYZ' >> /home/sanel/personal-assistant-bot/learning_rules.txt</BASH>\n"
         f"- STUDY COMPANION: If Sanel asks you to build a study guide, find a YouTube video for a topic, or research something to study, you MUST use the mega study builder script via bash:\n"
@@ -212,33 +213,53 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
     logger.info(f"agy --print model={model}: {user_message[:60]}")
     
     out = ""
-    err_text = ""
-    models_to_try = [model, "pro"] if model != "pro" else [model]
+    # 1. Ask local Llama 3 Router
+    router_prompt = (
+        f"You are the Router Agent for Sanel's Personal Assistant.\n"
+        f"If the user is just chatting or asking a question that you can answer from the provided context below, respond directly with text.\n"
+        f"If the user is asking you to perform an action, schedule something, search files, read emails, or do anything requiring tools/shell commands, you MUST output exactly and only: <ROUTE_TO_PRO>\n\n"
+        f"CONTEXT: {digest_context}\n\n"
+        f"User: {user_message}"
+    )
     
-    for m in models_to_try:
+    local_reply = ""
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=115.0) as client:
+            response = await client.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
+                    "prompt": router_prompt,
+                    "stream": False
+                }
+            )
+        if response.status_code == 200:
+            local_reply = response.json().get("response", "").strip()
+    except Exception as e:
+        logger.warning(f"Router (Llama) failed: {e}")
+
+    # 2. Check if we need to route to the heavy Pro model
+    if "<ROUTE_TO_PRO>" in local_reply or not local_reply:
+        logger.info("Routing request to heavy Antigravity PRO agent...")
         try:
             result = await asyncio.wait_for(
                 asyncio.get_event_loop().run_in_executor(
                     None,
-                    lambda m=m: subprocess.run(
-                        [AGENTAPI_BIN, "--model", m, "--print", full_prompt],
-                        capture_output=True, text=True, timeout=RESPONSE_TIMEOUT
+                    lambda: subprocess.run(
+                        [AGENTAPI_BIN, "--model", "pro", "--dangerously-skip-permissions", "--print", full_prompt],
+                        capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL
                     )
                 ),
                 timeout=RESPONSE_TIMEOUT + 5
             )
             out = result.stdout.strip()
-            if out:
-                break
-            err_text = result.stderr[:300]
-            logger.warning(f"Empty output from agy with model {m}. stderr: {err_text}")
+            if not out:
+                out = "⚠️ Pro agent returned empty output. " + result.stderr[:200]
         except Exception as e:
-            logger.warning(f"Error calling agy with model {m}: {e}")
-            err_text = str(e)
-            
-    if not out:
-        logger.error(f"All models failed. Last error: {err_text}")
-        return "⚠️ No response from assistant. Please try again."
+            out = f"⚠️ Pro agent timed out or failed: {e}"
+    else:
+        out = local_reply
 
     # Auto-execute any <BASH>...</BASH> blocks in the response
     import re as _re
@@ -300,6 +321,19 @@ import hashlib
 import sys
 STATE_FILE = "state.json"
 
+import pytz
+import datetime
+def is_sleep_window() -> bool:
+    """Returns True if the current time is between 1 AM and 7 AM Eastern Time."""
+    try:
+        et_tz = pytz.timezone('US/Eastern')
+        now_et = datetime.datetime.now(pytz.utc).astimezone(et_tz)
+        if 1 <= now_et.hour < 7:
+            return True
+        return False
+    except Exception:
+        return False
+
 def get_hash(text):
     return hashlib.md5(text.encode('utf-8')).hexdigest()
 
@@ -318,7 +352,9 @@ def save_state(state):
 
 async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
     """Runs every 30 mins to check for urgent anomalies using tiny local model Qwen2 0.5B."""
+    if is_sleep_window(): return
     chat_id = context.job.chat_id
+    state = load_state()
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
@@ -337,6 +373,65 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
 
     raw_data = f"CANVAS:\n{canvas}\n\nCLASSROOM:\n{classroom}\n\nCLASSROOM ANNOUNCEMENTS:\n{classroom_ann}\n\nGMAIL:\n{gmail}\n\nGROUPME:\n{groupme}"
     
+    import re
+    import json
+    
+    # Match all attached files
+    all_files = re.findall(r"📎\s+([^\(]+)\s*\((https://drive\.google\.com/file/d/([^/]+)/[^\)]+)\)", classroom)
+    
+    nightly_queue_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nightly_queue.json")
+    try:
+        with open(nightly_queue_path, "r") as f:
+            nightly_queue = json.load(f)
+    except Exception:
+        nightly_queue = []
+        
+    queue_updated = False
+
+    for title, full_link, file_id in all_files:
+        thash = get_hash("file_" + file_id)
+        if thash not in state.setdefault("seen_tasks", []):
+            state["seen_tasks"].append(thash)
+            save_state(state)
+            
+            title = title.strip()
+            if "A_MWF" in title:
+                # Auto-read handwritten notes
+                await context.bot.send_message(chat_id=chat_id, text=f"📝 **Auto-Reading Notes**: I noticed `{title}`. Automatically extracting the handwriting in the background to learn what you did today...")
+                
+                # Run it in a background thread to not block the event loop
+                import asyncio
+                loop = asyncio.get_event_loop()
+                def _extract():
+                    import tempfile
+                    from scrapers.google_scraper import download_drive_file
+                    from scrapers.extract_notes import transcribe_handwritten_pdf
+                    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                        path = tmp.name
+                    if download_drive_file(file_id, path):
+                        transcript = transcribe_handwritten_pdf(path)
+                        os.remove(path)
+                        
+                        if "Error:" not in transcript:
+                            # Save to combined_summaries
+                            notes_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "source_cache", "combined_summaries.txt")
+                            os.makedirs(os.path.dirname(notes_file), exist_ok=True)
+                            with open(notes_file, "a") as f:
+                                f.write(f"\n--- DAILY NOTES ({title}) ---\n{transcript}\n")
+                            return True
+                    return False
+                    
+                await asyncio.to_thread(_extract)
+            else:
+                # Add to nightly queue
+                nightly_queue.append({"title": title, "file_id": file_id})
+                queue_updated = True
+                
+    if queue_updated:
+        with open(nightly_queue_path, "w") as f:
+            json.dump(nightly_queue, f)
+        await context.bot.send_message(chat_id=chat_id, text=f"🛏️ Queued {len(nightly_queue)} new practice materials for processing offline tonight.")
+    
     prompt = (
         "You are an urgent alert watchdog. Read the following recent school and email notifications.\n"
         "Look ONLY for critical anomalies or urgent updates (e.g., a sudden deadline extension, a direct message from a teacher, or an emergency alert).\n"
@@ -351,12 +446,12 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "qwen2:0.5b",
+                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
                     "prompt": prompt,
                     "stream": False,
                     "options": {"temperature": 0.0}
                 },
-                timeout=120.0
+                timeout=45.0
             )
         if response.status_code == 200:
             result = response.json().get("response", "").strip()
@@ -373,6 +468,7 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Watchdog Ollama error: {e}")
 
 async def check_updates(context: ContextTypes.DEFAULT_TYPE):
+    if is_sleep_window(): return
     chat_id = context.job.chat_id
     state = load_state()
     
@@ -395,48 +491,37 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     ai_result = process_all_sources(canvas, classroom, gmail, groupme, classroom_ann, gdocs)
     
     # 1. Notion Tasks
+    new_tasks = []
     for task in ai_result.get("tasks", []):
         thash = get_hash(task.get("id", task.get("title", "")))
         if thash not in state.setdefault("seen_tasks", []):
-            priority = str(task.get("priority", "medium")).lower()
-            status = str(task.get("status", "Not started"))
-            start_val = str(task.get("start_value", 0))
-            end_val = str(task.get("end_value", 100))
-            
-            missing = []
-            if priority == "unknown": missing.append("Priority")
-            if status == "unknown": missing.append("Status")
-            if start_val == "unknown": missing.append("Start Value")
-            if end_val == "unknown": missing.append("End Value")
-
-            page_id = add_task_to_notion(
-                title=task.get("title"),
-                source=task.get("source"),
-                due_date=task.get("due_date"),
-                url=task.get("url"),
-                priority="medium" if priority == "unknown" else priority,
-                status="Not started" if status == "unknown" else status,
-                start_value=0 if start_val == "unknown" else start_val,
-                end_value=100 if end_val == "unknown" else end_val,
-            )
+            new_tasks.append(task)
             state["seen_tasks"].append(thash)
-            save_state(state)
-            
-            if page_id and missing:
-                missing_str = ", ".join(missing)
-                msg_text = f"🤔 **Added to Notion:** _{task.get('title')}_\n\nI couldn't figure out: **{missing_str}**.\nJust reply naturally and tell me what to set them to! `(ID:{page_id})`"
-                await context.bot.send_message(
-                    chat_id=chat_id, 
-                    text=msg_text,
-                    parse_mode="Markdown"
-                )
+    save_state(state)
+    
+    if new_tasks:
+        tasks_str = ""
+        for i, task in enumerate(new_tasks, 1):
+            tasks_str += f"{i}. {task.get('title')} (Source: {task.get('source')})\n"
+        
+        msg_text = f"🚨 **NEW TASKS DETECTED** 🚨\n\n{tasks_str}\nShould I add these to Notion? If yes, reply telling me their priority (high/medium/low) and progress. If I should ignore any of them, let me know so I can learn!"
+        
+        try:
+            await context.bot.send_message(
+                chat_id=chat_id, 
+                text=msg_text,
+                parse_mode="Markdown"
+            )
+        except Exception:
+            await context.bot.send_message(
+                chat_id=chat_id, 
+                text=msg_text
+            )
                 
-                # Append to Notion history so the LLM knows the Page ID
-                history_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"chat_history_{chat_id}_notion.txt")
-                with open(history_file, "a") as f:
-                    f.write(f"System Background Job: {msg_text}\n")
-            else:
-                logger.info(f"Pushed task to Notion: {task.get('title')}")
+        # Append to Notion history so the LLM knows the Page ID
+        history_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"chat_history_{chat_id}_notion.txt")
+        with open(history_file, "a") as f:
+            f.write(f"System Background Job: {msg_text}\n")
             
     # 2. Telegram Digest
     digest = ai_result.get("digest", "")
@@ -489,35 +574,60 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+message_lock = asyncio.Lock()
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if is_sleep_window():
+        await update.message.reply_text("💤 I am currently in Sleep Mode optimizing my brain. I will be back online at 7 AM ET!")
+        return
+
     user_text = update.message.text
     chat_id   = update.effective_chat.id
+
+    if update.message.reply_to_message and update.message.reply_to_message.text:
+        reply_text = update.message.reply_to_message.text
+        user_text = f"[In reply to your message: \"{reply_text}\"]\n\n{user_text}"
 
     # Send a "thinking" indicator
     thinking_msg = await context.bot.send_message(
         chat_id=chat_id,
-        text="⏳ Thinking..."
+        text="⏳ Thinking... (You are in a queue if you sent multiple messages)"
     )
 
-    reply = await send_to_antigravity_and_wait(user_text, chat_id)
+    try:
+        async with message_lock:
+            reply = await send_to_antigravity_and_wait(user_text, chat_id)
 
-    # Delete the thinking message
-    await context.bot.delete_message(chat_id=chat_id, message_id=thinking_msg.message_id)
-
-    # Telegram messages max out at 4096 chars; split if needed
-    max_len = 4096
-    for i in range(0, len(reply), max_len):
+        # Delete the thinking message
         try:
-            await context.bot.send_message(
+            await context.bot.delete_message(chat_id=chat_id, message_id=thinking_msg.message_id)
+        except Exception:
+            pass
+
+        # Telegram messages max out at 4096 chars; split if needed
+        max_len = 4096
+        for i in range(0, len(reply), max_len):
+            try:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=reply[i:i+max_len],
+                    parse_mode="Markdown"
+                )
+            except Exception:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=reply[i:i+max_len]
+                )
+    except Exception as e:
+        logger.error(f"Error handling message: {e}")
+        try:
+            await context.bot.edit_message_text(
                 chat_id=chat_id,
-                text=reply[i:i+max_len],
-                parse_mode="Markdown"
+                message_id=thinking_msg.message_id,
+                text=f"❌ An error occurred while processing your request: {e}"
             )
         except Exception:
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text=reply[i:i+max_len]
-            )
+            pass
 
 
 
@@ -557,28 +667,23 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     ai_result = process_all_sources(canvas, classroom, gmail, groupme, classroom_ann_data=announcements, gdocs_data=docs)
     
-    # Push tasks to Notion (same as background job)
+    # Ask user before pushing tasks to Notion
     state = load_state()
+    new_tasks = []
     for task in ai_result.get("tasks", []):
         thash = get_hash(task.get("id", task.get("title", "")))
         if thash not in state.setdefault("seen_tasks", []):
-            priority = str(task.get("priority", "medium")).lower()
-            status = str(task.get("status", "Not started"))
-            start_val = task.get("start_value", 0)
-            end_val = task.get("end_value", 100)
-            
-            add_task_to_notion(
-                title=task.get("title"),
-                source=task.get("source"),
-                due_date=task.get("due_date"),
-                priority="medium" if priority == "unknown" else priority,
-                status="Not started" if status == "unknown" else status,
-                start_value=0 if str(start_val) == "unknown" else start_val,
-                end_value=100 if str(end_val) == "unknown" else end_val,
-            )
+            new_tasks.append(task)
             state["seen_tasks"].append(thash)
     save_state(state)
+    
     digest = ai_result.get("digest", "Nothing to report right now!")
+    
+    if new_tasks:
+        tasks_str = ""
+        for i, task in enumerate(new_tasks, 1):
+            tasks_str += f"{i}. {task.get('title')} (Source: {task.get('source')})\n"
+        digest += f"\n\n🚨 **NEW TASKS DETECTED** 🚨\n{tasks_str}\nShould I add these to Notion? If yes, reply with their priority (high/medium/low) and progress. If I should ignore any of them, let me know so I can learn!"
     if digest and digest != "Nothing to report right now!":
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "w") as f:
@@ -764,16 +869,74 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=chat_id, message_id=msg.message_id, text=reply
         )
 
+async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+    
+    if data.startswith("build_guide_"):
+        file_id = data.split("build_guide_")[1]
+        chat_id = query.message.chat_id
+        
+        await context.bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=query.message.message_id,
+            text="⏳ Downloading PDF, reading handwriting via Gemini Vision, and building Mega Study Guide... This will take a minute!"
+        )
+        
+        # Run it synchronously since we are just blocking this callback (or ideally async, but this is fine for now)
+        import asyncio
+        loop = asyncio.get_event_loop()
+        
+        def _build():
+            from scrapers.mega_study_builder import build_guide_for_drive_file
+            # Use a default topic like XA_MWF Notes
+            return build_guide_for_drive_file(file_id, "XA_MWF Notes")
+            
+        try:
+            # We must import from the current directory, but python might not know it
+            import sys, os
+            sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+            from mega_study_builder import build_guide_for_drive_file
+            
+            result = await loop.run_in_executor(None, build_guide_for_drive_file, file_id, "XA_MWF Notes")
+            
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
+            except Exception:
+                await context.bot.send_message(chat_id=chat_id, text=result)
+                
+        except Exception as e:
+            await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
+
+async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
+    chat_id = context.job.chat_id
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from scrapers.nightly_processor import run_nightly_job
+    from scrapers.memory_consolidation import consolidate_memory
+    from scrapers.web_precacher import pre_cache_web
+    
+    try:
+        await context.bot.send_message(chat_id=chat_id, text="💤 **Entering Sleep Cycle...** Executing nightly memory consolidation and pre-caching.", disable_notification=True)
+        
+        # 1. Process queued practice PDFs
+        await run_nightly_job(context.bot, chat_id)
+        
+        # 2. Consolidate raw logs into curated_brain.md
+        await consolidate_memory()
+        
+        # 3. Fetch tomorrow's research based on the new brain
+        await pre_cache_web()
+        
+    except Exception as e:
+        logger.error(f"Nightly sleep cycle error: {e}")
+
 # ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "your_telegram_bot_token_here":
         print("Please set TELEGRAM_BOT_TOKEN in .env")
         exit(1)
-    if not CONVERSATION_ID:
-        print("Please set CONVERSATION_ID in .env")
-        exit(1)
-
 
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
     
@@ -785,7 +948,15 @@ if __name__ == "__main__":
     # Auto-start the 30-minute watchdog
     job_queue.run_repeating(watchdog_check, interval=1800, first=15, chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_watchdog")
     
+    # Run the offline Llama PDF processor every night at 2:00 AM UTC
+    import datetime
+    import pytz
+    et_tz = pytz.timezone('US/Eastern')
+    job_queue.run_daily(nightly_wrapper, time=datetime.time(hour=1, minute=0, tzinfo=et_tz), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_nightly")
+    
+    from telegram.ext import CallbackQueryHandler
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(handle_callback))
 
     app.add_handler(CommandHandler("model", model_command))
     app.add_handler(CommandHandler("summary", summary_command))
