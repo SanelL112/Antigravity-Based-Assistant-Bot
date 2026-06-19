@@ -291,11 +291,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
             pass
             
         return out
-    except asyncio.TimeoutError:
-        return "⏳ Assistant is taking too long. Try again shortly."
-    except Exception as e:
-        logger.error(f"agy error: {e}")
-        return "⚠️ Failed to reach assistant."
+
 
 
 # ── Background Automation ──────────────────────────────────────────────────────
