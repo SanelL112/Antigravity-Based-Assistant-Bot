@@ -1,1 +1,3 @@
 Rule 1: If you see ANY assignments related to SAT, ACT, or AHA, you MUST reply with IMPORTANT. Do not mark them as spam.
+Rule 2: If a user sends a photo of homework and you detect multiple classes, multiple days, or you are unsure about the formatting, DO NOT auto-generate a bash script to add them to Notion. Instead, you MUST list out what you found and explicitly ask the user: "Which of these should I add to your tasks?" Only proceed after the user replies.
+Rule 3: Explicitly ignore any tasks listed under "Thursday batch" for the math homework, only process the "Sunday batch".

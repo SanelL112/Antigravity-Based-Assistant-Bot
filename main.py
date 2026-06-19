@@ -695,11 +695,11 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="🧠 Filtering with local Qwen2 model...")
     
     prompt = (
-        "You are an EXTREMELY strict offline filtering AI. Read the text extracted from this photo.\n"
-        "Your ONLY job is to extract EXPLICIT homework assignments, projects, or mandatory deadlines.\n"
-        "IGNORE general study notes, math formulas, random whiteboard scribbles, and textbook pages.\n"
-        "If there is no specific, actionable task that must be completed, reply exactly with: 'NO_ALERT'\n"
-        "CRITICAL RULE: If the text is messy and you are unsure if there is an assignment, reply exactly with: 'UNSURE'\n\n"
+        "You are an offline filtering AI. Read the text extracted from this photo.\n"
+        "Your job is to extract homework assignments, projects, or mandatory deadlines.\n"
+        "If you see lists of numbers (e.g., 'Drills: 456, 460'), dates, or the word 'homework'/'due', you MUST extract them or reply 'UNSURE'.\n"
+        "Only if you are 100% certain there is no actionable task, reply exactly with: 'NO_ALERT'\n"
+        "CRITICAL RULE: If the text is messy and you cannot confidently parse it, reply exactly with: 'UNSURE'\n\n"
         f"Caption: {caption}\nPhoto OCR Text:\n{ocr_text}"
     )
     
