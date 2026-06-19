@@ -82,68 +82,79 @@ DIGEST_ASSEMBLY_PROMPT = (
 
 # ── agy helper ────────────────────────────────────────────────────────────────
 
-def call_agy(prompt: str, timeout: int = 180, model: str = "pro") -> str:
-    """Call agy --print using a PTY so it doesn't hang on pipe detection."""
+def call_agy(prompt: str, timeout: int = 180, model: str = "flash") -> str:
+    """Call agy --print using a PTY. Attempts 'flash' first, then falls back to 'pro'."""
     import pty, select, time, os as _os
-    try:
-        master, slave = pty.openpty()
-        proc = subprocess.Popen(
-            [AGENTAPI_BIN, "--model", model, "--print", prompt],
-            stdin=slave, stdout=slave, stderr=slave,
-            close_fds=True
-        )
-        _os.close(slave)
+    
+    def _run_model(target_model: str) -> str:
+        try:
+            master, slave = pty.openpty()
+            proc = subprocess.Popen(
+                [AGENTAPI_BIN, "--model", target_model, "--print", prompt],
+                stdin=slave, stdout=slave, stderr=slave,
+                close_fds=True
+            )
+            _os.close(slave)
 
-        output_chunks = []
-        end_time = time.time() + timeout
-        while time.time() < end_time:
-            try:
-                r, _, _ = select.select([master], [], [], 1.0)
-                if r:
-                    try:
-                        chunk = _os.read(master, 4096)
-                        output_chunks.append(chunk)
-                    except OSError:
-                        break
-            except Exception:
-                break
-            if proc.poll() is not None:
-                # Drain any remaining output
+            output_chunks = []
+            end_time = time.time() + timeout
+            while time.time() < end_time:
                 try:
-                    while True:
-                        r, _, _ = select.select([master], [], [], 0.2)
-                        if r:
+                    r, _, _ = select.select([master], [], [], 1.0)
+                    if r:
+                        try:
                             chunk = _os.read(master, 4096)
                             output_chunks.append(chunk)
-                        else:
+                        except OSError:
                             break
-                except OSError:
+                except Exception:
+                    break
+                if proc.poll() is not None:
+                    try:
+                        while True:
+                            r, _, _ = select.select([master], [], [], 0.2)
+                            if r:
+                                chunk = _os.read(master, 4096)
+                                output_chunks.append(chunk)
+                            else:
+                                break
+                    except OSError:
+                        pass
+                    break
+
+            proc.wait(timeout=5) if proc.poll() is None else None
+            try:
+                _os.close(master)
+            except OSError:
+                pass
+
+            raw = b"".join(output_chunks).decode("utf-8", errors="replace")
+            import re
+            clean = re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', raw)
+            clean = clean.replace('\r\n', '\n').replace('\r', '\n').strip()
+            
+            if proc.poll() is None:
+                # Process timed out
+                logger.error(f"agy {target_model} timed out after {timeout}s")
+                try:
+                    proc.kill()
+                except Exception:
                     pass
-                break
+                return ""
+                
+            return clean
 
-        proc.wait(timeout=5) if proc.poll() is None else None
-        try:
-            _os.close(master)
-        except OSError:
-            pass
+        except Exception as e:
+            logger.error(f"agy pty error ({target_model}): {e}")
+            return ""
 
-        raw = b"".join(output_chunks).decode("utf-8", errors="replace")
-        # Strip ANSI escape codes and carriage returns
-        import re
-        clean = re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', raw)
-        clean = clean.replace('\r\n', '\n').replace('\r', '\n').strip()
-        return clean
-
-    except subprocess.TimeoutExpired:
-        logger.error(f"agy timed out after {timeout}s")
-        try:
-            proc.kill()
-        except Exception:
-            pass
-        return ""
-    except Exception as e:
-        logger.error(f"agy pty error: {e}")
-        return ""
+    logger.info(f"Attempting processing with {model}...")
+    result = _run_model(model)
+    if not result and model != "pro":
+        logger.warning(f"{model} failed or timed out. Falling back to pro...")
+        result = _run_model("pro")
+        
+    return result
 
 def call_local_llm(prompt: str) -> str:
     """Calls Qwen2 0.5B via Ollama. Falls back to Llama 3.2 3B if unsure."""

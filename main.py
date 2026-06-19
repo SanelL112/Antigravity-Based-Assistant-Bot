@@ -210,21 +210,35 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
     
     model = user_models.get(chat_id, "flash")
     logger.info(f"agy --print model={model}: {user_message[:60]}")
-    try:
-        result = await asyncio.wait_for(
-            asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: subprocess.run(
-                    [AGENTAPI_BIN, "--model", model, "--print", full_prompt],
-                    capture_output=True, text=True, timeout=RESPONSE_TIMEOUT
-                )
-            ),
-            timeout=RESPONSE_TIMEOUT + 5
-        )
-        out = result.stdout.strip()
-        if not out:
-            logger.error(f"Empty agy output. stderr: {result.stderr[:300]}")
-            return "⚠️ No response from assistant. Please try again."
+    
+    out = ""
+    err_text = ""
+    models_to_try = [model, "pro"] if model != "pro" else [model]
+    
+    for m in models_to_try:
+        try:
+            result = await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda m=m: subprocess.run(
+                        [AGENTAPI_BIN, "--model", m, "--print", full_prompt],
+                        capture_output=True, text=True, timeout=RESPONSE_TIMEOUT
+                    )
+                ),
+                timeout=RESPONSE_TIMEOUT + 5
+            )
+            out = result.stdout.strip()
+            if out:
+                break
+            err_text = result.stderr[:300]
+            logger.warning(f"Empty output from agy with model {m}. stderr: {err_text}")
+        except Exception as e:
+            logger.warning(f"Error calling agy with model {m}: {e}")
+            err_text = str(e)
+            
+    if not out:
+        logger.error(f"All models failed. Last error: {err_text}")
+        return "⚠️ No response from assistant. Please try again."
 
         # Auto-execute any <BASH>...</BASH> blocks in the response
         import re as _re
