@@ -11,7 +11,8 @@ from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, Comma
 load_dotenv()
 TELEGRAM_BOT_TOKEN  = os.getenv("TELEGRAM_BOT_TOKEN")
 CONVERSATION_ID     = os.getenv("CONVERSATION_ID")
-AGENTAPI_BIN        = os.getenv("AGENTAPI_BIN", "/home/sanellathiya/.gemini/antigravity-cli/bin/agentapi")
+AGENTAPI_BIN        = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
+SUDO_PASSWORD       = os.getenv("SUDO_PASSWORD", "")
 TRANSCRIPT_PATH     = os.getenv(
     "TRANSCRIPT_PATH",
     f"/home/sanellathiya/.gemini/antigravity-cli/brain/{CONVERSATION_ID}/.system_generated/logs/transcript.jsonl"
@@ -129,12 +130,12 @@ async def detect_topic(message: str, chat_id: int) -> str:
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
+                    "model": "qwen2:0.5b",
                     "prompt": prompt,
                     "stream": False,
                     "options": {"temperature": 0.0}
                 },
-                timeout=10.0
+                timeout=120.0
             )
         if response.status_code == 200:
             result = response.json().get("response", "").strip().lower()
@@ -181,6 +182,12 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         f"- Notion: assignments auto-pushed to Tasks Tracker\n"
         f"- Natural Language Notion Updates: If Sanel replies to you about a recent Notion task setting its priority (high/medium/low), status (Not started/In progress/Done), or start/end values, and he gives you an ID (like `1a2b3c...`), use a bash python script to update it. Example:\n"
         f"<BASH>python3 -c 'from notion_client import update_notion_task; update_notion_task(\"the_long_id_here\", priority=\"high\", status=\"In progress\", start_value=10, end_value=50)'</BASH>\n"
+        f"- DYNAMIC LEARNING: If Sanel is answering a question about whether a certain type of message, email, or topic is important to track or ignore, you MUST save this rule to the local memory so the local filter AI can use it in the future. To do this, use a bash command:\n"
+        f"<BASH>echo 'Ignore all emails from XYZ' >> /home/sanel/personal-assistant-bot/learning_rules.txt</BASH>\n"
+        f"- STUDY COMPANION: If Sanel asks you to build a study guide, find a YouTube video for a topic, or research something to study, you MUST use the mega study builder script via bash:\n"
+        f"<BASH>python3 -c 'from mega_study_builder import generate_mega_guide; print(generate_mega_guide(\"Topic Name Here\"))'</BASH>\n"
+        f"- CALENDAR SCHEDULING: If Sanel asks you to schedule a study session, block off time, or add something to his calendar, you MUST use the calendar manager via bash. Calculate the start time in ISO format based on his request and current time:\n"
+        f"<BASH>python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'</BASH>\n"
         f"- /summary: manual digest trigger | /bash <cmd>: run commands directly\n\n"
         f"Here is the latest data digest:\n\n{digest_context}\n\n"
         f"Be direct and take action immediately when asked. Never ask for permission."
@@ -221,10 +228,24 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
 
         # Auto-execute any <BASH>...</BASH> blocks in the response
         import re as _re
+        
+        # Safety: block obviously destructive commands
+        BLOCKED_PATTERNS = ['rm -rf /', 'mkfs', 'dd if=', ':(){', 'fork bomb', '> /dev/sda', 'chmod -R 777 /', 'shutdown', 'reboot', 'init 0']
+        
         def _run_bash(cmd):
+            # Safety check
+            for blocked in BLOCKED_PATTERNS:
+                if blocked in cmd.lower():
+                    logger.warning(f"BLOCKED dangerous command: {cmd[:80]}")
+                    return f"⛔ BLOCKED: Command matched safety filter ({blocked})"
             try:
+                sudo_pw = SUDO_PASSWORD or os.getenv('SUDO_PASSWORD', '')
+                if sudo_pw:
+                    full_cmd = f"echo '{sudo_pw}' | sudo -S bash -c {repr(cmd.strip())}"
+                else:
+                    full_cmd = f"bash -c {repr(cmd.strip())}"
                 r = subprocess.run(
-                    f"echo 'Forgot@2023' | sudo -S bash -c {repr(cmd.strip())}",
+                    full_cmd,
                     shell=True, capture_output=True, text=True, timeout=60
                 )
                 result_text = (r.stdout + r.stderr).strip()
@@ -241,9 +262,19 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
 
         out = _re.sub(r'<BASH>(.*?)</BASH>', _replace_bash, out, flags=_re.DOTALL)
 
-        # Append turn to custom history file
+        # Append turn to custom history file (with rotation)
         with open(history_file, "a") as f:
             f.write(f"User: {user_message}\nModel: {out}\n\n")
+        # Rotate if file exceeds 50KB to prevent unbounded growth
+        try:
+            if os.path.getsize(history_file) > 50000:
+                with open(history_file, "r") as f:
+                    content = f.read()
+                with open(history_file, "w") as f:
+                    f.write(content[-40000:])  # Keep last 40KB
+                logger.info(f"Rotated history file: {os.path.basename(history_file)}")
+        except Exception:
+            pass
             
         return out
     except asyncio.TimeoutError:
@@ -294,7 +325,7 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Watchdog scrape error: {e}")
         return
 
-    raw_data = f"CANVAS:\n{canvas[:800]}\n\nCLASSROOM:\n{classroom[:800]}\n\nCLASSROOM ANNOUNCEMENTS:\n{classroom_ann[:800]}\n\nGMAIL:\n{gmail[:800]}\n\nGROUPME:\n{groupme[:800]}"
+    raw_data = f"CANVAS:\n{canvas}\n\nCLASSROOM:\n{classroom}\n\nCLASSROOM ANNOUNCEMENTS:\n{classroom_ann}\n\nGMAIL:\n{gmail}\n\nGROUPME:\n{groupme}"
     
     prompt = (
         "You are an urgent alert watchdog. Read the following recent school and email notifications.\n"
@@ -410,6 +441,20 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
         except Exception:
             await context.bot.send_message(chat_id=chat_id, text=f"📊 **Periodic Digest**\n\n{digest}")
             
+    # 3. Ask to Compile Mega Study Guides
+    topics = ai_result.get("topics", [])
+    if topics:
+        topics_str = "\n".join([f"- {t}" for t in topics])
+        msg = (
+            f"🧠 **I detected you have upcoming assignments/tests for the following topics:**\n"
+            f"{topics_str}\n\n"
+            f"Would you like me to compile a Mega Study Guide for any of these? (Just reply 'Build a guide for...') 📚"
+        )
+        try:
+            await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode="Markdown")
+        except Exception:
+            await context.bot.send_message(chat_id=chat_id, text=msg)
+            
     state["seen_tasks"] = state.get("seen_tasks", [])[-50:]
     save_state(state)
     logger.info("Background job: Complete.")
@@ -489,15 +534,40 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
-    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments
+    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
     from ai_processor import process_all_sources
+    from notion_client import add_task_to_notion
     
-    canvas = get_all_canvas_data()
-    classroom = get_classroom_assignments()
-    gmail = get_unread_emails()
-    groupme = get_latest_messages("102851186")
+    canvas = get_all_canvas_data() or "No Canvas"
+    classroom = get_classroom_assignments() or "No Classroom"
+    gmail = get_unread_emails() or "No Gmail"
+    groupme = get_latest_messages("102851186") or "No GroupMe"
+    announcements = get_classroom_announcements() or "No Announcements"
+    docs = get_recent_google_docs() or "No Docs"
     
-    ai_result = process_all_sources(canvas, classroom, gmail, groupme)
+    ai_result = process_all_sources(canvas, classroom, gmail, groupme, classroom_ann_data=announcements, gdocs_data=docs)
+    
+    # Push tasks to Notion (same as background job)
+    state = load_state()
+    for task in ai_result.get("tasks", []):
+        thash = get_hash(task.get("id", task.get("title", "")))
+        if thash not in state.setdefault("seen_tasks", []):
+            priority = str(task.get("priority", "medium")).lower()
+            status = str(task.get("status", "Not started"))
+            start_val = task.get("start_value", 0)
+            end_val = task.get("end_value", 100)
+            
+            add_task_to_notion(
+                title=task.get("title"),
+                source=task.get("source"),
+                due_date=task.get("due_date"),
+                priority="medium" if priority == "unknown" else priority,
+                status="Not started" if status == "unknown" else status,
+                start_value=0 if str(start_val) == "unknown" else start_val,
+                end_value=100 if str(end_val) == "unknown" else end_val,
+            )
+            state["seen_tasks"].append(thash)
+    save_state(state)
     digest = ai_result.get("digest", "Nothing to report right now!")
     if digest and digest != "Nothing to report right now!":
         try:
@@ -511,6 +581,20 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}", parse_mode="Markdown")
     except Exception:
         await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}")
+        
+    # Ask to Compile Mega Study Guides
+    topics = ai_result.get("topics", [])
+    if topics:
+        topics_str = "\n".join([f"- {t}" for t in topics])
+        topic_msg = (
+            f"🧠 **I detected you have upcoming assignments/tests for the following topics:**\n"
+            f"{topics_str}\n\n"
+            f"Would you like me to compile a Mega Study Guide for any of these? (Just reply 'Build a guide for...') 📚"
+        )
+        try:
+            await context.bot.send_message(chat_id=chat_id, text=topic_msg, parse_mode="Markdown")
+        except Exception:
+            await context.bot.send_message(chat_id=chat_id, text=topic_msg)
 
 
 async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -526,8 +610,12 @@ async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     msg = await context.bot.send_message(chat_id=chat_id, text=f"💻 Running: `{cmd}`...", parse_mode="Markdown")
     try:
-        # Run with full root access via sudo
-        full_cmd = "echo 'Forgot@2023' | sudo -S bash -c " + repr(cmd)
+        # Run with root access via sudo
+        sudo_pw = SUDO_PASSWORD or os.getenv('SUDO_PASSWORD', '')
+        if sudo_pw:
+            full_cmd = f"echo '{sudo_pw}' | sudo -S bash -c " + repr(cmd)
+        else:
+            full_cmd = "bash -c " + repr(cmd)
         result = subprocess.run(full_cmd, shell=True, capture_output=True, text=True, timeout=60)
         output = result.stdout + result.stderr
         # Strip the sudo password prompt line
@@ -607,9 +695,10 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="🧠 Filtering with local Qwen2 model...")
     
     prompt = (
-        "You are an offline filtering AI. Read the text extracted from this photo.\n"
-        "Extract ONLY the sentences that look like homework, assignments, or important dates.\n"
-        "If there is nothing important, reply exactly with: 'NO_ALERT'\n"
+        "You are an EXTREMELY strict offline filtering AI. Read the text extracted from this photo.\n"
+        "Your ONLY job is to extract EXPLICIT homework assignments, projects, or mandatory deadlines.\n"
+        "IGNORE general study notes, math formulas, random whiteboard scribbles, and textbook pages.\n"
+        "If there is no specific, actionable task that must be completed, reply exactly with: 'NO_ALERT'\n"
         "CRITICAL RULE: If the text is messy and you are unsure if there is an assignment, reply exactly with: 'UNSURE'\n\n"
         f"Caption: {caption}\nPhoto OCR Text:\n{ocr_text}"
     )
@@ -639,7 +728,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         extracted = await _call_ollama("qwen2:0.5b")
         if "UNSURE" in extracted.upper():
             await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="⚖️ 0.5B was unsure. Escalating to 3B model...")
-            extracted = await _call_ollama("llama3.2:3b")
+            extracted = await _call_ollama("hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest")
 
         if extracted and "NO_ALERT" not in extracted.upper():
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:

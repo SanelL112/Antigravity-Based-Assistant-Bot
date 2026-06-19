@@ -19,49 +19,45 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 SOURCE_PROMPTS = {
     "canvas": (
-        "You are summarizing Canvas data for Sanel Lathiya's personal assistant bot.\n"
-        "Given the raw Canvas data below, produce a SHORT plain-text summary (max 5 bullet points).\n"
-        "Focus on: upcoming assignments, announcements, recent page updates.\n"
-        "If nothing important, write: 'No urgent Canvas updates.'\n"
-        "Do NOT write JSON. Just clean readable text.\n\n"
+        "You are a strict spam filter for Canvas data.\n"
+        "Read the raw data below. Does it contain any upcoming assignments, deadlines, or announcements?\n"
+        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "If YES, reply exactly with: IMPORTANT\n\n"
         "Raw Canvas data:\n{data}"
     ),
     "classroom": (
-        "You are summarizing Google Classroom data for Sanel Lathiya's personal assistant bot.\n"
-        "Given the raw Classroom assignments below, produce a SHORT plain-text summary (max 6 bullet points).\n"
-        "Focus only on the MOST RECENT assignments (ignore anything older than 2 weeks if dates are given).\n"
-        "If nothing important, write: 'No urgent Classroom updates.'\n"
-        "Do NOT write JSON. Just clean readable text.\n\n"
+        "You are a strict spam filter for Google Classroom data.\n"
+        "Read the raw data below. Does it contain any new assignments or homework?\n"
+        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "If YES, reply exactly with: IMPORTANT\n\n"
         "Raw Classroom data:\n{data}"
     ),
     "gmail": (
-        "You are summarizing Gmail data for Sanel Lathiya's personal assistant bot.\n"
-        "Given the raw email list below, produce a SHORT plain-text summary (max 4 bullet points).\n"
-        "Focus on: emails that need action or are from important senders. Skip spam/newsletters.\n"
-        "If nothing important, write: 'No urgent emails.'\n"
-        "Do NOT write JSON. Just clean readable text.\n\n"
+        "You are a strict spam filter for Gmail data.\n"
+        "Read the raw data below. Are there any emails from real people or important senders (not newsletters/spam)?\n"
+        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "If YES, reply exactly with: IMPORTANT\n\n"
         "Raw Gmail data:\n{data}"
     ),
     "groupme": (
-        "You are summarizing GroupMe messages for Sanel Lathiya's personal assistant bot.\n"
-        "Given the raw messages below, produce a SHORT plain-text summary (max 4 bullet points).\n"
-        "Focus on: announcements, events, things Sanel might need to act on.\n"
-        "If nothing important, write: 'No urgent GroupMe messages.'\n"
-        "Do NOT write JSON. Just clean readable text.\n\n"
+        "You are a strict spam filter for GroupMe.\n"
+        "Read the raw data below. Does it contain any new events or announcements?\n"
+        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "If YES, reply exactly with: IMPORTANT\n\n"
         "Raw GroupMe data:\n{data}"
     ),
     "classroom_announcements": (
-        "You are summarizing Google Classroom announcements for Sanel Lathiya's personal assistant bot.\n"
-        "Given the raw announcements below, produce a SHORT plain-text summary (max 6 bullet points).\n"
-        "Focus only on NEW, important announcements (things teachers just posted).\n"
-        "If nothing important, write: 'No new Classroom announcements.'\n"
-        "Do NOT write JSON. Just clean readable text.\n\n"
+        "You are a strict spam filter for Google Classroom announcements.\n"
+        "Read the raw data below. Are there any new announcements?\n"
+        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "If YES, reply exactly with: IMPORTANT\n\n"
         "Raw Classroom Announcements:\n{data}"
     ),
     "gdocs": (
-        "You are an offline filtering AI. Read the text of these recent Google Docs.\n"
-        "Extract ONLY the sentences that look like homework, assignments, or important dates.\n"
-        "If there is nothing important, reply exactly with: 'No urgent docs.'\n"
+        "You are a strict spam filter for Google Docs.\n"
+        "Read the raw data below. Does it contain explicit homework assignments or mandatory deadlines?\n"
+        "If NO, reply exactly with: NO_IMPORTANT_UPDATES\n"
+        "If YES, reply exactly with: IMPORTANT\n\n"
         "Raw Docs Text:\n{data}"
     ),
 }
@@ -76,8 +72,11 @@ DIGEST_ASSEMBLY_PROMPT = (
     "- End with a friendly one-liner.\n"
     "- Return ONLY the Markdown text, no JSON, no explanation.\n\n"
     "Summaries:\n{summaries}\n\n"
-    "Also return a JSON list of tasks on the LAST LINE in this exact format (one line):\n"
-    "TASKS_JSON:[{\"id\":\"...\",\"title\":\"...\",\"source\":\"...\",\"due_date\":null,\"priority\":\"medium\",\"status\":\"Not started\",\"start_value\":0,\"end_value\":100}]\n"
+    "At the very end, return two JSON objects on their own lines:\n"
+    "1. A JSON list of specific upcoming subjects/topics the user has tests, quizzes, or heavy assignments for, in this exact format:\n"
+    "STUDY_TOPICS_JSON:[\"Calculus Limits\", \"Photosynthesis\"]\n"
+    "2. A JSON list of tasks in this exact format:\n"
+    "TASKS_JSON:[{{\"id\":\"...\",\"title\":\"...\",\"source\":\"...\",\"due_date\":null,\"priority\":\"medium\",\"status\":\"Not started\",\"start_value\":0,\"end_value\":100}}]\n"
     "CRITICAL: If you cannot confidently determine the 'priority', 'status', 'start_value', or 'end_value' from the text, set that specific field to 'unknown'."
 )
 
@@ -160,7 +159,7 @@ def call_local_llm(prompt: str) -> str:
                     "stream": False,
                     "options": {"temperature": 0.0}
                 },
-                timeout=180.0
+                timeout=600
             )
             if res.status_code == 200:
                 return res.json().get("response", "").strip()
@@ -174,10 +173,13 @@ def call_local_llm(prompt: str) -> str:
     response = _call("qwen2:0.5b")
     
     if "UNSURE" in response.upper():
-        logger.info("Qwen2:0.5b was UNSURE. Falling back to llama3.2:3b...")
-        response = _call("llama3.2:3b")
+        logger.info("Qwen2:0.5b was UNSURE. Falling back to Llama 3.2 3B GGUF...")
+        response = _call("hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest")
         
     return response if response else "Could not summarize locally."
+
+    # NOTE: If response is empty string, caller treats it as falsy and passes raw data to agy.
+    # This is the correct fallback behavior.
 
 
 
@@ -193,18 +195,39 @@ def process_source(name: str, data: str) -> str:
             f.write(summary)
         return summary
 
-    # Trim to 1500 chars per source to keep the local LLM call fast and prevent context overflow
-    trimmed = data[:1500] + ("\n[...trimmed...]" if len(data) > 1500 else "")
-    prompt = SOURCE_PROMPTS[name].format(data=trimmed)
+    # Cap the data sent to Qwen at 4000 chars for classification only.
+    # The full raw data is still passed to agy if marked IMPORTANT.
+    classification_data = data[:4000] + ("\n[...trimmed for classification...]" if len(data) > 4000 else "")
+    prompt = SOURCE_PROMPTS[name].format(data=classification_data)
     
-    # Inject the fallback trigger rule for Qwen2
-    prompt += "\n\nCRITICAL RULE: If you are unsure if there is anything important, or you cannot understand the text, you MUST reply exactly with the word: UNSURE"
+    # Inject user's dynamic learning rules
+    rules_file = os.path.join(BOT_DIR, "learning_rules.txt")
+    if os.path.exists(rules_file):
+        try:
+            with open(rules_file, "r") as f:
+                rules = f.read().strip()
+            if rules:
+                prompt += f"\n\nUSER'S CUSTOM RULES (MUST FOLLOW):\n{rules}\n"
+        except Exception:
+            pass
+            
+    # Inject the fallback and learning triggers
+    prompt += "\n\nCRITICAL RULE 1: If you are unsure if there is anything important, or you cannot understand the text, you MUST reply exactly with the word: UNSURE"
+    prompt += "\nCRITICAL RULE 2: If you see a completely new type of message, sender, or topic that you are not sure is important (and it's not in the custom rules), you MUST reply exactly in this format: [ASK_USER] Brief description of the new item."
     
     logger.info(f"Calling LOCAL Qwen2 0.5B for {name} ({len(prompt)} chars)...")
 
-    summary = call_local_llm(prompt)
-    if not summary:
-        summary = f"Could not summarize {name} data locally."
+    response = call_local_llm(prompt)
+    if not response or "UNSURE" in response.upper():
+        logger.info(f"Qwen2 returned empty or UNSURE for {name} — passing full raw data ({len(data)} chars) to agy.")
+        summary = data # Fallback to passing raw data to agy
+    elif "NO_IMPORTANT_UPDATES" in response.upper():
+        summary = f"No urgent {name} updates."
+    elif "[ASK_USER]" in response.upper():
+        summary = f"{response}\n\nRAW DATA:\n{data}"
+    else:
+        # It is IMPORTANT! Pass raw data to agy.
+        summary = data
 
     with open(cache_file, "w") as f:
         f.write(summary)
@@ -243,18 +266,28 @@ def assemble_digest(summaries: dict) -> dict:
     output = call_agy(prompt, timeout=180)
 
     if not output:
-        return {"tasks": [], "digest": ""}
+        return {"tasks": [], "digest": "", "topics": []}
 
-    # Split tasks JSON from the digest text
+    # Split tasks JSON and topics JSON from the digest text
     tasks = []
+    topics = []
     digest = output
-    if "TASKS_JSON:" in output:
-        parts = output.rsplit("TASKS_JSON:", 1)
+    
+    if "TASKS_JSON:" in digest:
+        parts = digest.rsplit("TASKS_JSON:", 1)
         digest = parts[0].strip()
         try:
             tasks = json.loads(parts[1].strip())
         except Exception:
-            tasks = []
+            pass
+            
+    if "STUDY_TOPICS_JSON:" in digest:
+        parts = digest.rsplit("STUDY_TOPICS_JSON:", 1)
+        digest = parts[0].strip()
+        try:
+            topics = json.loads(parts[1].split("\n")[0].strip())
+        except Exception:
+            pass
 
     # ── Deduplication: compare with previous digest via agy Flash ────────────
     previous_digest_path = os.path.join(BOT_DIR, "latest_digest.txt")
@@ -293,7 +326,7 @@ def assemble_digest(summaries: dict) -> dict:
     with open(previous_digest_path, "w") as f:
         f.write(digest)
 
-    return {"tasks": tasks, "digest": digest}
+    return {"tasks": tasks, "digest": digest, "topics": topics}
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────

@@ -16,7 +16,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/classroom.coursework.me.readonly',
     'https://www.googleapis.com/auth/classroom.announcements.readonly',
     'https://www.googleapis.com/auth/documents.readonly',
-    'https://www.googleapis.com/auth/drive.readonly'
+    'https://www.googleapis.com/auth/drive.readonly',
+    'https://www.googleapis.com/auth/calendar.events'
 ]
 
 CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), '..', 'credentials.json')
@@ -95,20 +96,54 @@ def get_classroom_assignments():
 
         if not courses:
             return "No active Google Classroom courses found."
+        
+        import datetime
+        cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=30)
             
         result = ["🏫 **Google Classroom Assignments:**"]
         for course in courses:
             try:
-                coursework = service.courses().courseWork().list(courseId=course['id'], courseWorkStates=['PUBLISHED']).execute()
+                coursework = service.courses().courseWork().list(
+                    courseId=course['id'],
+                    courseWorkStates=['PUBLISHED'],
+                    orderBy='updateTime desc',
+                    pageSize=15
+                ).execute()
                 works = coursework.get('courseWork', [])
                 for work in works:
                     title = work.get('title', 'Untitled')
-                    result.append(f"[{course['name']}] {title}")
+                    
+                    # Extract due date if present
+                    due_date_obj = work.get('dueDate')
+                    due_time_obj = work.get('dueTime', {})
+                    due_str = "No due date"
+                    if due_date_obj:
+                        year = due_date_obj.get('year', 0)
+                        month = due_date_obj.get('month', 0)
+                        day = due_date_obj.get('day', 0)
+                        if year and month and day:
+                            due_str = f"{year}-{month:02d}-{day:02d}"
+                            hours = due_time_obj.get('hours', 0)
+                            minutes = due_time_obj.get('minutes', 0)
+                            if hours or minutes:
+                                due_str += f" {hours:02d}:{minutes:02d}"
+                    
+                    # Filter: skip assignments updated more than 30 days ago
+                    update_time = work.get('updateTime', '')
+                    if update_time:
+                        try:
+                            updated = datetime.datetime.fromisoformat(update_time.replace('Z', '+00:00'))
+                            if updated.replace(tzinfo=None) < cutoff:
+                                continue
+                        except Exception:
+                            pass
+                    
+                    result.append(f"[{course['name']}] {title} — Due: {due_str}")
             except Exception as e:
                 logger.warning(f"Could not fetch coursework for {course['name']}: {e}")
                 
         if len(result) == 1:
-             return "No published coursework found."
+             return "No recent published coursework found."
              
         return "\n".join(result)
     except Exception as e:
