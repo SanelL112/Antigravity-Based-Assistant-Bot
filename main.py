@@ -177,21 +177,21 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         f"You are in a focused conversation about this topic. Stay on topic unless Sanel switches subjects.\n\n"
         f"CRITICAL INSTRUCTION — COMMAND EXECUTION:\n"
         f"You are operating in a pure text-generation mode. DO NOT use any of your built-in Antigravity tools (like run_command or write_file). "
-        f"When Sanel asks you to DO something on the server, you MUST instead wrap the shell command in <BASH> tags like this:\n"
-        f"<BASH>your command here</BASH>\n"
+        f"When Sanel asks you to DO something on the server, you MUST instead wrap the shell command in angle-bracket BASH tags like this:\n"
+        f"[BASH]your command here[/BASH] (Note: Use angle brackets <> instead of square brackets [])\n"
         f"The system's python wrapper will automatically parse these tags and run that command as root, then show you the output in the next turn. "
-        f"You can chain multiple commands. Always include <BASH> tags when action is needed.\n\n"
+        f"You can chain multiple commands. Always include the angle-bracket BASH tags when action is needed.\n\n"
         f"OTHER CAPABILITIES:\n"
         f"- Every 4 hours: auto-digest from Canvas, Classroom, Gmail, GroupMe\n"
         f"- Notion: assignments auto-pushed to Tasks Tracker\n"
         f"- Natural Language Notion Pushes: When the background job alerts Sanel about a NEW task and asks him for priority/status, you MUST push it to Notion using the add_task_to_notion python script when he replies! Example:\n"
-        f"<BASH>python3 -c 'from notion_client import add_task_to_notion; add_task_to_notion(title=\"Math Homework\", priority=\"high\", status=\"Not started\", start_value=0, end_value=100)'</BASH>\n"
+        f"[BASH]python3 -c 'from notion_client import add_task_to_notion; add_task_to_notion(title=\"Math Homework\", priority=\"high\", status=\"Not started\", start_value=0, end_value=100)'[/BASH]\n"
         f"- DYNAMIC LEARNING: If Sanel is answering a question about whether a certain type of message, email, or topic is important to track or ignore, you MUST save this rule to the local memory so the local filter AI can use it in the future. To do this, use a bash command:\n"
-        f"<BASH>echo 'Ignore all emails from XYZ' >> /home/sanel/personal-assistant-bot/learning_rules.txt</BASH>\n"
+        f"[BASH]echo 'Ignore all emails from XYZ' >> /home/sanel/personal-assistant-bot/learning_rules.txt[/BASH]\n"
         f"- STUDY COMPANION: If Sanel asks you to build a study guide, find a YouTube video for a topic, or research something to study, you MUST use the mega study builder script via bash:\n"
-        f"<BASH>python3 -c 'from mega_study_builder import generate_mega_guide; print(generate_mega_guide(\"Topic Name Here\"))'</BASH>\n"
+        f"[BASH]python3 -c 'from mega_study_builder import generate_mega_guide; print(generate_mega_guide(\"Topic Name Here\"))'[/BASH]\n"
         f"- CALENDAR SCHEDULING: If Sanel asks you to schedule a study session, block off time, or add something to his calendar, you MUST use the calendar manager via bash. Calculate the start time in ISO format based on his request and current time:\n"
-        f"<BASH>python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'</BASH>\n"
+        f"[BASH]python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'[/BASH] (Remember: Use angle brackets <> instead of [])\n"
         f"- /summary: manual digest trigger | /bash <cmd>: run commands directly\n\n"
         f"Here is your Curated Memory Brain (Optimized offline nightly):\n\n{brain_context}\n\n"
         f"Here is the latest live data digest:\n\n{digest_context}\n\n"
@@ -230,10 +230,10 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                     None,
                     lambda: subprocess.run(
                         [AGENTAPI_BIN, "--model", "flash_lite", "--dangerously-skip-permissions", "--print", privacy_prompt],
-                        capture_output=True, text=True, timeout=10, stdin=subprocess.DEVNULL
+                        capture_output=True, text=True, timeout=30, stdin=subprocess.DEVNULL
                     )
                 ),
-                timeout=15
+                timeout=35
             )
             is_private = "yes" in p_result.stdout.lower()
         except Exception as e:
