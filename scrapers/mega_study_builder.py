@@ -96,8 +96,33 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     # Append the internal notes to the prompt dynamically
     prompt += f"\n\n--- YOUR PERSONAL NOTES (CANVAS/CLASSROOM/DOCS) ---\n{internal_notes}\n"
     
-    logger.info("Sending mega prompt to agy Pro...")
-    guide_content = call_agy(prompt, timeout=180)
+    logger.info("Sending mega prompt to OpenRouter Nemotron...")
+    from dotenv import load_dotenv
+    load_dotenv()
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        return "❌ Missing OPENROUTER_API_KEY in .env"
+        
+    try:
+        resp = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
+                "X-Title": "TaskBot"
+            },
+            json={
+                "model": "nvidia/nemotron-4-340b-instruct:free",
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=180.0
+        )
+        if resp.status_code == 200:
+            guide_content = resp.json()["choices"][0]["message"]["content"].strip()
+        else:
+            return f"❌ OpenRouter Error: {resp.status_code} {resp.text}"
+    except Exception as e:
+        return f"❌ OpenRouter Exception: {e}"
     
     if not guide_content:
         return "❌ The AI failed to generate the mega study guide."

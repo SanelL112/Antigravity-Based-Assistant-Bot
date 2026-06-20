@@ -207,25 +207,54 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                    f"\n--- END HISTORY ---\n\nUser: " + user_message)
     
     model = user_models.get(chat_id, "flash")
-    logger.info(f"agy --print model={model}: {user_message[:60]}")
     
     out = ""
-    try:
-        result = await asyncio.wait_for(
-            asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: subprocess.run(
-                    [AGENTAPI_BIN, "--model", model, "--dangerously-skip-permissions", "--print", full_prompt],
-                    capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL
+    if model.startswith("openrouter:"):
+        or_model_name = model.split("openrouter:", 1)[1]
+        logger.info(f"OpenRouter model={or_model_name}: {user_message[:60]}")
+        import httpx
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+                        "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
+                        "X-Title": "TaskBot"
+                    },
+                    json={
+                        "model": or_model_name,
+                        "messages": [
+                            {"role": "system", "content": system},
+                            {"role": "user", "content": f"--- {topic.upper()} CONVERSATION HISTORY ---\n{chat_history}\n--- END HISTORY ---\n\nUser: {user_message}"}
+                        ]
+                    },
+                    timeout=180.0
                 )
-            ),
-            timeout=RESPONSE_TIMEOUT + 5
-        )
-        out = result.stdout.strip()
-        if not out:
-            out = "⚠️ Assistant returned empty output. " + result.stderr[:200]
-    except Exception as e:
-        out = f"⚠️ Assistant timed out or failed: {e}"
+                if resp.status_code == 200:
+                    out = resp.json()["choices"][0]["message"]["content"].strip()
+                else:
+                    out = f"⚠️ OpenRouter Error: {resp.status_code} {resp.text}"
+        except Exception as e:
+            out = f"⚠️ OpenRouter Exception: {e}"
+    else:
+        logger.info(f"agy --print model={model}: {user_message[:60]}")
+        try:
+            result = await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: subprocess.run(
+                        [AGENTAPI_BIN, "--model", model, "--dangerously-skip-permissions", "--print", full_prompt],
+                        capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL
+                    )
+                ),
+                timeout=RESPONSE_TIMEOUT + 5
+            )
+            out = result.stdout.strip()
+            if not out:
+                out = "⚠️ Assistant returned empty output. " + result.stderr[:200]
+        except Exception as e:
+            out = f"⚠️ Assistant timed out or failed: {e}"
 
     # Auto-execute any <BASH>...</BASH> blocks in the response
     import re as _re
@@ -609,10 +638,10 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     args = context.args
     valid = ["flash", "pro", "flash_lite"]
-    if not args or args[0] not in valid:
+    if not args or (args[0] not in valid and not args[0].startswith("openrouter:")):
         current = user_models.get(chat_id, "flash")
         await update.message.reply_text(
-            f"Current model: *{current}*\n\nUsage: `/model flash` | `/model pro` | `/model flash_lite`",
+            f"Current model: *{current}*\n\nUsage: `/model flash` | `/model pro` | `/model openrouter:nvidia/nemotron-4-340b-instruct`",
             parse_mode="Markdown"
         )
         return

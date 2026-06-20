@@ -29,14 +29,29 @@ async def pre_cache_web():
     )
     
     try:
+        from dotenv import load_dotenv
+        load_dotenv()
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            logger.warning("No OPENROUTER_API_KEY found, aborting web precache.")
+            return
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                "http://localhost:11434/api/generate",
-                json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": prompt, "stream": False},
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
+                    "X-Title": "TaskBot"
+                },
+                json={
+                    "model": "nvidia/nemotron-4-340b-instruct:free",
+                    "messages": [{"role": "user", "content": prompt}]
+                },
                 timeout=120.0
             )
             
-        topic = response.json().get("response", "").strip()
+        topic = response.json()["choices"][0]["message"]["content"].strip()
         topic = re.sub(r'[^a-zA-Z0-9\s]', '', topic)
         
         if not topic or "NONE" in topic.upper() or len(topic) > 50:
@@ -74,8 +89,20 @@ async def pre_cache_web():
                 # Summarize
                 sum_prompt = f"Summarize the following educational text about {topic}. Extract key formulas, facts, and examples.\n\nTEXT:\n{text[:10000]}"
                 async with httpx.AsyncClient() as client:
-                    sum_res = await client.post("http://localhost:11434/api/generate", json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": sum_prompt, "stream": False}, timeout=120.0)
-                summary = sum_res.json().get("response", "").strip()
+                    sum_res = await client.post(
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {api_key}",
+                            "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
+                            "X-Title": "TaskBot"
+                        },
+                        json={
+                            "model": "nvidia/nemotron-4-340b-instruct:free",
+                            "messages": [{"role": "user", "content": sum_prompt}]
+                        },
+                        timeout=120.0
+                    )
+                summary = sum_res.json()["choices"][0]["message"]["content"].strip()
                 combined_research += f"\n### Source: {url}\n{summary}\n"
             except Exception as e:
                 logger.error(f"Failed to scrape {url}: {e}")
