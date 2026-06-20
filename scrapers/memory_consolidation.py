@@ -47,7 +47,7 @@ async def consolidate_memory():
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "llama3:latest",
+                    "model": "llama3.1",
                     "prompt": prompt,
                     "stream": False,
                     "options": {
@@ -73,7 +73,7 @@ async def consolidate_memory():
                 # Merge old and new
                 merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
                 async with httpx.AsyncClient() as client:
-                    resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "llama3:latest", "prompt": merge_prompt, "stream": False}, timeout=600.0)
+                    resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "llama3.1", "prompt": merge_prompt, "stream": False}, timeout=600.0)
                     if resp2.status_code == 200:
                         final_brain = resp2.json().get("response", "").strip()
                         
