@@ -206,7 +206,39 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                    + chat_history +
                    f"\n--- END HISTORY ---\n\nUser: " + user_message)
     
-    model = user_models.get(chat_id, "flash")
+    model = user_models.get(chat_id, "auto")
+    
+    if model == "auto":
+        logger.info("Running PII privacy filter via flash_lite...")
+        privacy_prompt = (
+            "Analyze the following conversation context. Does it contain ANY highly personal "
+            "information (e.g. real names, personal emails, physical addresses, private academic grades, "
+            "bank details, or intimate personal stories)?\n\n"
+            f"Context to check:\n{chat_history[-1000:]}\n\nUser: {user_message}\n\n"
+            "Reply with EXACTLY ONE WORD: 'YES' if it contains personal info, or 'NO' if it is safe general/academic knowledge."
+        )
+        try:
+            p_result = await asyncio.wait_for(
+                asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: subprocess.run(
+                        [AGENTAPI_BIN, "--model", "flash_lite", "--dangerously-skip-permissions", "--print", privacy_prompt],
+                        capture_output=True, text=True, timeout=10, stdin=subprocess.DEVNULL
+                    )
+                ),
+                timeout=15
+            )
+            is_private = "yes" in p_result.stdout.lower()
+        except Exception as e:
+            logger.error(f"Privacy filter failed, defaulting to secure: {e}")
+            is_private = True # Fail safe
+            
+        if is_private:
+            logger.info("Auto-routing to FLASH (PII detected)")
+            model = "flash"
+        else:
+            logger.info("Auto-routing to OPENROUTER (Safe context)")
+            model = "openrouter:meta-llama/llama-3.3-70b-instruct:free"
     
     out = ""
     if model.startswith("openrouter:"):
@@ -639,6 +671,7 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
     
     FREE_ALIASES = {
+        "llama3.3": "openrouter:meta-llama/llama-3.3-70b-instruct:free",
         "ultra": "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free",
         "nex": "openrouter:nex-agi/nex-n2-pro:free",
         "laguna": "openrouter:poolside/laguna-m.1:free",
@@ -646,14 +679,15 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "gemma": "openrouter:google/gemma-4-31b-it:free",
         "cohere": "openrouter:cohere/north-mini-code:free"
     }
-    valid_local = ["flash", "pro", "flash_lite"]
+    valid_local = ["auto", "flash", "pro", "flash_lite"]
     
     if not args:
-        current = user_models.get(chat_id, "flash")
+        current = user_models.get(chat_id, "auto")
         display_current = current.replace("openrouter:", "") if current.startswith("openrouter:") else current
         alias_list = " | ".join([f"`/model {k}`" for k in FREE_ALIASES.keys()])
         await update.message.reply_text(
             f"Current model: *{display_current}*\n\n"
+            f"*Smart Routing:* `/model auto` (Auto-detects PII and routes to Free models or Private models)\n"
             f"*Private (G1) Models:* `/model flash` | `/model pro`\n"
             f"*Free OpenRouter Models:* {alias_list}\n\n"
             f"_(Note: OpenRouter endpoints are strictly hardcoded to the :free tier to guarantee zero charges)_",
