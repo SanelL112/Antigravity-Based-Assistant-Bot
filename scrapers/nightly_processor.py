@@ -78,10 +78,9 @@ async def run_nightly_job(bot, chat_id):
         except Exception:
             pass
             
-    # Remove successful items from queue
-    new_queue = [q for q in queue if q not in successful]
+    # Forcefully clear the queue so we don't infinitely retry broken/un-downloadable PDFs every single night
     with open(queue_path, "w") as f:
-        json.dump(new_queue, f)
+        json.dump([], f)
     
 if __name__ == "__main__":
     import sys
