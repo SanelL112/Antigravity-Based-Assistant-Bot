@@ -238,7 +238,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
             model = "flash"
         else:
             logger.info("Auto-routing to OPENROUTER (Safe context)")
-            model = "openrouter:meta-llama/llama-3.3-70b-instruct:free"
+            model = "openrouter:openrouter/owl-alpha"
     
     out = ""
     if model.startswith("openrouter:"):

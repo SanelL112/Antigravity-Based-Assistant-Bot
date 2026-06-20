@@ -112,7 +112,7 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
                 "X-Title": "TaskBot"
             },
             json={
-                "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+                "model": "openrouter/owl-alpha",
                 "messages": [{"role": "user", "content": prompt}]
             },
             timeout=180.0
