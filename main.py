@@ -360,8 +360,35 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                 timeout=25
             )
             if "no" in sanity_result.stdout.lower() and "yes" not in sanity_result.stdout.lower()[:10]:
-                logger.warning("Sanity check failed. Output marked as hallucination.")
-                out = "⚠️ The AI generated an unreadable hallucination. The output was blocked by the Sanity Filter. Please try again."
+                logger.warning("Sanity check failed. Dispatching Recovery Agent (flash)...")
+                recovery_prompt = (
+                    "You are a Recovery AI Agent. The primary AI model hallucinated or produced broken output when responding to the user.\n\n"
+                    f"USER REQUEST:\n{user_message}\n\n"
+                    f"BROKEN AI OUTPUT:\n{out[:2000]}\n\n"
+                    "Your job is to read the user's request and the broken output to figure out what the AI meant to do, "
+                    "and provide a clear, coherent, and correct response to the user. "
+                    "Do not apologize for the broken output, just provide the correct answer or execute the correct action (using [BASH] tags if needed)."
+                )
+                try:
+                    recovery_result = await asyncio.wait_for(
+                        asyncio.get_event_loop().run_in_executor(
+                            None,
+                            lambda: subprocess.run(
+                                [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", recovery_prompt],
+                                capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL
+                            )
+                        ),
+                        timeout=65
+                    )
+                    recovered_text = recovery_result.stdout.strip()
+                    if recovered_text:
+                        out = recovered_text
+                        actual_model_used = "flash (Recovery Agent)"
+                    else:
+                        out = "⚠️ The Recovery Agent failed to fix the hallucination. Please try again."
+                except Exception as e:
+                    logger.error(f"Recovery agent timeout or error: {e}")
+                    out = "⚠️ The AI hallucinated and the Recovery Agent timed out. Please try your request again."
         except Exception as e:
             logger.error(f"Sanity check timeout or error: {e}")
 
