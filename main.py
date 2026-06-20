@@ -241,6 +241,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
             model = "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"
     
     out = ""
+    actual_model_used = model
     if model.startswith("openrouter:"):
         or_model_name = model.split("openrouter:", 1)[1]
         logger.info(f"OpenRouter model={or_model_name}: {user_message[:60]}")
@@ -270,28 +271,43 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                 
         try:
             out = await _call_or(or_model_name)
+            actual_model_used = or_model_name
             fail_phrases = ["i cannot", "i'm sorry", "i don't know", "as an ai", "unable to", "i apologize"]
             if not out or (isinstance(out, str) and any(p in out.lower()[:50] for p in fail_phrases)):
                 if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                    logger.warning("Nemotron failed or refused. Falling back to local G1 Flash...")
-                    result = await asyncio.wait_for(
-                        asyncio.get_event_loop().run_in_executor(
-                            None,
-                            lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                        ), timeout=RESPONSE_TIMEOUT + 5)
-                    out = result.stdout.strip()
+                    logger.warning("Nemotron failed or refused. Falling back to Owl Alpha 2.4T...")
+                    fallback_out = await _call_or("openrouter/owl-alpha")
+                    if fallback_out and not any(p in fallback_out.lower()[:50] for p in fail_phrases):
+                        out = fallback_out
+                        actual_model_used = "openrouter/owl-alpha"
+                    else:
+                        logger.warning("Owl Alpha failed or refused. Falling back to local G1 Flash...")
+                        result = await asyncio.wait_for(
+                            asyncio.get_event_loop().run_in_executor(
+                                None,
+                                lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
+                            ), timeout=RESPONSE_TIMEOUT + 5)
+                        out = result.stdout.strip()
+                        actual_model_used = "flash (local fallback)"
         except Exception as e:
             if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                logger.warning(f"Nemotron exception ({e}). Falling back to local G1 Flash...")
+                logger.warning(f"Nemotron exception ({e}). Falling back to Owl Alpha 2.4T...")
                 try:
-                    result = await asyncio.wait_for(
-                        asyncio.get_event_loop().run_in_executor(
-                            None,
-                            lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                        ), timeout=RESPONSE_TIMEOUT + 5)
-                    out = result.stdout.strip()
+                    out = await _call_or("openrouter/owl-alpha")
+                    actual_model_used = "openrouter/owl-alpha"
+                    if not out: raise Exception("Owl Alpha empty")
                 except Exception as e2:
-                    out = f"⚠️ Fallback to G1 Exception: {e2}"
+                    logger.warning(f"Owl Alpha exception ({e2}). Falling back to local G1 Flash...")
+                    try:
+                        result = await asyncio.wait_for(
+                            asyncio.get_event_loop().run_in_executor(
+                                None,
+                                lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
+                            ), timeout=RESPONSE_TIMEOUT + 5)
+                        out = result.stdout.strip()
+                        actual_model_used = "flash (local fallback)"
+                    except Exception as e3:
+                        out = f"⚠️ Fallback to G1 Exception: {e3}"
             else:
                 out = f"⚠️ OpenRouter Exception: {e}"
                 
@@ -315,6 +331,10 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                 out = "⚠️ Assistant returned empty output. " + result.stderr[:200]
         except Exception as e:
             out = f"⚠️ Assistant timed out or failed: {e}"
+
+    if out and not out.startswith("⚠️"):
+        disp_model = actual_model_used.replace("openrouter:", "") if "openrouter" in actual_model_used else actual_model_used
+        out += f"\n\n_(Generated by: `{disp_model}`)_"
 
     # Auto-execute any <BASH>...</BASH> blocks in the response
     import re as _re
