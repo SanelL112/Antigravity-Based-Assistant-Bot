@@ -192,6 +192,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         f"[BASH]python3 -c 'from mega_study_builder import generate_mega_guide; print(generate_mega_guide(\"Topic Name Here\"))'[/BASH]\n"
         f"- DEEP-DIVE KNOWLEDGE BASE: An offline researcher runs every night to compile massive study sheets on your current topics. If Sanel asks a question about an academic topic, check if a guide exists by using bash to list and read files in `/home/sanel/personal-assistant-bot/knowledge_base/` before answering, so you can interact and research much faster!\n"
         f"- KNOWLEDGE GAP TRACKING: If you are grading an answer or helping Sanel with a problem and you notice a weakness (e.g. \"struggles with polynomial factoring\"), you MUST log this to a text file using bash: `echo 'Struggles with factoring when a > 1' >> /home/sanel/personal-assistant-bot/knowledge_gaps/math.txt` so the offline researcher can heavily target his weak points tonight.\n"
+        f"- VERIFICATION CUSTOMIZATION: If Sanel gives you custom instructions on how the Verification Agent should behave (e.g. telling it to auto-fix errors instead of summarizing them), you MUST save his instructions using bash: `echo 'Auto-fix syntax errors' >> /home/sanel/personal-assistant-bot/verification_rules.txt`.\n"
         f"- CALENDAR SCHEDULING: If Sanel asks you to schedule a study session, block off time, or add something to his calendar, you MUST use the calendar manager via bash. Calculate the start time in ISO format based on his request and current time:\n"
         f"[BASH]python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'[/BASH] (Remember: Use angle brackets <> instead of [])\n"
         f"- /summary: manual digest trigger | /bash <cmd>: run commands directly\n\n"
@@ -449,25 +450,33 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
     out = _re.sub(r'\[BASH\](.*?)\[/BASH\]', _replace_bash, out, flags=_re.DOTALL)
 
     if original_out != out and "\n```\n" in out:
-        logger.info("Command executed. Dispatching Summary Agent (flash)...")
+        logger.info("Command executed. Dispatching Verification Agent...")
+        
+        custom_instructions = ""
+        vrules = os.path.join(os.path.dirname(os.path.abspath(__file__)), "verification_rules.txt")
+        if os.path.exists(vrules):
+            with open(vrules, "r") as f:
+                custom_instructions = f"\n\nCRITICAL CUSTOM INSTRUCTIONS FROM USER:\n{f.read()}"
+                
         summary_prompt = (
-            "You are a Summary AI Agent. You just executed a background system command on behalf of the user.\n\n"
+            "You are a Verification AI Agent. You just executed a background system command on behalf of the user.\n\n"
             f"USER REQUEST:\n{user_message}\n\n"
             f"COMMAND AND OUTPUT:\n{out[-3000:]}\n\n"
             "Your job is to read the output of the command you just ran, and give the user a quick, natural summary "
             "confirming whether the task succeeded, failed, or what the exact result was. "
             "Speak directly to the user. Do not use any bash tags. Keep it concise."
+            f"{custom_instructions}"
         )
         try:
             summary_result = await asyncio.wait_for(
                 asyncio.get_event_loop().run_in_executor(
                     None,
                     lambda: subprocess.run(
-                        [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", summary_prompt],
-                        capture_output=True, text=True, timeout=30, stdin=subprocess.DEVNULL
+                        [AGENTAPI_BIN, "--model", "flash_lite", "--dangerously-skip-permissions", "--print", summary_prompt],
+                        capture_output=True, text=True, timeout=45, stdin=subprocess.DEVNULL
                     )
                 ),
-                timeout=35
+                timeout=50
             )
             summary_text = summary_result.stdout.strip()
             if summary_text:
@@ -583,7 +592,6 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(chat_id=chat_id, text=f"📝 **Auto-Reading Notes**: I noticed `{title}`. Automatically extracting the handwriting in the background to learn what you did today...")
                 
                 # Run it in a background thread to not block the event loop
-                import asyncio
                 loop = asyncio.get_event_loop()
                 def _extract():
                     import tempfile
@@ -1132,7 +1140,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         
         # Run it synchronously since we are just blocking this callback (or ideally async, but this is fine for now)
-        import asyncio
         loop = asyncio.get_event_loop()
         
         def _build():
