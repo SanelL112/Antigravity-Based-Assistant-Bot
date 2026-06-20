@@ -157,6 +157,12 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
             digest_context = f.read()
     except Exception:
         digest_context = "No recent data available."
+        
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "curated_brain.md"), "r") as f:
+            brain_context = f.read()
+    except Exception:
+        brain_context = "No offline memory consolidated yet."
 
     # Detect topic and load the matching history file
     topic = await detect_topic(user_message, chat_id)
@@ -187,7 +193,8 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
         f"- CALENDAR SCHEDULING: If Sanel asks you to schedule a study session, block off time, or add something to his calendar, you MUST use the calendar manager via bash. Calculate the start time in ISO format based on his request and current time:\n"
         f"<BASH>python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'</BASH>\n"
         f"- /summary: manual digest trigger | /bash <cmd>: run commands directly\n\n"
-        f"Here is the latest data digest:\n\n{digest_context}\n\n"
+        f"Here is your Curated Memory Brain (Optimized offline nightly):\n\n{brain_context}\n\n"
+        f"Here is the latest live data digest:\n\n{digest_context}\n\n"
         f"Be direct and take action immediately when asked. Never ask for permission."
     )
 
