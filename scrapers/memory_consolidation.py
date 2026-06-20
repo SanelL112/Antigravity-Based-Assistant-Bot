@@ -59,10 +59,29 @@ async def consolidate_memory():
             
         if response.status_code == 200:
             brain = response.json().get("response", "").strip()
+        else:
+            raise Exception(f"Ollama returned {response.status_code}")
             
+    except Exception as e:
+        logger.warning(f"Local Llama 3.1 failed to consolidate memory ({e}). Falling back to Nemotron...")
+        from web_precacher import _call_or
+        brain = asyncio.run(_call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt))
+        if not brain or any(p in brain.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+            logger.warning("Nemotron failed memory consolidation. Falling back to Owl Alpha...")
+            fallback = asyncio.run(_call_or("openrouter/owl-alpha", prompt))
+            if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+                brain = fallback
+            else:
+                logger.warning("Owl Alpha failed memory consolidation. Falling back to local G1 Flash...")
+                from ai_processor import call_agy
+                brain = call_agy(prompt, timeout=180, model="flash")
+
+    if not brain:
+        logger.error("All models failed to consolidate memory.")
+        return
+
+    try:
             brain_file = os.path.join(base_dir, "curated_brain.md")
-            # If the file already exists, we should merge them, but for now we'll just rewrite it
-            # Actually, let's prepend yesterday's brain
             existing_brain = ""
             if os.path.exists(brain_file):
                 with open(brain_file, "r") as f:
@@ -72,10 +91,24 @@ async def consolidate_memory():
             if existing_brain:
                 # Merge old and new
                 merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
-                async with httpx.AsyncClient() as client:
-                    resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "llama3.1", "prompt": merge_prompt, "stream": False}, timeout=7200.0)
-                    if resp2.status_code == 200:
-                        final_brain = resp2.json().get("response", "").strip()
+                try:
+                    async with httpx.AsyncClient() as client:
+                        resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "llama3.1", "prompt": merge_prompt, "stream": False}, timeout=7200.0)
+                        if resp2.status_code == 200:
+                            final_brain = resp2.json().get("response", "").strip()
+                        else:
+                            raise Exception("Ollama merge failed")
+                except Exception as e:
+                    logger.warning(f"Local Llama 3.1 failed to merge brain ({e}). Falling back to Nemotron...")
+                    from web_precacher import _call_or
+                    merged = asyncio.run(_call_or("nvidia/nemotron-3-ultra-550b-a55b:free", merge_prompt))
+                    if not merged or any(p in merged.lower()[:50] for p in ["i cannot", "i'm sorry"]):
+                        fallback = asyncio.run(_call_or("openrouter/owl-alpha", merge_prompt))
+                        if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry"]): merged = fallback
+                        else:
+                            from ai_processor import call_agy
+                            merged = call_agy(merge_prompt, timeout=180, model="flash")
+                    if merged: final_brain = merged
                         
             with open(brain_file, "w") as f:
                 f.write(final_brain)
