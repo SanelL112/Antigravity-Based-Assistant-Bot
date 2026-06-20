@@ -50,7 +50,8 @@ def export_all_google_docs():
     drive_service = build('drive', 'v3', credentials=creds, cache_discovery=False)
     docs_service = build('docs', 'v1', credentials=creds, cache_discovery=False)
     
-    query = "mimeType='application/vnd.google-apps.document' and trashed=false"
+    thirty_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=30)).isoformat() + "Z"
+    query = f"mimeType='application/vnd.google-apps.document' and modifiedTime > '{thirty_days_ago}' and trashed=false"
     page_token = None
     state = load_state()
     new_docs = 0
@@ -164,7 +165,7 @@ def export_all_gmail():
     if not creds: return
     
     service = build('gmail', 'v1', credentials=creds)
-    results = service.users().messages().list(userId='me', maxResults=500).execute()
+    results = service.users().messages().list(userId='me', q='newer_than:30d', maxResults=500).execute()
     messages = results.get('messages', [])
     state = load_state()
     
@@ -181,14 +182,6 @@ def export_all_gmail():
             except Exception: pass
             
     save_state(state)
-            headers = msg_data['payload']['headers']
-            subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
-            sender = next((h['value'] for h in headers if h['name'] == 'From'), 'Unknown Sender')
-            dump.append(f"Email from {sender}: {subject}")
-        except Exception: pass
-        
-    with open(os.path.join(ARCHIVE_DIR, "gmail_export.txt"), "w") as f:
-        f.write("\n".join(dump))
 
 def run_all_exports():
     if not os.path.exists(ARCHIVE_DIR):

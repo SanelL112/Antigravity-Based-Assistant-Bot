@@ -17,10 +17,13 @@ def chunk_text(text, chunk_size=80000):
         yield text[i:i + chunk_size]
 
 async def process_chunk(chunk, chunk_index, source_name):
-    logger.info(f"Processing chunk {chunk_index} for {source_name}...")
     prompt = (
-        "You are a massive historical data curator. Read the following chunk of academic data extracted from the student's platforms.\n"
-        "Your job is to extract all core concepts, important dates, study topics, and knowledge into a highly dense markdown index.\n"
+        "You are a highly analytical academic data curator. Read the following chunk of raw data extracted from the student's learning platforms.\n"
+        "For each distinct file, email, or assignment found in this chunk, extract and output the following four points clearly:\n"
+        "1. What the file/item is.\n"
+        "2. What information is contained in the file.\n"
+        "3. How this information could be useful for creating study guides.\n"
+        "4. What this reveals about what the student is doing or learning in class right now.\n"
         "Ignore spam, small talk, and unimportant files.\n\n"
         f"SOURCE: {source_name}\n"
         f"DATA:\n{chunk}"
@@ -31,7 +34,7 @@ async def process_chunk(chunk, chunk_index, source_name):
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "llama3.1:latest",
+                    "model": "llama3.2",
                     "prompt": prompt,
                     "stream": False
                 }
@@ -69,12 +72,15 @@ async def run_indexing():
         logger.info("Delta file is empty.")
         return
         
-    chunks = list(chunk_text(text))
+    chunks = list(chunk_text(text, chunk_size=25000))
+    total_chunks = len(chunks)
+    
     for i, chunk in enumerate(chunks):
-        result = await process_chunk(chunk, i, "delta_export")
+        logger.info(f"Processing chunk {i+1}/{total_chunks} for delta_export...")
+        result = await process_chunk(chunk, i+1, "delta_export")
         if result:
             with open(OUTPUT_FILE, "a", encoding="utf-8") as out_f:
-                out_f.write(f"\n\n## Source: Nightly Delta (Part {i+1})\n\n")
+                out_f.write(f"\n\n## Source: Nightly Delta (Part {i+1}/{total_chunks})\n\n")
                 out_f.write(result)
                 
     # Clear the delta file after successful processing
