@@ -409,15 +409,27 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                 logger.warning(f"BLOCKED dangerous command: {cmd[:80]}")
                 return f"⛔ BLOCKED: Command matched safety filter ({blocked})"
         try:
+            import tempfile
+            import os
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.sh') as tf:
+                tf.write(cmd.strip())
+                temp_script = tf.name
+
             sudo_pw = SUDO_PASSWORD or os.getenv('SUDO_PASSWORD', '')
             if sudo_pw:
-                full_cmd = f"echo '{sudo_pw}' | sudo -S bash -c {repr(cmd.strip())}"
+                full_cmd = f"echo '{sudo_pw}' | sudo -S bash {temp_script}"
             else:
-                full_cmd = f"bash -c {repr(cmd.strip())}"
+                full_cmd = f"bash {temp_script}"
+            
             r = subprocess.run(
                 full_cmd,
                 shell=True, capture_output=True, text=True, timeout=60
             )
+            
+            try:
+                os.remove(temp_script)
+            except Exception:
+                pass
             result_text = (r.stdout + r.stderr).strip()
             result_text = "\n".join(l for l in result_text.splitlines() if not l.startswith("[sudo]"))
             return result_text[:2000] if result_text else "(no output)"
