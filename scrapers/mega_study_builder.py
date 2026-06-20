@@ -103,26 +103,34 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not api_key:
         return "❌ Missing OPENROUTER_API_KEY in .env"
         
-    try:
-        resp = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
-                "X-Title": "TaskBot"
-            },
-            json={
-                "model": "openrouter/owl-alpha",
-                "messages": [{"role": "user", "content": prompt}]
-            },
-            timeout=180.0
-        )
-        if resp.status_code == 200:
-            guide_content = resp.json()["choices"][0]["message"]["content"].strip()
-        else:
-            return f"❌ OpenRouter Error: {resp.status_code} {resp.text}"
-    except Exception as e:
-        return f"❌ OpenRouter Exception: {e}"
+    def _call_or(m_name):
+        try:
+            resp = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
+                    "X-Title": "TaskBot"
+                },
+                json={
+                    "model": m_name,
+                    "messages": [{"role": "user", "content": prompt}]
+                },
+                timeout=180.0
+            )
+            if resp.status_code == 200:
+                return resp.json()["choices"][0]["message"]["content"].strip()
+            return None
+        except Exception:
+            return None
+            
+    guide_content = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free")
+    
+    if not guide_content or any(p in guide_content.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+        logger.warning("Nemotron failed or refused to build study guide. Offloading to Owl Alpha 2.4T...")
+        fallback = _call_or("openrouter/owl-alpha")
+        if fallback:
+            guide_content = fallback
     
     if not guide_content:
         return "❌ The AI failed to generate the mega study guide."

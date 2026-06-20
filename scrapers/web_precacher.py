@@ -36,22 +36,25 @@ async def pre_cache_web():
             logger.warning("No OPENROUTER_API_KEY found, aborting web precache.")
             return
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
-                    "X-Title": "TaskBot"
-                },
-                json={
-                    "model": "openrouter/owl-alpha",
-                    "messages": [{"role": "user", "content": prompt}]
-                },
-                timeout=120.0
-            )
+        async def _call_or(m_name, prompt_text):
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {api_key}", "HTTP-Referer": "https://github.com/SanelL112/TaskBot", "X-Title": "TaskBot"},
+                    json={"model": m_name, "messages": [{"role": "user", "content": prompt_text}]},
+                    timeout=120.0
+                )
+                if resp.status_code == 200:
+                    return resp.json()["choices"][0]["message"]["content"].strip()
+                return None
+                
+        topic = await _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
+        if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+            logger.warning("Nemotron failed in precacher, falling back to Owl Alpha...")
+            fallback = await _call_or("openrouter/owl-alpha", prompt)
+            if fallback: topic = fallback
             
-        topic = response.json()["choices"][0]["message"]["content"].strip()
+        if not topic: topic = ""
         topic = re.sub(r'[^a-zA-Z0-9\s]', '', topic)
         
         if not topic or "NONE" in topic.upper() or len(topic) > 50:
@@ -88,21 +91,13 @@ async def pre_cache_web():
                 
                 # Summarize
                 sum_prompt = f"Summarize the following educational text about {topic}. Extract key formulas, facts, and examples.\n\nTEXT:\n{text[:10000]}"
-                async with httpx.AsyncClient() as client:
-                    sum_res = await client.post(
-                        "https://openrouter.ai/api/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {api_key}",
-                            "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
-                            "X-Title": "TaskBot"
-                        },
-                        json={
-                            "model": "openrouter/owl-alpha",
-                            "messages": [{"role": "user", "content": sum_prompt}]
-                        },
-                        timeout=120.0
-                    )
-                summary = sum_res.json()["choices"][0]["message"]["content"].strip()
+                summary = await _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", sum_prompt)
+                if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+                    logger.warning("Nemotron failed summarization, falling back to Owl Alpha...")
+                    fallback = await _call_or("openrouter/owl-alpha", sum_prompt)
+                    if fallback: summary = fallback
+                if not summary: summary = "Summary unavailable."
+                
                 combined_research += f"\n### Source: {url}\n{summary}\n"
             except Exception as e:
                 logger.error(f"Failed to scrape {url}: {e}")

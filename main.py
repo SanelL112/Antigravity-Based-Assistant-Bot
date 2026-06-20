@@ -238,14 +238,15 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
             model = "flash"
         else:
             logger.info("Auto-routing to OPENROUTER (Safe context)")
-            model = "openrouter:openrouter/owl-alpha"
+            model = "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"
     
     out = ""
     if model.startswith("openrouter:"):
         or_model_name = model.split("openrouter:", 1)[1]
         logger.info(f"OpenRouter model={or_model_name}: {user_message[:60]}")
         import httpx
-        try:
+        
+        async def _call_or(m_name):
             async with httpx.AsyncClient() as client:
                 resp = await client.post(
                     "https://openrouter.ai/api/v1/chat/completions",
@@ -255,7 +256,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                         "X-Title": "TaskBot"
                     },
                     json={
-                        "model": or_model_name,
+                        "model": m_name,
                         "messages": [
                             {"role": "system", "content": system},
                             {"role": "user", "content": f"--- {topic.upper()} CONVERSATION HISTORY ---\n{chat_history}\n--- END HISTORY ---\n\nUser: {user_message}"}
@@ -264,11 +265,30 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0) -> s
                     timeout=180.0
                 )
                 if resp.status_code == 200:
-                    out = resp.json()["choices"][0]["message"]["content"].strip()
-                else:
-                    out = f"⚠️ OpenRouter Error: {resp.status_code} {resp.text}"
+                    return resp.json()["choices"][0]["message"]["content"].strip()
+                return None
+                
+        try:
+            out = await _call_or(or_model_name)
+            fail_phrases = ["i cannot", "i'm sorry", "i don't know", "as an ai", "unable to", "i apologize"]
+            if not out or (isinstance(out, str) and any(p in out.lower()[:50] for p in fail_phrases)):
+                if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
+                    logger.warning("Nemotron failed or refused. Falling back to Owl Alpha 2.4T...")
+                    fallback_out = await _call_or("openrouter/owl-alpha")
+                    if fallback_out:
+                        out = fallback_out
         except Exception as e:
-            out = f"⚠️ OpenRouter Exception: {e}"
+            if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
+                logger.warning(f"Nemotron exception ({e}). Falling back to Owl Alpha 2.4T...")
+                try:
+                    out = await _call_or("openrouter/owl-alpha")
+                except Exception as e2:
+                    out = f"⚠️ OpenRouter Exception: {e2}"
+            else:
+                out = f"⚠️ OpenRouter Exception: {e}"
+                
+        if not out:
+            out = "⚠️ OpenRouter returned an empty response or failed."
     else:
         logger.info(f"agy --print model={model}: {user_message[:60]}")
         try:
