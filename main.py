@@ -672,12 +672,18 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     FREE_ALIASES = {
         "llama3.3": "openrouter:meta-llama/llama-3.3-70b-instruct:free",
+        "hermes": "openrouter:nousresearch/hermes-3-llama-3.1-405b:free",
         "ultra": "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free",
+        "owl": "openrouter:openrouter/owl-alpha",
         "nex": "openrouter:nex-agi/nex-n2-pro:free",
         "laguna": "openrouter:poolside/laguna-m.1:free",
         "gpt-oss": "openrouter:openai/gpt-oss-120b:free",
         "gemma": "openrouter:google/gemma-4-31b-it:free",
-        "cohere": "openrouter:cohere/north-mini-code:free"
+        "cohere": "openrouter:cohere/north-mini-code:free",
+        "qwen-next": "openrouter:qwen/qwen3-next-80b-a3b-instruct:free",
+        "qwen-coder": "openrouter:qwen/qwen3-coder:free",
+        "lyria": "openrouter:google/lyria-3-pro-preview",
+        "liquid": "openrouter:liquid/lfm-2.5-1.2b-thinking:free"
     }
     valid_local = ["auto", "flash", "pro", "flash_lite"]
     
@@ -690,7 +696,7 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"*Smart Routing:* `/model auto` (Auto-detects PII and routes to Free models or Private models)\n"
             f"*Private (G1) Models:* `/model flash` | `/model pro`\n"
             f"*Free OpenRouter Models:* {alias_list}\n\n"
-            f"_(Note: OpenRouter endpoints are strictly hardcoded to the :free tier to guarantee zero charges)_",
+            f"_(Note: OpenRouter endpoints are strictly hardcoded to the free tier to guarantee zero charges)_",
             parse_mode="Markdown"
         )
         return
@@ -698,12 +704,14 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     requested = args[0].lower()
     
     # 1. Map alias to full OpenRouter model
+    is_safe_alias = False
     if requested in FREE_ALIASES:
         requested = FREE_ALIASES[requested]
+        is_safe_alias = True
         
-    # 2. Check validity and ENFORCE :free safety
+    # 2. Check validity and ENFORCE safety for manual entries
     if requested.startswith("openrouter:"):
-        if not requested.endswith(":free"):
+        if not is_safe_alias and not requested.endswith(":free"):
             requested += ":free" # Force the free endpoint so it never costs money
     elif requested not in valid_local:
         await update.message.reply_text("❌ Invalid model choice. Type `/model` to see available options.")
