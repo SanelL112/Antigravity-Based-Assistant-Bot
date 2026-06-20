@@ -45,7 +45,7 @@ async def pre_cache_web():
                     "X-Title": "TaskBot"
                 },
                 json={
-                    "model": "nvidia/nemotron-4-340b-instruct:free",
+                    "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
                     "messages": [{"role": "user", "content": prompt}]
                 },
                 timeout=120.0
@@ -97,7 +97,7 @@ async def pre_cache_web():
                             "X-Title": "TaskBot"
                         },
                         json={
-                            "model": "nvidia/nemotron-4-340b-instruct:free",
+                            "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
                             "messages": [{"role": "user", "content": sum_prompt}]
                         },
                         timeout=120.0

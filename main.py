@@ -639,11 +639,11 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
     
     FREE_ALIASES = {
-        "ultra": "openrouter:nvidia/nemotron-3-ultra:free",
-        "nex": "openrouter:nexagi/nex-n2-pro:free",
+        "ultra": "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free",
+        "nex": "openrouter:nex-agi/nex-n2-pro:free",
         "laguna": "openrouter:poolside/laguna-m.1:free",
         "gpt-oss": "openrouter:openai/gpt-oss-120b:free",
-        "gemma": "openrouter:google/gemma-4-31b:free",
+        "gemma": "openrouter:google/gemma-4-31b-it:free",
         "cohere": "openrouter:cohere/north-mini-code:free"
     }
     valid_local = ["flash", "pro", "flash_lite"]
