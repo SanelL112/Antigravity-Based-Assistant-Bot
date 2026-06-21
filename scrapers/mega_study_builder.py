@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 MEGA_STUDY_PROMPT = """You are an elite academic tutor. I am trying to build a master study guide for the topic: "{topic}".
-I have autonomously pulled in context from multiple sources, including the teacher's handwritten notes. Synthesize all of this information into the ultimate, beautifully formatted Markdown study guide.
+I have autonomously pulled in context from multiple sources, including the teacher's handwritten notes. Synthesize all of this information into the ultimate, extremely comprehensive, beautifully formatted Markdown study guide.
 
 --- TEACHER'S HANDWRITTEN NOTES ---
 {pdf_text}
@@ -24,14 +24,15 @@ I have autonomously pulled in context from multiple sources, including the teach
 {web_text}
 
 --- YOUR INSTRUCTIONS ---
-Using the provided context and your own vast knowledge:
-1. Create a detailed summary of the topic.
-2. Break down all key formulas, dates, or core concepts, especially those mentioned in the teacher's notes.
-3. Create a step-by-step tutorial or timeline if applicable.
-4. Write 5 challenging practice questions with an answer key at the very bottom.
-5. Provide the links to the sources I provided below your guide.
+Using the provided context and your own vast knowledge, you MUST be as exhaustive and detailed as possible. Do not skip over nuances.
+1. **In-Depth Summary**: Create an incredibly detailed, exhaustive explanation of the topic.
+2. **Core Concepts & Formulas**: Break down every single key formula, date, vocabulary word, or core concept (especially prioritizing the teacher's notes).
+3. **Step-by-Step Tutorial**: Create a comprehensive timeline or step-by-step tutorial explaining how to solve problems or understand the workflow.
+4. **Action Plan (What I Need To Do)**: Tell me exactly what I need to do next to master this topic. Give me a clear checklist of specific concepts to memorize, tasks to complete, and areas to focus on.
+5. **Practice Exam**: Write 5 highly challenging practice questions with a detailed answer key at the very bottom.
+6. **Topic Contextualization**: Even if the provided notes or PDFs do not explicitly mention "{topic}" by name, you MUST extract their underlying concepts and apply them directly to "{topic}". (For example, if the topic is the SAT, aggressively frame the grammar and math concepts from the notes specifically around how they are tested on the SAT).
 
-Your study guide MUST be incredibly thorough. Do not hallucinate facts.
+Your study guide MUST be incredibly thorough. Go out of your way to explain the "Why" and "How". Do not hallucinate facts.
 """
 
 def search_web_article(topic: str):
@@ -74,15 +75,27 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not yt_meta and not web_meta and not pdf_text:
         return f"❌ I couldn't find any good web or YouTube sources for '{topic}'."
         
-    # Pull in the user's internal notes from Canvas/Docs/Classroom
-    internal_notes = "None"
+    # Pull in the user's internal notes from Canvas/Docs/Classroom and Extracted PDFs
+    internal_notes = ""
     notes_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "source_cache", "combined_summaries.txt")
+    pdf_exports_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "source_cache", "pdf_exports.txt")
+    
     if os.path.exists(notes_file):
         try:
             with open(notes_file, "r") as f:
-                internal_notes = f.read().strip()[:5000] # Cap at 5k chars
+                internal_notes += f.read().strip()[:5000] # Cap at 5k chars
         except Exception:
             pass
+            
+    if os.path.exists(pdf_exports_file):
+        try:
+            with open(pdf_exports_file, "r") as f:
+                internal_notes += "\n\n" + f.read().strip()[-8000:] # Grab last 8k chars of PDFs
+        except Exception:
+            pass
+            
+    if not internal_notes:
+        internal_notes = "None"
 
     prompt = MEGA_STUDY_PROMPT.format(
         topic=topic,
@@ -103,7 +116,7 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not api_key:
         return "❌ Missing OPENROUTER_API_KEY in .env"
         
-    def _call_or(m_name):
+    def _call_or():
         try:
             resp = requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
@@ -113,7 +126,7 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
                     "X-Title": "TaskBot"
                 },
                 json={
-                    "model": m_name,
+                    "models": ["nvidia/nemotron-3-ultra-550b-a55b:free", "openrouter/owl-alpha:free"],
                     "messages": [{"role": "user", "content": prompt}]
                 },
                 timeout=180.0
@@ -124,22 +137,25 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
         except Exception:
             return None
             
-    guide_content = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free")
+    guide_content = _call_or()
     
     if not guide_content or any(p in guide_content.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-        logger.warning("Nemotron failed or refused to build study guide. Offloading to Owl Alpha 2.4T...")
-        fallback = _call_or("openrouter/owl-alpha")
-        if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-            guide_content = fallback
-        else:
-            logger.warning("Owl Alpha failed or refused. Offloading to local G1 Flash...")
-            from ai_processor import call_agy
-            fallback_g1 = call_agy(prompt, timeout=180, model="flash")
-            if fallback_g1:
-                guide_content = fallback_g1
+        logger.warning("OpenRouter failed or refused to build study guide. Offloading to local G1 Flash...")
+        from ai_processor import call_agy
+        fallback_g1 = call_agy(prompt, timeout=180, model="flash")
+        if fallback_g1:
+            guide_content = fallback_g1
                 
     if guide_content:
         guide_content += "\n\n*(Generated by the Auto-Fallback Engine)*"
+        
+    final_message = f"🧠 **ULTIMATE STUDY GUIDE: {topic}**\n\n{guide_content}\n\n**Sources Used:**\n"
+    if yt_meta:
+        final_message += f"- 📺 [{yt_meta['title']}]({yt_meta['link']})\n"
+    if web_meta:
+        final_message += f"- 🌐 [{web_meta['title']}]({web_meta['link']})\n"
+        
+    return final_message
 
 def build_guide_for_drive_file(file_id: str, topic: str):
     import tempfile
@@ -161,11 +177,3 @@ def build_guide_for_drive_file(file_id: str, topic: str):
         return f"❌ {transcript}"
         
     return generate_mega_guide(topic, pdf_text=transcript)
-        
-    final_message = f"🧠 **ULTIMATE STUDY GUIDE: {topic}**\n\n{guide_content}\n\n**Sources Used:**\n"
-    if yt_meta:
-        final_message += f"- 📺 [{yt_meta['title']}]({yt_meta['link']})\n"
-    if web_meta:
-        final_message += f"- 🌐 [{web_meta['title']}]({web_meta['link']})\n"
-        
-    return final_message
