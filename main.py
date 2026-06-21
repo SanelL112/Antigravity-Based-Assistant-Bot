@@ -665,7 +665,7 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
                             "X-Title": "Personal Assistant Bot"
                         },
                         json={
-                            "model": "meta-llama/llama-3.2-3b-instruct:free",
+                            "models": ["nvidia/nemotron-3-ultra-550b-a55b:free", "openrouter/owl-alpha:free"],
                             "messages": [{"role": "user", "content": prompt}],
                             "temperature": 0.0
                         },
@@ -1139,7 +1139,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "X-Title": "Personal Assistant Bot"
                     },
                     json={
-                        "model": "meta-llama/llama-3.2-3b-instruct:free",
+                        "models": ["nvidia/nemotron-3-ultra-550b-a55b:free", "openrouter/owl-alpha:free"],
                         "messages": [{"role": "user", "content": prompt}],
                         "temperature": 0.0
                     },
