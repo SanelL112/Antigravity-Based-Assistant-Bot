@@ -254,7 +254,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             model = "flash"
         else:
             logger.info("Auto-routing to OPENROUTER (Safe context)")
-            model = "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"
+            model = "openrouter:openrouter/owl-alpha"
     
     out = ""
     actual_model_used = model
