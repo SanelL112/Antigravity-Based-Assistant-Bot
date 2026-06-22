@@ -25,7 +25,7 @@ I have autonomously pulled in context from multiple sources, including the teach
 
 --- YOUR INSTRUCTIONS ---
 Using the provided context and your own vast knowledge, you MUST be as exhaustive and detailed as possible. Do not skip over nuances.
-YOUR OUTPUT MUST BE EXTREMELY LONG (At least 10+ pages of material). Do not summarize briefly. Expand endlessly on every single point, breaking them down into microscopic details.
+YOUR OUTPUT MUST BE EXTREMELY LONG (At least 10+ pages of material). THERE IS NO MAXIMUM LIMIT. The guide can be 50+ pages if necessary to fully cover the topic. Do not restrict yourself. Expand endlessly on every single point, breaking them down into microscopic details.
 
 You MUST follow this exact strict format:
 1. **Core Formulas & Theorems**: Break down every single key formula, date, vocabulary word, or core concept. Prioritize the teacher's notes.
@@ -43,7 +43,7 @@ CRITICAL FORMATTING RULES:
 
 def search_web_article(topic: str):
     try:
-        results = DDGS().text(f"{topic} tutorial explanation", max_results=100)
+        results = DDGS().text(f"{topic} tutorial explanation", max_results=500)
         if not results:
             return None, ""
         
@@ -66,7 +66,7 @@ def search_web_article(topic: str):
 
 def search_youtube(topic: str):
     try:
-        videosSearch = VideosSearch(f"{topic} educational tutorial", limit=100)
+        videosSearch = VideosSearch(f"{topic} educational tutorial", limit=500)
         result = videosSearch.result()
         if result and "result" in result and len(result["result"]) > 0:
             combined_text = ""
