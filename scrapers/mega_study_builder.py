@@ -43,7 +43,7 @@ CRITICAL FORMATTING RULES:
 
 def search_web_article(topic: str):
     try:
-        results = DDGS().text(f"{topic} tutorial explanation", max_results=5)
+        results = DDGS().text(f"{topic} tutorial explanation", max_results=100)
         if not results:
             return None, ""
         
@@ -54,19 +54,19 @@ def search_web_article(topic: str):
                 resp = requests.get(res["href"], timeout=5)
                 soup = BeautifulSoup(resp.content, "html.parser")
                 combined_text += f"\n--- SOURCE: {res['title']} ---\n"
-                combined_text += " ".join([p.text for p in soup.find_all("p")])[:5000]
+                combined_text += " ".join([p.text for p in soup.find_all("p")])
                 meta_titles.append(res["title"])
             except Exception:
                 continue
                 
-        return {"title": " | ".join(meta_titles), "link": results[0]["href"]}, combined_text[:25000]
+        return {"title": " | ".join(meta_titles[:5]) + " (and more...)", "link": results[0]["href"]}, combined_text
     except Exception as e:
         logger.error(f"Web search error: {e}")
         return None, ""
 
 def search_youtube(topic: str):
     try:
-        videosSearch = VideosSearch(f"{topic} educational tutorial", limit=3)
+        videosSearch = VideosSearch(f"{topic} educational tutorial", limit=100)
         result = videosSearch.result()
         if result and "result" in result and len(result["result"]) > 0:
             combined_text = ""
@@ -82,7 +82,7 @@ def search_youtube(topic: str):
                     continue
                     
             if combined_text:
-                return {"title": " | ".join(meta_titles), "link": result["result"][0]["link"]}, combined_text[:35000]
+                return {"title": " | ".join(meta_titles[:5]) + " (and more...)", "link": result["result"][0]["link"]}, combined_text
         return None, ""
     except Exception as e:
         logger.error(f"YouTube error: {e}")
