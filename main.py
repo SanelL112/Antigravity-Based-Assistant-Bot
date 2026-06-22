@@ -1298,16 +1298,25 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
     from scrapers.web_precacher import pre_cache_web
     
     try:
-        await context.bot.send_message(chat_id=chat_id, text="💤 **Entering Sleep Cycle...** Executing nightly memory consolidation and pre-caching.", disable_notification=True)
+        msg = await context.bot.send_message(chat_id=chat_id, text="💤 **Entering Sleep Cycle...** Initiating nightly background tasks.", disable_notification=True)
         
         # 1. Process queued practice PDFs
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n1️⃣ Processing queued OCR/Practice PDFs...", parse_mode="Markdown")
+        except Exception: pass
         await run_nightly_job(context.bot, chat_id)
         
         # 2. Consolidate raw logs into curated_brain.md
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ PDFs Processed.\n2️⃣ Consolidating short-term memory into `curated_brain.md`...", parse_mode="Markdown")
+        except Exception: pass
         await consolidate_memory()
         
         # 3. Fetch tomorrow's research based on the new brain
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Memory Consolidated.\n3️⃣ Pre-caching tomorrow's research from the web...", parse_mode="Markdown")
+        except Exception: pass
         await pre_cache_web()
+        
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle Complete:**\n✅ PDFs Processed\n✅ Memory Consolidated\n✅ Web Pre-cached\n\nGood night! 🌙", parse_mode="Markdown")
+        except Exception: pass
         
     except Exception as e:
         logger.error(f"Nightly sleep cycle error: {e}")
