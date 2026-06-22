@@ -150,7 +150,7 @@ async def detect_topic(message: str, chat_id: int) -> str:
 
 # ── Bridge logic ───────────────────────────────────────────────────────────────
 
-async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, context=None) -> str:
+async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, context=None, status_msg=None) -> str:
     """Uses agy --print for a direct response. Works standalone on Debian."""
     try:
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "r") as f:
@@ -164,6 +164,9 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
     except Exception:
         brain_context = "No offline memory consolidated yet."
 
+    if status_msg and context:
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="🔍 Classifying topic...")
+        except Exception: pass
     # Detect topic and load the matching history file
     topic = await detect_topic(user_message, chat_id)
     history_dir = os.path.dirname(os.path.abspath(__file__))
@@ -219,6 +222,9 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
     model = user_models.get(chat_id, "auto")
     
     if model == "auto":
+        if status_msg and context:
+            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="🛡️ Running local PII privacy filter...")
+            except Exception: pass
         logger.info("Running PII privacy filter via flash_lite...")
         privacy_prompt = (
             "Analyze the following conversation context. Does it contain ANY highly personal "
@@ -258,28 +264,82 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         import httpx
         
         async def _call_or(m_name):
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-                        "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
-                        "X-Title": "TaskBot"
-                    },
-                    json={
-                        "model": m_name,
-                        "messages": [
-                            {"role": "system", "content": system},
-                            {"role": "user", "content": f"--- {topic.upper()} CONVERSATION HISTORY ---\n{chat_history}\n--- END HISTORY ---\n\nUser: {user_message}"}
-                        ]
-                    },
-                    timeout=180.0
-                )
-                if resp.status_code == 200:
-                    return resp.json()["choices"][0]["message"]["content"].strip()
+            import time
+            import json
+            full_response = ""
+            current_thought = ""
+            in_thought = False
+            last_edit_time = 0
+            
+            try:
+                async with httpx.AsyncClient() as client:
+                    async with client.stream(
+                        "POST",
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+                            "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
+                            "X-Title": "TaskBot"
+                        },
+                        json={
+                            "model": m_name,
+                            "stream": True,
+                            "messages": [
+                                {"role": "system", "content": system + "\n\nCRITICAL: Before answering, you MUST think step-by-step and wrap your internal thought process in <thought>...</thought> tags."},
+                                {"role": "user", "content": f"--- {topic.upper()} CONVERSATION HISTORY ---\n{chat_history}\n--- END HISTORY ---\n\nUser: {user_message}"}
+                            ]
+                        },
+                        timeout=180.0
+                    ) as resp:
+                        if resp.status_code != 200:
+                            return None
+                            
+                        async for line in resp.aiter_lines():
+                            if line.startswith("data: "):
+                                if line.strip() == "data: [DONE]":
+                                    break
+                                try:
+                                    chunk = json.loads(line[6:])
+                                    delta = chunk["choices"][0].get("delta", {})
+                                    content = delta.get("content", "")
+                                    if content:
+                                        full_response += content
+                                        
+                                        if "<thought>" in full_response and "</thought>" not in full_response:
+                                            in_thought = True
+                                            current_thought = full_response.split("<thought>")[-1]
+                                        elif "</thought>" in full_response:
+                                            in_thought = False
+                                            
+                                        now = time.time()
+                                        if now - last_edit_time > 1.5:
+                                            last_edit_time = now
+                                            if status_msg and context:
+                                                try:
+                                                    if in_thought:
+                                                        disp = current_thought[-400:].strip()
+                                                        await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 **Thinking...**\n_{disp}_", parse_mode="Markdown")
+                                                    else:
+                                                        final_text = full_response.split("</thought>")[-1] if "</thought>" in full_response else full_response
+                                                        disp = final_text[-800:].strip()
+                                                        if disp:
+                                                            await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"✍️ **Typing...**\n{disp}")
+                                                except Exception:
+                                                    pass
+                                except Exception:
+                                    pass
+            except Exception as e:
+                logger.error(f"Streaming error: {e}")
                 return None
                 
+            if "</thought>" in full_response:
+                return full_response.split("</thought>")[-1].strip()
+            return full_response.strip()
+                
         try:
+            if status_msg and context:
+                try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using {or_model_name}...")
+                except Exception: pass
             out = await _call_or(or_model_name)
             actual_model_used = or_model_name
             fail_phrases = ["i cannot", "i'm sorry", "i don't know", "as an ai", "unable to", "i apologize"]
@@ -324,6 +384,9 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         if not out:
             out = "⚠️ OpenRouter returned an empty response or failed."
     else:
+        if status_msg and context:
+            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using local {model}...")
+            except Exception: pass
         logger.info(f"agy --print model={model}: {user_message[:60]}")
         try:
             result = await asyncio.wait_for(
@@ -343,6 +406,9 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             out = f"⚠️ Assistant timed out or failed: {e}"
 
     if out and not out.startswith("⚠️"):
+        if status_msg and context:
+            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="✅ Response generated. Running local sanity check...")
+            except Exception: pass
         logger.info("Running sanity check filter...")
         sanity_prompt = (
             "You are a strict quality-control filter. Read the following text generated by an AI assistant. "
@@ -843,7 +909,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         async with message_lock:
-            reply = await send_to_antigravity_and_wait(user_text, chat_id, context)
+            reply = await send_to_antigravity_and_wait(user_text, chat_id, context, thinking_msg)
 
         # Delete the thinking message
         try:
