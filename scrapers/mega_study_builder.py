@@ -173,26 +173,38 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
         return "❌ Missing OPENROUTER_API_KEY in .env"
         
     def _call_or(prompt_text):
-        try:
-            resp = requests.post(
-                "https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
-                    "X-Title": "TaskBot"
-                },
-                json={
-                    "models": ["openrouter/owl-alpha"],
-                    "messages": [{"role": "user", "content": prompt_text}]
-                },
-                timeout=3600.0
-            )
-            if resp.status_code == 200:
-                return resp.json()["choices"][0]["message"]["content"].strip()
-            return None
-        except Exception as e:
-            logger.error(f"OpenRouter chunk failure: {e}")
-            return None
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                resp = requests.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
+                        "X-Title": "TaskBot"
+                    },
+                    json={
+                        "models": ["openrouter/owl-alpha"],
+                        "messages": [{"role": "user", "content": prompt_text}]
+                    },
+                    timeout=3600.0
+                )
+                if resp.status_code == 200:
+                    return resp.json()["choices"][0]["message"]["content"].strip()
+                else:
+                    logger.warning(f"OpenRouter returned status {resp.status_code}. Attempt {attempt + 1}/{max_retries}")
+            except Exception as e:
+                logger.warning(f"OpenRouter chunk failure: {e}. Attempt {attempt + 1}/{max_retries}")
+            
+            if attempt < max_retries - 1:
+                # Exponential backoff (15s, 30s)
+                sleep_time = 15 * (attempt + 1)
+                logger.info(f"Retrying OpenRouter in {sleep_time} seconds...")
+                time.sleep(sleep_time)
+                
+        logger.error("OpenRouter completely failed after 3 attempts.")
+        return None
 
     # PHASE 1: Generate Master Outline
     logger.info("PHASE 1: Generating Master Outline...")
