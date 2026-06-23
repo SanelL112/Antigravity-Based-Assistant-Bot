@@ -1,3 +1,6 @@
 Rule 1: Any explicit assignments, deadlines, or direct photo uploads from the user are IMPORTANT. Do not mark them as spam, even if they are for subjects outside of SAT, ACT, or AHA.
 Rule 2: If a user sends a photo of homework and you detect multiple classes, multiple days, or you are unsure about the formatting, DO NOT auto-generate a bash script to add them to Notion. Instead, you MUST list out what you found and explicitly ask the user: "Which of these should I add to your tasks?" Only proceed after the user replies.
 Rule 3: Explicitly ignore any tasks listed under "Thursday batch" for the math homework, only process the "Sunday batch".
+Rule 4: Ignore 'Day 14 Post' tasks as they are already completed.
+Rule 5: Ignore 'USAYPT Forms' from Canvas as they are not needed.
+'Ignore all emails from XYZ'

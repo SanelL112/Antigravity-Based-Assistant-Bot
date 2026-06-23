@@ -57,7 +57,15 @@ def export_all_google_docs():
     new_docs = 0
     
     while True:
-        results = drive_service.files().list(q=query, fields="nextPageToken, files(id, name)", pageSize=100, pageToken=page_token).execute()
+        results = drive_service.files().list(
+            q=query, 
+            fields="nextPageToken, files(id, name)", 
+            pageSize=100, 
+            pageToken=page_token,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
+            corpora="allDrives"
+        ).execute()
         items = results.get('files', [])
         
         for item in items:
@@ -77,7 +85,7 @@ def export_all_google_docs():
                 state["google_docs"].append(doc_id)
                 new_docs += 1
             except Exception as e:
-                pass
+                logger.error(f"Error fetching Google Doc {item.get('name')}: {e}")
                 
         page_token = results.get('nextPageToken')
         if not page_token:
@@ -95,6 +103,45 @@ def export_all_classroom():
     courses = service.courses().list(courseStates=['ACTIVE']).execute().get('courses', [])
     state = load_state()
     
+    def _process_materials(materials):
+        for m in materials:
+            if 'driveFile' in m:
+                f_id = m['driveFile'].get('driveFile', {}).get('id')
+                f_title = m['driveFile'].get('driveFile', {}).get('title', '')
+                if f_id and f_title.lower().endswith('.pdf'):
+                    import tempfile
+                    import PyPDF2
+                    import sys
+                    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+                    from google_scraper import download_drive_file
+                    
+                    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                        path = tmp.name
+                    if download_drive_file(f_id, path):
+                        try:
+                            reader = PyPDF2.PdfReader(path)
+                            text = ""
+                            for page in reader.pages:
+                                text += page.extract_text() + "\n"
+                                
+                            if len(text.strip()) <= 50:
+                                # Fallback to OCR for scanned images
+                                import pytesseract
+                                from pdf2image import convert_from_path
+                                logger.info(f"Running OCR on {f_title}...")
+                                images = convert_from_path(path)
+                                text = ""
+                                for img in images:
+                                    text += pytesseract.image_to_string(img) + "\n"
+                                    
+                            if len(text.strip()) > 50:
+                                append_to_delta(f"\n\n=== EXPORTED PDF (HISTORICAL): {f_title} ===\n{text}")
+                        except Exception as e:
+                            logger.error(f"Failed historical PDF {f_title}: {e}")
+                    try:
+                        os.remove(path)
+                    except: pass
+
     for course in courses:
         # Announcements
         try:
@@ -103,6 +150,7 @@ def export_all_classroom():
                 a_id = a.get('id')
                 if a_id and a_id not in state["classroom"]:
                     append_to_delta(f"=== CLASSROOM COURSE: {course['name']} ===\nAnnouncement: {a.get('text', '')}")
+                    _process_materials(a.get('materials', []))
                     state["classroom"].append(a_id)
         except Exception: pass
         
@@ -113,6 +161,7 @@ def export_all_classroom():
                 w_id = w.get('id')
                 if w_id and w_id not in state["classroom"]:
                     append_to_delta(f"=== CLASSROOM COURSE: {course['name']} ===\nAssignment: {w.get('title', '')}\nDesc: {w.get('description', '')}")
+                    _process_materials(w.get('materials', []))
                     state["classroom"].append(w_id)
         except Exception: pass
         

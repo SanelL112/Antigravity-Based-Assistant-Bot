@@ -1,0 +1,290 @@
+Starting historical export (Tesseract OCR) at Mon Jun 22 13:31:39 EDT 2026...
+INFO:__main__:Exporting NEW Google Docs...
+/home/sanel/personal-assistant-bot/scrapers/historical_export.py:53: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  thirty_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=30)).isoformat() + "Z"
+ERROR:__main__:Error fetching Google Doc Instrumental, vocal & other stems separation & mix/master guide - UVR/MDX/Demucs/GSEP & others: The read operation timed out
+INFO:__main__:Exported 29 NEW Google Docs.
+INFO:__main__:Exporting NEW Google Classroom data...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on NOTES - MATH.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1AnS00fIBQOq6epspKbENX-3Wz4jYh4Ed: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1AnS00fIBQOq6epspKbENX-3Wz4jYh4Ed?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1gJBJc02qSiqgZoPRb7c4HEN8lKpxD5Cw: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1gJBJc02qSiqgZoPRb7c4HEN8lKpxD5Cw?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1vvsRNlQXDQduyqa4igPKppZCn2jnHX0Y: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1vvsRNlQXDQduyqa4igPKppZCn2jnHX0Y?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 16_Quadratics_Answers.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1YbogtI8nnt_inyr-GGG2MMRs4Q31qabV: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1YbogtI8nnt_inyr-GGG2MMRs4Q31qabV?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1x2GvlUwlfJlvlPyIdryk32wERt9kGpRE: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1x2GvlUwlfJlvlPyIdryk32wERt9kGpRE?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 5_Rates.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 4_Proportion.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1pl5ECdodddHcBjUDTQgvTZd85vz53kAb: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1pl5ECdodddHcBjUDTQgvTZd85vz53kAb?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 17PpKF6pL9-M-ttKL0UIgJ7dXEY_cPJUC: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/17PpKF6pL9-M-ttKL0UIgJ7dXEY_cPJUC?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1ZTNBDx4Wp24Gtp9DqH3dEuU6vv64CI_m: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1ZTNBDx4Wp24Gtp9DqH3dEuU6vv64CI_m?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1x-o3YwHojtv5KldkOATUl7yXGveqxYbh: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1x-o3YwHojtv5KldkOATUl7yXGveqxYbh?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 11dS_668zQCq2OC5pzoRvDGnjI_UAP_hX: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/11dS_668zQCq2OC5pzoRvDGnjI_UAP_hX?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 13jgwI4os3LJDP6whD7YJykhFBkqEO_cU: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/13jgwI4os3LJDP6whD7YJykhFBkqEO_cU?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1Vm4RwbjOS9KoItyg_kqAX41nzecp2PLt: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1Vm4RwbjOS9KoItyg_kqAX41nzecp2PLt?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1Ys25Y4gILztbxh6JXLqq81tCbjzgLpD6: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1Ys25Y4gILztbxh6JXLqq81tCbjzgLpD6?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 16_Quadratics.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1X-k7liJElt4yt8Q4-MUQb_Tn9ileZv43: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1X-k7liJElt4yt8Q4-MUQb_Tn9ileZv43?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1JWtUub2zqymZuCpuxYTA6rczps388xcu: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1JWtUub2zqymZuCpuxYTA6rczps388xcu?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1bQ7XhVGoG5292RTPyUQnNASYGiSLVcXe: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1bQ7XhVGoG5292RTPyUQnNASYGiSLVcXe?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1neZ7hIBx4kq8oZLD8W_rfoTwP410BuKe: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1neZ7hIBx4kq8oZLD8W_rfoTwP410BuKe?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1FzDJ9csjzHVy3neeyOfwZkHQDk2gea1v: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1FzDJ9csjzHVy3neeyOfwZkHQDk2gea1v?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 5_(Ans) Modifiers.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 14_(Ans) Commas, Dashes, Colons.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1XyI-ygV-QjfHnRfygAwfe0VKa_gyqKfl: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1XyI-ygV-QjfHnRfygAwfe0VKa_gyqKfl?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1un3rXLb2vsUjGtT5YqsyI_pHRy1lprB6: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1un3rXLb2vsUjGtT5YqsyI_pHRy1lprB6?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1w7VTga6WdE5ttzp8ObFm5kt3KrPKqI83: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1w7VTga6WdE5ttzp8ObFm5kt3KrPKqI83?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 13_Tenses.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 4_(Ans) Subject Verb Agreement.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 10_Systems of Equations_Answers.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 5_Modifiers.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 14_Commas, Dashes, Colons.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 13_Lines_Answers.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 14_Interpreting Linear Models_Answers.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 4_Subject Verb Agreement.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 10_Systems of Equations.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+WARNING:googleapiclient.http:Encountered 403 Forbidden with reason "cannotDownloadFile"
+ERROR:google_scraper:Failed to download/export file 1Ypl6PpR3GdtzI6bPPqyB1hMhPvXpkYZS: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1Ypl6PpR3GdtzI6bPPqyB1hMhPvXpkYZS?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 1_Relative Clauses.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 2_Prepositional Phrases.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 13_Lines.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 14_Interpreting Linear Models.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 14_Vocab Week 14.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 14_Math Practice 1.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 13_Vocab Week 13.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 13_Math Practice 2.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 12_Vocab Week 12.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 12_Math Practice 1.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 12_Math Practice 2.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 11_Vocab Week 11.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 11_Math Practice 1.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 11_Math Practice 2.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 10_Vocab Week 10.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 10_Math Practice 1.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 9_Vocab Week 9.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 9_Math Practice 2.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 8_Vocab Week 8.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 7_Vocab Week 7.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 6_Vocab Week 6.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 5_Vocab Week 5.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 4_Vocab Week 4.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 4_Math Practice 4.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 3_Vocab Week 3.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 2_Vocab Week 2.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Running OCR on 1_Vocab Week 1.pdf...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Exporting NEW Canvas data...
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/users/self
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/users/self 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/users/self/favorites/courses
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/users/self/favorites/courses 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/assignments
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/assignments 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/lambert-hosa-homepage
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/lambert-hosa-homepage 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/august-chapter-meeting-2
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/august-chapter-meeting-2 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/subcommittee-applications
+INFO:canvasapi.requester:Response: GET hGenerating Mega SAT Study Guide using cached PDF exports...
+Successfully wrote study guide to /home/sanel/personal-assistant-bot/SAT_Study_Guide.md
+Pushing changes to GitHub at Mon Jun 22 13:59:36 EDT 2026...
+[main a13cdbd] feat: Include missing Tesseract OCR PDFs in SAT guide
+ 1 file changed, 539 insertions(+), 1 deletion(-)
+To https://github.com/SanelL112/TaskBot.git
+   80ef36a..a13cdbd  main -> main
+All done!
+es/117093/pages/nths-application-information
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/nths-application-information 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/september-chapter-meeting
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/september-chapter-meeting 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/october-chapter-meeting
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/october-chapter-meeting 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/nbcf-encouragement-card-drive
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/nbcf-encouragement-card-drive 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/december-chapter-meeting
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/december-chapter-meeting 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/february-chapter-meeting
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/february-chapter-meeting 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/competitive-event-meeting-slides
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/competitive-event-meeting-slides 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/nths-credit-opportunities
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/nths-credit-opportunities 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/state-qualification-testing-schedule-2
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/state-qualification-testing-schedule-2 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/sqt-slash-slc-study-materials
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/sqt-slash-slc-study-materials 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/subcommittee-fair
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/subcommittee-fair 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/hygiene-drive-the-place
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/hygiene-drive-the-place 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/competition-interest-meeting-video
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/competition-interest-meeting-video 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/statesman-exam-study-materials
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/statesman-exam-study-materials 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/choa-drive
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/choa-drive 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/blessings-in-a-backpack-drive-2
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/blessings-in-a-backpack-drive-2 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/lambert-hosa-resource-materials
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/117093/pages/lambert-hosa-resource-materials 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/161127/assignments
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/161127/assignments 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/161127/pages
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/161127/pages 404
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/188657/assignments
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/188657/assignments 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/188657/pages
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/188657/pages 404
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/124624/assignments
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/124624/assignments 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/124624/pages
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/124624/pages 404
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/124233/assignments
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/124233/assignments 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/124233/pages
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/124233/pages 404
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/150683/assignments
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/150683/assignments 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/150683/pages
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/150683/pages 404
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/151198/assignments
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/151198/assignments 200
+INFO:canvasapi.requester:Request: GET https://forsyth.instructure.com/api/v1/courses/151198/pages
+INFO:canvasapi.requester:Response: GET https://forsyth.instructure.com/api/v1/courses/151198/pages 404
+INFO:__main__:Exporting NEW Gmail...
+INFO:googleapiclient.discovery_cache:file_cache is only supported with oauth2client<4.0.0
+INFO:__main__:Historical Export Complete.
+Starting mega study guide builder at Mon Jun 22 13:45:58 EDT 2026...
+YouTube error: type object 'YouTubeTranscriptApi' has no attribute 'get_transcript'
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:40: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(f"{topic} tutorial explanation", max_results=2)
+Generating Mega SAT Study Guide using cached PDF exports...
+Successfully wrote study guide to /home/sanel/personal-assistant-bot/SAT_Study_Guide.md
+Pushing changes to GitHub at Mon Jun 22 14:06:50 EDT 2026...
+[main bc93e0a] feat: Include missing Tesseract OCR PDFs in SAT guide
+ 1 file changed, 425 insertions(+), 487 deletions(-)
+To https://github.com/SanelL112/TaskBot.git
+   a13cdbd..bc93e0a  main -> main
+All done!

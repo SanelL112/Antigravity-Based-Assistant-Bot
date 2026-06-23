@@ -1,0 +1,7 @@
+YouTube error: type object 'YouTubeTranscriptApi' has no attribute 'get_transcript'
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:43: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(f"{topic} tutorial explanation", max_results=2)
+Generating Mega SAT Study Guide using cached PDF exports...
+Successfully appended study guide to /home/sanel/personal-assistant-bot/SAT_Study_Guide.md
+Converting Markdown to DOCX format...
+Successfully created Word document at /home/sanel/personal-assistant-bot/SAT_Study_Guide.docx

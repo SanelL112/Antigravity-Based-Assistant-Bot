@@ -752,7 +752,7 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
             logger.info("Falling back to G1 Flash for watchdog alert...")
             from ai_processor import call_agy
             import asyncio
-            result = await asyncio.to_thread(call_agy, prompt, 120, "flash")
+            result = await asyncio.to_thread(call_agy, prompt, 3600, "flash")
             if result and "NO_ALERT" not in result and len(result) > 10:
                 logger.info(f"Watchdog triggered: {result}")
                 await context.bot.send_message(
@@ -1213,7 +1213,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "messages": [{"role": "user", "content": prompt}],
                         "temperature": 0.0
                     },
-                    timeout=120.0
+                    timeout=3600.0
                 )
             if response.status_code == 200:
                 return response.json()["choices"][0]["message"]["content"].strip()
@@ -1229,7 +1229,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.info("Falling back to G1 Flash for photo extraction...")
             from ai_processor import call_agy
             import asyncio
-            extracted = await asyncio.to_thread(call_agy, prompt, 120, "flash")
+            extracted = await asyncio.to_thread(call_agy, prompt, 3600, "flash")
 
         if extracted and "NO_ALERT" not in extracted.upper() and "UNSURE" not in extracted.upper():
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:

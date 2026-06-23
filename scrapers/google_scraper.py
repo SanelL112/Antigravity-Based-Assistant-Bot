@@ -210,7 +210,15 @@ def get_recent_google_docs():
         
         # Search for Google Docs modified in the last 4 hours
         query = f"mimeType='application/vnd.google-apps.document' and modifiedTime > '{four_hours_ago}' and trashed=false"
-        results = drive_service.files().list(q=query, fields="files(id, name)", pageSize=10).execute()
+        # Add shared drive support to watchdog query
+        results = drive_service.files().list(
+            q=query, 
+            fields="files(id, name)", 
+            pageSize=10,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
+            corpora="allDrives"
+        ).execute()
         items = results.get('files', [])
 
         if not items:
@@ -245,7 +253,7 @@ def get_recent_google_docs():
         return f"Error connecting to Google Drive/Docs: {e}"
 
 def download_drive_file(file_id: str, output_path: str) -> bool:
-    """Downloads a file from Google Drive by file ID."""
+    """Downloads a file from Google Drive by file ID. Automatically exports Google Docs/Workspace files."""
     from googleapiclient.http import MediaIoBaseDownload
     import io
     creds = get_google_credentials()
@@ -254,7 +262,23 @@ def download_drive_file(file_id: str, output_path: str) -> bool:
         return False
     try:
         service = build('drive', 'v3', credentials=creds)
-        request = service.files().get_media(fileId=file_id)
+        
+        # 1. Get file metadata to check mimeType (must support shared drives)
+        file_meta = service.files().get(fileId=file_id, fields="mimeType", supportsAllDrives=True).execute()
+        mime_type = file_meta.get("mimeType", "")
+        
+        # 2. Determine if it's a Google Workspace document that needs exporting
+        request = None
+        if mime_type == "application/vnd.google-apps.document":
+            request = service.files().export_media(fileId=file_id, mimeType="application/pdf")
+        elif mime_type == "application/vnd.google-apps.spreadsheet":
+            request = service.files().export_media(fileId=file_id, mimeType="application/pdf")
+        elif mime_type == "application/vnd.google-apps.presentation":
+            request = service.files().export_media(fileId=file_id, mimeType="application/pdf")
+        else:
+            # Standard binary file (PDFs, images, etc.)
+            request = service.files().get_media(fileId=file_id, supportsAllDrives=True)
+            
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
         done = False
@@ -265,7 +289,7 @@ def download_drive_file(file_id: str, output_path: str) -> bool:
             f.write(fh.getvalue())
         return True
     except Exception as e:
-        logger.error(f"Failed to download file {file_id}: {e}")
+        logger.error(f"Failed to download/export file {file_id}: {e}")
         return False
 
 

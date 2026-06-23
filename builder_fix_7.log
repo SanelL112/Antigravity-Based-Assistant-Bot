@@ -1,0 +1,14 @@
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:53: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(q, max_results=20)
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:53: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(q, max_results=20)
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:53: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(q, max_results=20)
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:53: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(q, max_results=20)
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:53: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(q, max_results=20)
+Generating Mega Study Guide for: Comprehensive SAT Exam Prep Guide...
+Successfully appended study guide to /home/sanel/personal-assistant-bot/Comprehensive_SAT_Exam_Prep_Guide_Study_Guide.md
+Converting Markdown to DOCX format...
+Successfully created Word document at /home/sanel/personal-assistant-bot/Comprehensive_SAT_Exam_Prep_Guide_Study_Guide.docx

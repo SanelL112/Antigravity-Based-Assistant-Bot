@@ -1,0 +1,6 @@
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:46: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(f"{topic} tutorial explanation", max_results=500)
+Generating Mega Study Guide for: Comprehensive SAT Exam Prep Guide...
+Successfully appended study guide to /home/sanel/personal-assistant-bot/Comprehensive_SAT_Exam_Prep_Guide_Study_Guide.md
+Converting Markdown to DOCX format...
+Successfully created Word document at /home/sanel/personal-assistant-bot/Comprehensive_SAT_Exam_Prep_Guide_Study_Guide.docx

@@ -270,7 +270,7 @@ def assemble_digest(summaries: dict) -> dict:
 
     prompt = DIGEST_ASSEMBLY_PROMPT.format(summaries=summary_text)
     logger.info("Assembling final digest via agy...")
-    output = call_agy(prompt, timeout=180)
+    output = call_agy(prompt, timeout=3600)
 
     if not output:
         return {"tasks": [], "digest": "", "topics": []}

@@ -185,7 +185,7 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
                     "models": ["openrouter/owl-alpha"],
                     "messages": [{"role": "user", "content": prompt_text}]
                 },
-                timeout=300.0
+                timeout=3600.0
             )
             if resp.status_code == 200:
                 return resp.json()["choices"][0]["message"]["content"].strip()
@@ -257,7 +257,7 @@ INSTRUCTIONS:
         if not chunk_result:
             logger.warning(f"Failed to generate chunk {chapter}, trying local fallback...")
             from ai_processor import call_agy
-            chunk_result = call_agy(chunk_prompt, timeout=180, model="flash")
+            chunk_result = call_agy(chunk_prompt, timeout=3600, model="flash")
             
         if chunk_result:
             import re

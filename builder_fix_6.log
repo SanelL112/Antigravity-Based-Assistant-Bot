@@ -1,0 +1,7 @@
+/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py:47: RuntimeWarning: This package (`duckduckgo_search`) has been renamed to `ddgs`! Use `pip install ddgs` instead.
+  results = DDGS().text(f"{topic} tutorial explanation", max_results=20)
+OpenRouter chunk failure: 'choices'
+Failed to generate chunk Chapter 1: Foundations of Algebra & Linear Functions, trying local fallback...
+agy pty error (flash): [Errno 7] Argument list too long: '/home/sanel/.local/bin/agy'
+flash failed or timed out. Falling back to pro...
+agy pty error (pro): [Errno 7] Argument list too long: '/home/sanel/.local/bin/agy'
