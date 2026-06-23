@@ -23,13 +23,10 @@ async def main():
         output_md = f"/home/sanel/personal-assistant-bot/{filename_base}_Study_Guide.md"
         output_docx = f"/home/sanel/personal-assistant-bot/{filename_base}_Study_Guide.docx"
         
-        # Append to the file instead of overwriting
-        mode = "a" if os.path.exists(output_md) else "w"
-        with open(output_md, mode, encoding="utf-8") as f:
-            if mode == "a":
-                f.write(f"\n\n---\n\n# ADDITIONS: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
+        # Always overwrite the file so we don't end up with stacked/redundant versions
+        with open(output_md, "w", encoding="utf-8") as f:
             f.write(result)
-        print(f"Successfully appended study guide to {output_md}")
+        print(f"Successfully created study guide at {output_md}")
         
         # Convert to DOCX using Pandoc
         print("Converting Markdown to DOCX format...")
