@@ -111,8 +111,16 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     """Generates the ultimate chunked study guide."""
     logger.info(f"Generating MEGA guide for: {topic} using Chunking Architecture")
     
-    yt_meta, yt_text = search_youtube(topic)
-    web_meta, web_text = search_web_article(topic)
+    # Strip out generic filler words so the scrapers search for the actual subject matter
+    search_topic = topic.lower()
+    for filler in ["comprehensive", "study guide", "prep guide", "ultimate", "master class", "crash course", "review"]:
+        search_topic = search_topic.replace(filler, "")
+    search_topic = search_topic.strip()
+    if not search_topic:
+        search_topic = topic # Fallback just in case
+    
+    yt_meta, yt_text = search_youtube(search_topic)
+    web_meta, web_text = search_web_article(search_topic)
     
     # Pull in the user's internal notes from Canvas/Docs/Classroom and Extracted PDFs
     internal_notes = ""
