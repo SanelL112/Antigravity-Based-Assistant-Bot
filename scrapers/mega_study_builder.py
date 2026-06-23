@@ -201,7 +201,7 @@ Here are the sources you have available:
 {source_context}
 
 Create a highly detailed 10-chapter outline for this study guide. 
-Ensure you include chapters for Core Formulas, Deep-Dive Explanations, Advanced Strategies, and Practice Problems.
+CRITICAL LIMITATION: You may ONLY include exactly ONE chapter for "Practice Problems". The other 9 chapters MUST be purely dedicated to Core Formulas, Deep-Dive Explanations, Advanced Strategies, and Step-by-Step Tactics.
 Respond ONLY with a raw JSON array of strings representing the chapter titles. Do not include markdown blocks or any other text.
 Example: ["Chapter 1: Introduction to Formulas", "Chapter 2: Advanced Mechanics"]"""
     
@@ -228,7 +228,7 @@ Example: ["Chapter 1: Introduction to Formulas", "Chapter 2: Advanced Mechanics"
             "Chapter 7: Real-World Applications",
             "Chapter 8: Action Plan & Memorization Checklist",
             "Chapter 9: Common Mistakes & Pitfalls",
-            "Chapter 10: Master Practice Exam (5 Hard Problems with Solutions)"
+            "Chapter 10: Master Practice Exam"
         ]
 
     # PHASE 2: Chunked Generation
@@ -247,7 +247,7 @@ Your current task is to write ONLY the content for: **{chapter}**
 INSTRUCTIONS:
 1. Expand on this chapter endlessly. Do not hold back. Break down every microscopic detail, nuance, and explanation.
 2. Assume the reader needs an incredibly rigorous, textbook-level deep dive.
-3. If this chapter is about Formulas, explain how they are derived and when to use them. If it is about Practice Problems, write highly challenging ones with step-by-step answers.
+3. STRICT PROHIBITION: Unless this specific chapter is explicitly titled "Practice Exam", DO NOT write any practice problems. Spend 100% of your tokens on strategy, theory, formulas, and deep-dive explanations.
 4. ABSOLUTELY NO INTERNAL MONOLOGUES or "thinking out loud".
 5. Wrap ALL of your internal planning or calculations inside <thought>...</thought> tags! Anything outside these tags must be the final, polished text for the chapter.
 6. Start your output directly with a Markdown Header for the chapter (e.g. # {chapter}).
@@ -285,8 +285,9 @@ INSTRUCTIONS:
 1. Fix all disorganized headers to ensure a clean, hierarchical flow.
 2. Verify math equations and fact-check concepts.
 3. CRITICAL: Format ALL math using standard `$ x $` for inline math and `$$ x $$` for block math. Do NOT use \\( or \\[.
-4. Wrap any internal scratchpad inside <thought>...</thought> tags.
-5. Output ONLY the perfectly polished, final version of {chapter}. Do NOT output other chapters.
+4. RUTHLESS PRUNING: Unless this specific chapter is explicitly titled "Practice Exam", you MUST delete all practice questions, quizzes, or multiple-choice problems. Replace them with deep-dive strategy and theory instead.
+5. Wrap any internal scratchpad inside <thought>...</thought> tags.
+6. Output ONLY the perfectly polished, final version of {chapter}. Do NOT output other chapters.
 """
         editor_result = _call_or(editor_prompt)
         
