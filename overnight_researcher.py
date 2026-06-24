@@ -61,53 +61,24 @@ def run_overnight_research():
             logger.info(f"Skipping {topic}, already researched.")
             continue
             
-        logger.info(f"Researching topic: {topic} using free online model...")
-        
-        # Inject knowledge gaps if they exist
-        gaps_text = ""
-        gaps_dir = os.path.join(BASE_DIR, "knowledge_gaps")
-        if os.path.exists(gaps_dir):
-            for gap_file in glob.glob(os.path.join(gaps_dir, "*.txt")):
-                with open(gap_file, "r") as gf:
-                    gaps_text += f"\n- " + gf.read().strip()
-        
-        gaps_instruction = ""
-        if gaps_text.strip():
-            gaps_instruction = f"\n\nCRITICAL KNOWLEDGE GAPS:\nThe student has recently struggled with the following concepts. You MUST heavily emphasize these weaknesses in your study guide and include highly targeted practice questions to fix them:\n{gaps_text}"
-        
-        research_prompt = (
-            f"Write a comprehensive, highly-detailed study guide and knowledge base article about: {topic}. "
-            "Include definitions, formulas, historical context, advanced concepts, and common pitfalls. "
-            "Format it beautifully in Markdown. This will be cached in a student's offline database."
-            f"{gaps_instruction}"
-        )
+        logger.info(f"Researching topic: {topic} using the upgraded Mega Study Builder...")
         
         try:
-            logger.info("Attempting research with Nemotron...")
-            rr = subprocess.run([AGENTAPI_BIN, "--model", "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free", 
-                                 "--dangerously-skip-permissions", "--print", research_prompt], 
-                                capture_output=True, text=True, timeout=300)
-            research_text = rr.stdout.strip()
+            # We now route the knowledge base directly through the 100-page Visual Image Pipeline
+            import sys
+            sys.path.append(os.path.join(BASE_DIR, "scrapers"))
+            from mega_study_builder import generate_mega_guide
             
-            if len(research_text) < 100 or "⚠️" in research_text:
-                raise Exception("Nemotron returned short or error response.")
+            research_text = generate_mega_guide(topic)
+            
+            if research_text and len(research_text) > 1000:
+                with open(kb_file, "w") as f:
+                    f.write(research_text)
+                logger.info(f"Saved massive research guide for {topic} ({len(research_text)} bytes).")
+            else:
+                logger.warning(f"Research for {topic} completely failed or was too short.")
         except Exception as e:
-            logger.warning(f"Nemotron failed ({e}). Falling back to Owl Alpha...")
-            try:
-                rr2 = subprocess.run([AGENTAPI_BIN, "--model", "openrouter:openrouter/owl-alpha", 
-                                     "--dangerously-skip-permissions", "--print", research_prompt], 
-                                    capture_output=True, text=True, timeout=300)
-                research_text = rr2.stdout.strip()
-            except Exception as e2:
-                logger.error(f"Owl Alpha also failed: {e2}")
-                research_text = ""
-            
-        if len(research_text) > 100 and "⚠️" not in research_text:
-            with open(kb_file, "w") as f:
-                f.write(research_text)
-            logger.info(f"Saved research for {topic} ({len(research_text)} bytes).")
-        else:
-            logger.warning(f"Research for {topic} completely failed or was too short.")
+            logger.error(f"Failed to build guide for {topic}: {e}")
 
 if __name__ == "__main__":
     run_overnight_research()
