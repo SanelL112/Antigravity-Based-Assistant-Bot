@@ -73,8 +73,10 @@ def main():
     # Ensure we have the latest updates
     subprocess.run(["git", "pull"], check=False)
     
-    # 1. Always build the core SAT Study Guide (as requested)
-    build_and_push("Comprehensive SAT Exam Prep Guide")
+    # 1. Separated Core Study Guides (Disciplinary Split)
+    build_and_push("SAT Math and Geometry Master Guide")
+    build_and_push("SAT Reading Comprehension Master Guide")
+    build_and_push("SAT Writing and Grammar Master Guide")
     
     # 2. Load the Google Classroom PDF text to find dynamic topics
     pdf_path = "/home/sanel/personal-assistant-bot/scrapers/source_cache/pdf_exports.txt"

@@ -46,7 +46,7 @@ def search_web_article(topic: str):
     try:
         queries = [f"{topic} tutorial", f"{topic} explanation", f"{topic} study guide", f"{topic} practice problems", f"{topic} advanced concepts"]
         combined_text = ""
-        meta_titles = []
+        sources_list = []
         
         for q in queries:
             try:
@@ -54,27 +54,37 @@ def search_web_article(topic: str):
                 if not results: continue
                 
                 for res in results:
-                    if len(meta_titles) >= 100: break
-                    if res["title"] in meta_titles: continue
+                    if len(sources_list) >= 100: break
+                    if any(s["href"] == res["href"] for s in sources_list): continue
                     
                     try:
                         resp = requests.get(res["href"], timeout=5)
                         soup = BeautifulSoup(resp.content, "html.parser")
                         combined_text += f"\n--- SOURCE: {res['title']} ---\n"
                         combined_text += " ".join([p.text for p in soup.find_all("p")])
-                        meta_titles.append(res["title"])
+                        sources_list.append({"title": res["title"], "href": res["href"]})
                     except Exception:
                         continue
             except Exception:
                 pass
-            if len(meta_titles) >= 100: break
+            if len(sources_list) >= 100: break
                 
-        if meta_titles:
-            return {"title": f"Fetched {len(meta_titles)} Web Articles | " + " | ".join(meta_titles[:5]) + "...", "link": "Multiple Sources"}, combined_text
+        if sources_list:
+            return sources_list, combined_text
         return None, ""
     except Exception as e:
-        logger.error(f"Web search error: {e}")
+        logger.error(f"Web scrape failed: {e}")
         return None, ""
+
+def search_images(topic: str):
+    """Fetches relevant educational diagrams and images for visual concepts."""
+    try:
+        results = DDGS().images(topic, max_results=15)
+        if results:
+            return [{"title": res["title"], "image": res["image"]} for res in results]
+    except Exception as e:
+        logger.error(f"Image scrape failed: {e}")
+    return []
 
 def search_youtube(topic: str):
     try:
@@ -165,13 +175,34 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
 --- WEB ARTICLE SUMMARIES ({web_meta["title"] if web_meta else "None"}) ---
 {web_text if web_text else "None"}
 """
-
     from dotenv import load_dotenv
     load_dotenv()
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         return "❌ Missing OPENROUTER_API_KEY in .env"
-        
+    
+    yt_meta, yt_text = search_youtube(search_topic)
+    web_sources, web_text = search_web_article(search_topic)
+    image_sources = search_images(search_topic)
+    
+    # Format the Visual Asset Library for the AI
+    visual_asset_library = "VISUAL ASSET LIBRARY (Use these to insert images):\n"
+    if image_sources:
+        for img in image_sources:
+            visual_asset_library += f"- [{img['title']}] URL: {img['image']}\n"
+    else:
+        visual_asset_library += "(No visual assets found.)\n"
+    
+    # Pull in the user's internal notes from Canvas/Docs/Classroom and Extracted PDFs
+    internal_notes = ""
+    try:
+        with open("/home/sanel/personal-assistant-bot/scrapers/source_cache/pdf_exports.txt", "r", encoding="utf-8") as f:
+            internal_notes = f.read()
+    except Exception:
+        pass
+    
+    source_context = f"Internal Classroom Notes: {internal_notes[:15000]}\n\nWeb Articles: {web_text[:20000]}\n\nYouTube Transcripts: {yt_text[:20000]}"
+    
     def _call_or(prompt_text):
         import time
         max_retries = 3
@@ -254,15 +285,18 @@ Example: ["Chapter 1: Introduction to Formulas", "Chapter 2: Advanced Mechanics"
 Here are the sources you have available:
 {source_context}
 
+{visual_asset_library}
+
 Your current task is to write ONLY the content for: **{chapter}**
 
 INSTRUCTIONS:
 1. Expand on this chapter endlessly. Do not hold back. Break down every microscopic detail, nuance, and explanation.
 2. Assume the reader needs an incredibly rigorous, textbook-level deep dive.
 3. STRICT PROHIBITION: Unless this specific chapter is explicitly titled "Practice Exam", DO NOT write any practice problems. Spend 100% of your tokens on strategy, theory, formulas, and deep-dive explanations.
-4. ABSOLUTELY NO INTERNAL MONOLOGUES or "thinking out loud".
-5. Wrap ALL of your internal planning or calculations inside <thought>...</thought> tags! Anything outside these tags must be the final, polished text for the chapter.
-6. Start your output directly with a Markdown Header for the chapter (e.g. # {chapter}).
+4. VISUAL INJECTION: When explaining a visual concept (like geometry, graphs, etc.), explicitly embed an image from the Visual Asset Library using Markdown: `![Alt Text](URL)`. 
+5. ABSOLUTELY NO INTERNAL MONOLOGUES or "thinking out loud".
+6. Wrap ALL of your internal planning or calculations inside <thought>...</thought> tags! Anything outside these tags must be the final, polished text for the chapter.
+7. Start your output directly with a Markdown Header for the chapter (e.g. # {chapter}).
 """
         chunk_result = _call_or(chunk_prompt)
         
@@ -298,8 +332,9 @@ INSTRUCTIONS:
 2. Verify math equations and fact-check concepts.
 3. CRITICAL: Format ALL math using standard `$ x $` for inline math and `$$ x $$` for block math. Do NOT use \\( or \\[.
 4. RUTHLESS PRUNING: Unless this specific chapter is explicitly titled "Practice Exam", you MUST delete all practice questions, quizzes, or multiple-choice problems. Replace them with deep-dive strategy and theory instead.
-5. Wrap any internal scratchpad inside <thought>...</thought> tags.
-6. Output ONLY the perfectly polished, final version of {chapter}. Do NOT output other chapters.
+5. PRESERVE IMAGES: Ensure any markdown images like `![alt](URL)` are perfectly preserved and not broken or removed.
+6. Wrap any internal scratchpad inside <thought>...</thought> tags.
+7. Output ONLY the perfectly polished, final version of {chapter}. Do NOT output other chapters.
 """
         editor_result = _call_or(editor_prompt)
         
@@ -315,9 +350,12 @@ INSTRUCTIONS:
     final_message = f"🧠 **ULTIMATE CHUNKED STUDY GUIDE: {topic}**\n\n*(Generated dynamically via a {len(outline)}-part LLM Generation & Verification Pipeline to bypass limits)*\n\n{polished_guide_content}\n\n**Sources Used:**\n- Classroom PDFs (Local Brain Sync)"
     if yt_meta:
         final_message += f"\n- YouTube: {yt_meta['title']}"
-    if web_meta:
-        final_message += f"\n- Web: {web_meta['title']}"
         
+    if web_sources:
+        final_message += "\n\n**Web Articles Scraped:**"
+        for s in web_sources:
+            final_message += f"\n- [{s['title']}]({s['href']})"
+            
     return final_message
 
 def build_guide_for_drive_file(file_id: str, topic: str):
