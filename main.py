@@ -1319,10 +1319,12 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
         except Exception: pass
         await pre_cache_web()
         
-        # 4. Auto-Generate SAT Guide
-        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Web Pre-cached.\n4️⃣ Building Massive SAT Study Guide...", parse_mode="Markdown")
+        # 4. Auto-Generate SAT Guides
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Web Pre-cached.\n4️⃣ Building Separated SAT Study Guides (Math, Reading, Writing)...", parse_mode="Markdown")
         except Exception: pass
-        os.system("/home/sanel/personal-assistant-bot/venv/bin/python /home/sanel/personal-assistant-bot/run_builder.py 'Comprehensive SAT Exam Prep Guide' > /dev/null 2>&1")
+        os.system("/home/sanel/personal-assistant-bot/venv/bin/python /home/sanel/personal-assistant-bot/run_builder.py 'SAT Math and Geometry Master Guide' > /dev/null 2>&1")
+        os.system("/home/sanel/personal-assistant-bot/venv/bin/python /home/sanel/personal-assistant-bot/run_builder.py 'SAT Reading Comprehension Master Guide' > /dev/null 2>&1")
+        os.system("/home/sanel/personal-assistant-bot/venv/bin/python /home/sanel/personal-assistant-bot/run_builder.py 'SAT Writing and Grammar Master Guide' > /dev/null 2>&1")
         
         # 5. Dynamic Daily Topic Guide
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ SAT Guide Built.\n5️⃣ Analyzing today's notes to build a dynamic subject guide...", parse_mode="Markdown")
