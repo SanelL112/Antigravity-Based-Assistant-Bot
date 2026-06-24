@@ -253,7 +253,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             logger.info("Auto-routing to FLASH (PII detected)")
             model = "flash"
         else:
-            if len(prompt) > 300:
+            if len(user_message) > 300:
                 logger.info("Auto-routing to NEMOTRON (Long/Complex query)")
                 model = "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"
             else:
