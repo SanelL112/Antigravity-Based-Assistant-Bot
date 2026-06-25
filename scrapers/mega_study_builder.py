@@ -165,6 +165,14 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not internal_notes:
         internal_notes = "None"
 
+    logger.info("Assembling and cleaning context payload...")
+    
+    # Strip null bytes that break JSON and subprocess PTY
+    pdf_text = pdf_text.replace('\x00', '') if pdf_text else ""
+    yt_text = yt_text.replace('\x00', '') if yt_text else ""
+    web_text = web_text.replace('\x00', '') if web_text else ""
+    internal_notes = internal_notes.replace('\x00', '') if internal_notes else ""
+    
     source_context = f"""
 --- TEACHER'S HANDWRITTEN NOTES & CLASSROOM PDFS ---
 {pdf_text if pdf_text else "None"}
@@ -218,7 +226,7 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
                 if resp.status_code == 200:
                     return resp.json()["choices"][0]["message"]["content"].strip()
                 else:
-                    logger.warning(f"OpenRouter returned status {resp.status_code}. Attempt {attempt + 1}/{max_retries}")
+                    logger.warning(f"OpenRouter returned status {resp.status_code}: {resp.text}. Attempt {attempt + 1}/{max_retries}")
             except Exception as e:
                 logger.warning(f"OpenRouter chunk failure: {e}. Attempt {attempt + 1}/{max_retries}")
             
