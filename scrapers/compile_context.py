@@ -45,7 +45,7 @@ async def compile_bot_context():
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
+                    "model": "llama3.2",
                     "prompt": prompt,
                     "stream": False,
                     "options": {"temperature": 0.1}

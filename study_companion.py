@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 from youtubesearchpython import VideosSearch
 from youtube_transcript_api import YouTubeTranscriptApi
 

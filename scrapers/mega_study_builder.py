@@ -8,6 +8,7 @@ from youtubesearchpython import VideosSearch
 from youtube_transcript_api import YouTubeTranscriptApi
 from ai_processor import call_agy
 
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -43,12 +44,14 @@ CRITICAL FORMATTING RULES:
 """
 
 def search_web_article(topic: str):
+    logger.info(f"Searching Web for: {topic}...")
     try:
         queries = [f"{topic} tutorial", f"{topic} explanation", f"{topic} study guide", f"{topic} practice problems", f"{topic} advanced concepts"]
         combined_text = ""
         sources_list = []
         
         for q in queries:
+            logger.info(f"Querying DuckDuckGo: {q}...")
             try:
                 results = DDGS().text(q, max_results=20)
                 if not results: continue
@@ -65,11 +68,13 @@ def search_web_article(topic: str):
                         sources_list.append({"title": res["title"], "href": res["href"]})
                     except Exception:
                         continue
-            except Exception:
+            except Exception as e:
+                logger.error(f"Web search query failed: {e}")
                 pass
             if len(sources_list) >= 100: break
                 
         if sources_list:
+            logger.info(f"Successfully scraped {len(sources_list)} Web Articles.")
             return sources_list, combined_text
         return None, ""
     except Exception as e:
@@ -88,13 +93,15 @@ def search_images(topic: str):
     return []
 
 def search_youtube(topic: str):
+    logger.info(f"Searching YouTube for: {topic} educational tutorial")
     try:
         videosSearch = VideosSearch(f"{topic} educational tutorial", limit=20)
         combined_text = ""
         meta_titles = []
         ytt_api = YouTubeTranscriptApi()  # New instance-based API (v1.0+)
         
-        for _ in range(5): # Loop 5 pages (5 * 20 = 100 videos)
+        for page in range(5): # Loop 5 pages (5 * 20 = 100 videos)
+            logger.info(f"YouTube Page {page + 1}/5...")
             try:
                 result = videosSearch.result()
                 if not result or "result" not in result or not result["result"]: break
@@ -109,10 +116,12 @@ def search_youtube(topic: str):
                     except Exception:
                         continue
                 videosSearch.next()
-            except Exception:
+            except Exception as e:
+                logger.error(f"YouTube search page failed: {e}")
                 break
                 
         if meta_titles:
+            logger.info(f"Successfully fetched {len(meta_titles)} YouTube Transcripts.")
             return {"title": f"Fetched {len(meta_titles)} YouTube Transcripts | " + " | ".join(meta_titles[:5]) + "...", "link": "Multiple Videos"}, combined_text
         return None, ""
     except Exception as e:
@@ -165,48 +174,15 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not internal_notes:
         internal_notes = "None"
 
-    logger.info("Assembling and cleaning context payload...")
-    
-    # Strip null bytes that break JSON and subprocess PTY
-    pdf_text = pdf_text.replace('\x00', '') if pdf_text else ""
-    yt_text = yt_text.replace('\x00', '') if yt_text else ""
-    web_text = web_text.replace('\x00', '') if web_text else ""
-    internal_notes = internal_notes.replace('\x00', '') if internal_notes else ""
-    
-    source_context = f"""
---- TEACHER'S HANDWRITTEN NOTES & CLASSROOM PDFS ---
-{pdf_text if pdf_text else "None"}
-
---- YOUR PERSONAL NOTES (CANVAS/CLASSROOM/DOCS) ---
-{internal_notes}
-
---- YOUTUBE TRANSCRIPTS ({yt_meta['title'] if yt_meta else 'None'}) ---
-{yt_text if yt_text else 'None'}
-
---- WEB ARTICLE SUMMARIES ({f'{len(web_meta)} sources' if web_meta else 'None'}) ---
-{web_text if web_text else 'None'}
-"""
     from dotenv import load_dotenv
     load_dotenv()
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         return "❌ Missing OPENROUTER_API_KEY in .env"
-    
-    image_sources = search_images(search_topic)
-    
-    # Format the Visual Asset Library for the AI
-    visual_asset_library = "VISUAL ASSET LIBRARY (Use these to insert images):\n"
-    if image_sources:
-        for img in image_sources:
-            visual_asset_library += f"- [{img['title']}] URL: {img['image']}\n"
-    else:
-        visual_asset_library += "(No visual assets found.)\n"
-    
-    # Re-use web_meta as web_sources for the final citation assembly
-    web_sources = web_meta
-    
+        
     def _call_or(prompt_text):
         import time
+        import requests
         max_retries = 3
         for attempt in range(max_retries):
             try:
@@ -231,13 +207,74 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
                 logger.warning(f"OpenRouter chunk failure: {e}. Attempt {attempt + 1}/{max_retries}")
             
             if attempt < max_retries - 1:
-                # Exponential backoff (15s, 30s)
                 sleep_time = 15 * (attempt + 1)
                 logger.info(f"Retrying OpenRouter in {sleep_time} seconds...")
                 time.sleep(sleep_time)
                 
         logger.error("OpenRouter completely failed after 3 attempts.")
         return None
+
+    logger.info("Assembling and cleaning context payload...")
+    
+    # Strip null bytes
+    pdf_text = pdf_text.replace('\x00', '') if pdf_text else ""
+    yt_text = yt_text.replace('\x00', '') if yt_text else ""
+    web_text = web_text.replace('\x00', '') if web_text else ""
+    internal_notes = internal_notes.replace('\x00', '') if internal_notes else ""
+    
+    def _chunk_and_summarize(text, label):
+        max_chunk_size = 250000
+        if len(text) > max_chunk_size:
+            logger.info(f"Chunking {label} ({len(text)} chars)...")
+            summarized = ""
+            for i in range(0, len(text), max_chunk_size):
+                chunk = text[i:i+max_chunk_size]
+                prompt = f"Extract all facts, concepts, formulas, and notes strictly relevant to '{topic}'. Be comprehensive but concise. Ignore unrelated subjects.\n\nSOURCE TEXT ({label} Chunk {i//max_chunk_size + 1}):\n{chunk}"
+                logger.info(f"Summarizing {label} chunk {i//max_chunk_size + 1} / {(len(text)//max_chunk_size)+1}...")
+                summary = _call_or(prompt)
+                if summary:
+                    summarized += summary + "\n\n"
+                    
+            # The Final Reduce (Coherence) Pass
+            logger.info(f"Synthesizing all {label} chunks into a coherent master document...")
+            synthesis_prompt = f"You are an expert synthesizer. I have provided multiple summaries of '{topic}' below. Please rewrite them into one single, highly coherent, deduplicated master reference document. Do not leave any facts out.\n\nSUMMARIES:\n{summarized}"
+            final_coherent_doc = _call_or(synthesis_prompt)
+            
+            return final_coherent_doc if final_coherent_doc else summarized
+            
+        return text
+
+    pdf_text = _chunk_and_summarize(pdf_text, "PDF Notes")
+    yt_text = _chunk_and_summarize(yt_text, "YouTube Transcripts")
+    web_text = _chunk_and_summarize(web_text, "Web Articles")
+    internal_notes = _chunk_and_summarize(internal_notes, "Internal Notes")
+
+    source_context = f"""
+--- TEACHER'S HANDWRITTEN NOTES & CLASSROOM PDFS ---
+{pdf_text if pdf_text else "None"}
+
+--- YOUR PERSONAL NOTES (CANVAS/CLASSROOM/DOCS) ---
+{internal_notes}
+
+--- YOUTUBE TRANSCRIPTS ({yt_meta['title'] if yt_meta else 'None'}) ---
+{yt_text if yt_text else 'None'}
+
+--- WEB ARTICLE SUMMARIES ({f'{len(web_meta)} sources' if web_meta else 'None'}) ---
+{web_text if web_text else 'None'}
+"""
+    
+    image_sources = search_images(search_topic)
+    
+    # Format the Visual Asset Library for the AI
+    visual_asset_library = "VISUAL ASSET LIBRARY (Use these to insert images):\n"
+    if image_sources:
+        for img in image_sources:
+            visual_asset_library += f"- [{img['title']}] URL: {img['image']}\n"
+    else:
+        visual_asset_library += "(No visual assets found.)\n"
+    
+    # Re-use web_meta as web_sources for the final citation assembly
+    web_sources = web_meta
 
     # PHASE 1: Generate Master Outline
     logger.info("PHASE 1: Generating Master Outline...")

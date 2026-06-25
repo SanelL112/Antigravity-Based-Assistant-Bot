@@ -1,0 +1,129 @@
+=== Retry Failed Guides: Thu Jun 25 15:26:56 EDT 2026 ===
+[Step 1] Building SAT Reading Comprehension Master Guide...
+Generating Mega Study Guide for: SAT Writing and Grammar Master Guide...
+Generating MEGA guide for: SAT Writing and Grammar Master Guide using Chunking Architecture
+Searching YouTube for: sat writing and grammar master guide educational tutorial
+Generating Mega Study Guide for: SAT Reading Comprehension Master Guide...
+Generating MEGA guide for: SAT Reading Comprehension Master Guide using Chunking Architecture
+Searching YouTube for: sat reading comprehension master guide educational tutorial
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 1/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 1/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 2/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 2/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 3/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 3/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 4/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 4/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 5/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+YouTube Page 5/5...
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+Searching Web for: sat writing and grammar master guide...
+Querying DuckDuckGo: sat writing and grammar master guide tutorial...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20writing%20and%20grammar%20master%20guide%20tutorial 200
+response: https://search.brave.com/search?q=sat+writing+and+grammar+master+guide+tutorial&source=web 429
+response: https://grokipedia.com/api/typeahead?query=sat+writing+and+grammar+master+guide+tutorial&limit=1 200
+response: https://www.google.com/search?q=sat+writing+and+grammar+master+guide+tutorial&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 200 OK"
+response: https://www.startpage.com/ 200
+response: https://www.startpage.com/sp/search 200
+response: https://yandex.com/search/site/?text=sat+writing+and+grammar+master+guide+tutorial&web=1&searchid=8134606 200
+HTTP Request: POST https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8 "HTTP/1.1 200 OK"
+Searching Web for: sat reading comprehension master guide...
+Querying DuckDuckGo: sat reading comprehension master guide tutorial...
+HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20reading%20comprehension%20master%20guide%20tutorial 200
+response: https://grokipedia.com/api/typeahead?query=sat+reading+comprehension+master+guide+tutorial&limit=1 200
+response: https://search.brave.com/search?q=sat+reading+comprehension+master+guide+tutorial&source=web 429
+response: https://www.mojeek.com/search?q=sat+reading+comprehension+master+guide+tutorial 200
+response: https://search.yahoo.com/search;_ylt=NSjk7GdI0S0dFGIJ0wxYCtUc;_ylu=G3ZcY9pbAT8T4kxQX65aoX4bbIly3xomk_XpYkKuq7LeL_Q?p=sat+reading+comprehension+master+guide+tutorial 200
+response: https://www.google.com/search?q=sat+reading+comprehension+master+guide+tutorial&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+response: https://yandex.com/search/site/?text=sat+reading+comprehension+master+guide+tutorial&web=1&searchid=6111615 200
+response: https://www.startpage.com/ 200
+response: https://www.startpage.com/sp/search 200
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Querying DuckDuckGo: sat writing and grammar master guide explanation...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20writing%20and%20grammar%20master%20guide%20explanation 200
+response: https://grokipedia.com/api/typeahead?query=sat+writing+and+grammar+master+guide+explanation&limit=1 200
+response: https://www.startpage.com/ 200
+response: https://www.startpage.com/sp/search 200
+response: https://search.yahoo.com/search;_ylt=rlIxsr2mgEqbMKuSoKt5qkQC;_ylu=VYawQrlbC-p4LQXLsI-WVpEaeFJndb1UGh9cmx0ECt0EJSY?p=sat+writing+and+grammar+master+guide+explanation 200
+response: https://yandex.com/search/site/?text=sat+writing+and+grammar+master+guide+explanation&web=1&searchid=2661006 200
+Querying DuckDuckGo: sat writing and grammar master guide study guide...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20writing%20and%20grammar%20master%20guide%20study%20guide 200
+response: https://grokipedia.com/api/typeahead?query=sat+writing+and+grammar+master+guide+study+guide&limit=1 200
+response: https://yandex.com/search/site/?text=sat+writing+and+grammar+master+guide+study+guide&web=1&searchid=3575559 200
+HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+response: https://www.google.com/search?q=sat+writing+and+grammar+master+guide+study+guide&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+Querying DuckDuckGo: sat reading comprehension master guide explanation...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20reading%20comprehension%20master%20guide%20explanation 200
+response: https://grokipedia.com/api/typeahead?query=sat+reading+comprehension+master+guide+explanation&limit=1 200
+response: https://yandex.com/search/site/?text=sat+reading+comprehension+master+guide+explanation&web=1&searchid=2261803 200
+HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+response: https://www.google.com/search?q=sat+reading+comprehension+master+guide+explanation&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+Querying DuckDuckGo: sat writing and grammar master guide practice problems...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20writing%20and%20grammar%20master%20guide%20practice%20problems 200
+response: https://grokipedia.com/api/typeahead?query=sat+writing+and+grammar+master+guide+practice+problems&limit=1 200
+response: https://yandex.com/search/site/?text=sat+writing+and+grammar+master+guide+practice+problems&web=1&searchid=6004409 200
+response: https://www.startpage.com/ 200
+response: https://www.startpage.com/sp/search 200
+Querying DuckDuckGo: sat writing and grammar master guide advanced concepts...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20writing%20and%20grammar%20master%20guide%20advanced%20concepts 200
+response: https://grokipedia.com/api/typeahead?query=sat+writing+and+grammar+master+guide+advanced+concepts&limit=1 200
+response: https://www.google.com/search?q=sat+writing+and+grammar+master+guide+advanced+concepts&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+response: https://www.mojeek.com/search?q=sat+writing+and+grammar+master+guide+advanced+concepts 200
+response: https://search.yahoo.com/search;_ylt=w5D8-eaNCdaQwFINLsjd9CSs;_ylu=MgbbI4WiH4DyqqfbOOecRRfnFd_r9HCu4UsjVWckgvH3UcE?p=sat+writing+and+grammar+master+guide+advanced+concepts 200
+response: https://yandex.com/search/site/?text=sat+writing+and+grammar+master+guide+advanced+concepts&web=1&searchid=1715933 200
+Successfully scraped 59 Web Articles.
+Assembling and cleaning context payload...
+Chunking Web Articles (3814952 chars)...
+Summarizing Web Articles chunk 1 / 16...
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Querying DuckDuckGo: sat reading comprehension master guide study guide...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20reading%20comprehension%20master%20guide%20study%20guide 200
+response: https://www.google.com/search?q=sat+reading+comprehension+master+guide+study+guide&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+response: https://grokipedia.com/api/typeahead?query=sat+reading+comprehension+master+guide+study+guide&limit=1 200
+HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+response: https://search.brave.com/search?q=sat+reading+comprehension+master+guide+study+guide&source=web 429
+response: https://www.mojeek.com/search?q=sat+reading+comprehension+master+guide+study+guide 200
+response: https://search.yahoo.com/search;_ylt=Mh_0hbPya3F8C12Zc0jiMqt5;_ylu=0mfjCsPmfTjpBzjEF5Qup4k031jr3E5tFGs4sMdt_d2lcDk?p=sat+reading+comprehension+master+guide+study+guide 200
+response: https://www.startpage.com/ 200
+response: https://www.startpage.com/sp/search 200
+response: https://yandex.com/search/site/?text=sat+reading+comprehension+master+guide+study+guide&web=1&searchid=7595643 200
+Querying DuckDuckGo: sat reading comprehension master guide practice problems...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20reading%20comprehension%20master%20guide%20practice%20problems 200
+response: https://grokipedia.com/api/typeahead?query=sat+reading+comprehension+master+guide+practice+problems&limit=1 200
+response: https://yandex.com/search/site/?text=sat+reading+comprehension+master+guide+practice+problems&web=1&searchid=9170539 200
+response: https://search.brave.com/search?q=sat+reading+comprehension+master+guide+practice+problems&source=web 429
+response: https://search.yahoo.com/search;_ylt=b3Io4F07p6dxZMKi_HPujqx4;_ylu=j9mZMcejtgbAwrnxblKfN4eahLeC7FpQjgMMM39w36hCErU?p=sat+reading+comprehension+master+guide+practice+problems 200
+response: https://www.google.com/search?q=sat+reading+comprehension+master+guide+practice+problems&filter=1&start=0&hl=en-US&lr=lang_en&cr=countryUS 200
+Querying DuckDuckGo: sat reading comprehension master guide advanced concepts...
+response: https://en.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=sat%20reading%20comprehension%20master%20guide%20advanced%20concepts 200
+response: https://grokipedia.com/api/typeahead?query=sat+reading+comprehension+master+guide+advanced+concepts&limit=1 200
+HTTP Request: POST https://html.duckduckgo.com/html/ "HTTP/2 202 Accepted"
+response: https://www.startpage.com/ 200
+response: https://www.startpage.com/sp/search 200
+response: https://yandex.com/search/site/?text=sat+reading+comprehension+master+guide+advanced+concepts&web=1&searchid=4157689 200
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Successfully scraped 62 Web Articles.
+Assembling and cleaning context payload...
+Chunking Web Articles (3769474 chars)...
+Summarizing Web Articles chunk 1 / 16...
+Summarizing Web Articles chunk 2 / 16...
+Summarizing Web Articles chunk 3 / 16...
+Summarizing Web Articles chunk 4 / 16...
+Summarizing Web Articles chunk 5 / 16...
+Summarizing Web Articles chunk 2 / 16...
+Summarizing Web Articles chunk 3 / 16...
+Summarizing Web Articles chunk 6 / 16...

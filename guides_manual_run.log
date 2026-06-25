@@ -1,0 +1,84 @@
+=== Manual Study Guide Run: Thu Jun 25 13:30:01 EDT 2026 ===
+[Step 1] Scraping Google Classroom for new PDFs...
+Error fetching Google Doc Instrumental, vocal & other stems separation & mix/master guide - UVR/MDX/Demucs/GSEP & others: The read operation timed out
+Failed to download/export file 10CYCwMTEKoMTBX73fnEQk2Z80zJ41oMS: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/10CYCwMTEKoMTBX73fnEQk2Z80zJ41oMS?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+Failed to download/export file 1gEzAQVQu9FEfdZLnOUFhvBjbxwJfrcHV: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1gEzAQVQu9FEfdZLnOUFhvBjbxwJfrcHV?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+Failed to download/export file 1pvqD6EpYa4caQ0Vhe9-5jCtr1ivRd3t-: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/1pvqD6EpYa4caQ0Vhe9-5jCtr1ivRd3t-?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+Failed to download/export file 10wcA9ZEiJ3h7WCfNujbtIYbYwjWfI8Fk: <HttpError 403 when requesting https://www.googleapis.com/drive/v3/files/10wcA9ZEiJ3h7WCfNujbtIYbYwjWfI8Fk?supportsAllDrives=true&alt=media returned "This file cannot be downloaded by the user.". Details: "[{'message': 'This file cannot be downloaded by the user.', 'domain': 'global', 'reason': 'cannotDownloadFile'}]">
+Pulling Google Classroom assignments and PDFs...
+Classroom data pulled: 11099 chars
+Google Docs pulled: 39 chars
+Historical export (new PDFs/Docs -> delta file) complete.
+
+[Step 2] Building SAT Math and Geometry Master Guide...
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+[main 673a619] docs: Auto-update SAT_Math_and_Geometry_Master_Guide study guide
+ 2 files changed, 2579 insertions(+)
+ create mode 100644 SAT_Math_and_Geometry_Master_Guide_Study_Guide.docx
+ create mode 100644 SAT_Math_and_Geometry_Master_Guide_Study_Guide.md
+To https://github.com/SanelL112/TaskBot.git
+   2551182..673a619  main -> main
+Generating Mega Study Guide for: SAT Math and Geometry Master Guide...
+Successfully created study guide at /home/sanel/personal-assistant-bot/SAT_Math_and_Geometry_Master_Guide_Study_Guide.md
+Converting Markdown to DOCX format...
+Successfully created Word document at /home/sanel/personal-assistant-bot/SAT_Math_and_Geometry_Master_Guide_Study_Guide.docx
+Pushing generated study guides to GitHub...
+Successfully synced to GitHub!
+
+[Step 3] Building SAT Reading Comprehension Master Guide...
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+OpenRouter returned status 400. Attempt 1/3
+OpenRouter returned status 400. Attempt 2/3
+OpenRouter returned status 400. Attempt 3/3
+OpenRouter completely failed after 3 attempts.
+Falling back to default outline.
+OpenRouter returned status 400. Attempt 1/3
+OpenRouter returned status 400. Attempt 2/3
+OpenRouter returned status 400. Attempt 3/3
+OpenRouter completely failed after 3 attempts.
+Failed to generate chunk Chapter 1: Core Concepts & Vocabulary, trying local fallback...
+agy pty error (flash): embedded null byte
+flash failed or timed out. Falling back to pro...
+agy pty error (pro): embedded null byte
+OpenRouter returned status 400. Attempt 1/3
+OpenRouter returned status 400. Attempt 2/3
+OpenRouter returned status 400. Attempt 3/3
+OpenRouter completely failed after 3 attempts.
+Failed to generate chunk Chapter 2: Essential Formulas & Theorems, trying local fallback...
+agy pty error (flash): embedded null byte
+flash failed or timed out. Falling back to pro...
+agy pty error (pro): embedded null byte
+OpenRouter returned status 400. Attempt 1/3
+OpenRouter returned status 400. Attempt 2/3
+OpenRouter returned status 400. Attempt 3/3
+OpenRouter completely failed after 3 attempts.
+Failed to generate chunk Chapter 3: Deep-Dive Explanations Part 1, trying local fallback...
+agy pty error (flash): embedded null byte
+flash failed or timed out. Falling back to pro...
+agy pty error (pro): embedded null byte
+OpenRouter returned status 400. Attempt 1/3
+OpenRouter returned status 400. Attempt 2/3
+
+[Step 4] Building SAT Writing and Grammar Master Guide...
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+OpenRouter returned status 400. Attempt 1/3
+OpenRouter returned status 400. Attempt 2/3
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+OpenRouter returned status 400. Attempt 3/3
+OpenRouter completely failed after 3 attempts.
+Falling back to default outline.
+OpenRouter returned status 400. Attempt 1/3
+OpenRouter returned status 400. Attempt 1/3
+OpenRouter returned status 400. Attempt 2/3
+
+[Step 5] Building dynamic topic guide from classroom notes...
+
+=== All guides complete: Thu Jun 25 14:31:33 EDT 2026 ===

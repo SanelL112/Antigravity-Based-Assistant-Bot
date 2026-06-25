@@ -16753,3 +16753,3083 @@ No urgent groupme updates.
 === GDOCS ===
 No recently modified Google Docs found.
 
+
+--- DAILY NOTES (11A_MWF 10-1 Day 11.pdf) ---
+# Page 1
+
+**MATH**
+**DAY # 11**
+
+### TOPICS OF THE DAY
+* **Circles, Part II**
+  * *[Drawing of a circle with a secant line having an internal segment labeled $x + 10$ and an external segment labeled $x + 40$]*
+    $$x + 40 = 2(x + 10)$$
+    $$x + 40 = 2x + 20$$
+    $$20 = x$$
+  * *[Drawing of a triangle with a horizontal line segment parallel to the base. The top left side is labeled $x$, the bottom left side is labeled $2$. The parallel line is labeled $10$, and the base is labeled $15$.]*
+    $$\frac{10}{15} = \frac{x}{x + 2}$$
+    $$10(x + 2) = 15x$$
+    $$10x + 20 = 15x$$
+    $$20 = 5x$$
+    $$x = 4$$
+* 
+* 
+
+1. **point-slope form:** $y - y_1 = m(x - x_1)$
+   **slope-intercept:** $y = mx + b$
+   **standard form:** $Ax + By = C$
+
+2. **standard:** $y = ax^2 + bx + c$
+   **vertex:** $y = a(x - h)^2 + k$
+   **intercept:** $y = a(x - p)(x - q)$
+
+3. $S_R = -\frac{b}{a} \quad P_R = \frac{c}{a}$
+
+4. **discriminant** $b^2 - 4ac$
+
+5. $x_v = -\frac{b}{2a}$
+
+6. $m_1 = m_2$
+   $y\text{-int}_1 \neq y\text{-int}_2$
+
+7. $A \sim 99\%$
+   $C \sim 20\%$
+
+8. 
+| | | |
+|---|---|---|
+| **D** | $x$ | $x$ |
+| **S** | $10$ | $20$ |
+| **T** | $\frac{x}{10}$ | $\frac{x}{20}$ |
+
+$$\bar{S} = \frac{2x}{\frac{x}{10} + \frac{x}{20}} \cdot \frac{20}{20}$$
+$$= \frac{40x}{2x + x}$$
+$$= \frac{40x}{3x}$$
+$$= 13.333\text{ mph}$$
+
+---
+
+# Page 2
+
+### Circles and Triangles
+
+#### Equilateral $\Delta$ Inscribed in a Circle
+*[Drawing of an equilateral triangle inscribed in a circle with side $s$, angle $60^\circ$ at the vertices, and center $O$. A right triangle is formed from center $O$ to the midpoint of the base, with angles $30^\circ$ and $60^\circ$, base $\frac{s}{2}$, and height $\frac{s}{2\sqrt{3}} = \frac{s\sqrt{3}}{6}$.]*
+$$r = 2 \left(\frac{s\sqrt{3}}{6}\right)$$
+$$r = \frac{s\sqrt{3}}{3}$$
+
+**Did you know?** any triangle inscribed in a circle such that one side of the triangle corresponds to the circle's diameter is a **RIGHT** triangle.
+*[Drawing of a circle with a diameter and multiple inscribed right triangles sharing the diameter as their hypotenuse. Center is labeled $O$.]*
+
+---
+
+### Circles and Common Tangents
+*[Drawing of a circle with two tangent lines meeting at an external point, with tick marks indicating equal tangent segments.]*
+
+**Extension:**
+*[Drawing of a quadrilateral circumscribed around a circle, with color-coded tick marks indicating equal tangent segments from each vertex to the points of tangency. Center is labeled $O$.]*
+
+---
+
+### Circles and Squares
+
+#### Circle Inscribed in a Square
+*[Drawing of a circle inscribed in a square of side $s$ and radius $r = \frac{s}{2}$.]*
+$$r = \frac{s}{2}$$
+
+*[Below left: Drawing of a circle inscribed in a square of side $s$ with the four corners shaded gray.]*
+*[Below right: Drawing of a square of side $s$ containing four quarter-circles centered at the corners, leaving a star-like shape in the center shaded gray.]*
+
+$$A = A$$
+$$A_{sq} - A_c = A_{sq} - A_c$$
+$$s^2 - \pi \left(\frac{s}{2}\right)^2 = s^2 - \frac{1}{4}\pi s^2$$
+$$= s^2 \left(1 - \frac{\pi}{4}\right)$$
+
+#### Square Inscribed in a Circle
+*[Drawing of a square of side $s$ inscribed in a circle. A right triangle from center to corner shows angle $45^\circ$, legs $\frac{s}{2}$ and $\frac{s}{2}$, and hypotenuse/radius $r = \frac{s\sqrt{2}}{2}$.]*
+$$r = \frac{s\sqrt{2}}{2}$$
+
+---
+
+# Page 3
+
+### statistics :
+Before producing statistical measures, you must first collect data. Data is often collected through either surveys or experiments.
+
+**Surveys :** surveys should be conducted with very little to no bias, where bias refers to observing a result that is different from what is expected. To ensure, samples should be as representative of the population in question as possible.
+
+**Experimentation :**
+[✓] **Random assignment to treatment** allows for a **cause and effect relationship.**
+
+**Population:** the smallest group to which an inquiry is made about. The size of a population is $N$.
+
+| Good Sampling | Bad Sampling |
+| :--- | :--- |
+| Random | Volunteer |
+
+**Once data is collected :** Graphically display
+
+| Single Quantitative Data (Measurable) | Single Categorical Data (Countable) |
+| :--- | :--- |
+| 1. Histograms | 1. Bar Graphs |
+| 2. Dot Plots | 2. Pie Charts |
+| 3. Box and Whisker | |
+| 4. Stem & Leaf | |
+
+### Quantitative Display Shapes
+
+| | (MEAN = MEDIAN)<br>Symmetric | (MEAN < MEDIAN)<br>skewed left | (MEAN > MEDIAN)<br>skewed right |
+| :--- | :--- | :--- | :--- |
+| **Histogram** | *[Drawing of a symmetric, bell-shaped histogram]* | *[Drawing of a left-skewed histogram with a tail on the left]* | *[Drawing of a right-skewed histogram with a tail on the right]* |
+| **Dot Plot** | *[Drawing of a symmetric dot plot]* | *[Drawing of a left-skewed dot plot]* | *[Drawing of a right-skewed dot plot]* |
+| **Box Plot** | *[Box plot showing symmetric distributions of 25% intervals]* | *[Box plot showing a stretched left tail and compressed right intervals]* | *[Box plot showing a stretched right tail and compressed left intervals]* |
+| **Stem and leaf** | **S \| Leaves**<br>**5** \| 0<br>**6** \| 0 4<br>**7** \| 0 0 1 2 2 4 7 8 9<br>**8** \| 4 5 7<br>**9** \| 0 | **S \| L**<br>**5** \| 4<br>**6** \| 0 5<br>**7** \| 0 1 2 2<br>**8** \| 4 5 9 9 9<br>**9** \| 0 1 1 2 2 2 4 5 | **S \| L**<br>**5** \| 0 0 0 0 0 0 0 9<br>**6** \| 9 9 9 9<br>**7** \| 0 1 1<br>**8** \| 0<br>**9** \| 9 |
+
+---
+
+# Page 4
+
+### Quantitative Statistics
+
+#### Measures of Center :
+1. **Mean** (Sensitive)
+2. **Median** (Resistive)
+3. **Mode**
+
+**Note:** Histograms do not show the exact median or mean, unless each bar contains one value.
+*[Drawing of a single histogram bar of height 4 over the interval 50-59]*
+
+**Note:** Box plot does not show the mean.
+
+#### Mean (Average) (Arithmetic Mean)
+$$\bar{x} = \frac{x_1 + x_2 + x_3 + \dots + x_n}{n}$$
+
+**If given multiple averages, draw the following chart:**
+| classify | mean | $\times$ | Number | $=$ | Total |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| | | | | | |
+
+**Ex:** The 12 boys in my class averaged a 95 while the 18 girls averaged an 80. What is the class average?
+| classify | mean | $\times$ | number | $=$ | total |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| boys | 95 | | 12 | | 1140 |
+| girls | 80 | | 18 | | 1440 |
+| **class** | **86** | | 30 | | 2580 |
+
+---
+
+#### Median (50th percentile or Quartile 2)
+to find the median $\longrightarrow$ **Step 1:** find total frequency
+**Step 2:** determine if total frequency is even or odd
+
+| # of Sib | frequency |
+| :---: | :---: |
+| 0 | 40 |
+| 1 | 100 |
+| 2 | 60 |
+| 3 | 10 |
+
+$$\text{total} = 210 \quad \text{Even}$$
+$$\frac{210}{2} = 105$$
+$$\text{105th: } 1$$
+$$\text{106th: } 1$$
+$$\text{med} = \frac{1 + 1}{2} = 1$$
+
+**Step 3:** 
+* **if $f_{\text{total}}$ is even**
+  $\rightarrow \frac{f_{\text{total}}}{2}$
+  $\rightarrow$ find the avg of that value and the next value in the list
+  $\rightarrow$ **median**
+* **if $f_{\text{total}}$ is odd**
+  $\rightarrow \frac{f_{\text{total}}}{2}$
+  $\rightarrow$ round up
+  $\rightarrow$ median is that value.
+
+---
+
+#### Measures of spread :
+1. **Range**
+2. **Interquartile Range (IQR)**
+3. **Standard Deviation**
+
+*[Drawing of a box-and-whisker plot mapping points to $Q_0, Q_1, Q_2, Q_3, Q_4$. A red bracket on top spans from $Q_0$ to $Q_4$ labeled "Range". A yellow bracket underneath spans from $Q_1$ to $Q_3$ labeled "IQR".]*
+
+* $Q_0 \rightarrow$ Mini
+* $Q_1 \rightarrow$ Lower Quartile (25th %)
+* $Q_2 \rightarrow$ median (50th %)
+* $Q_3 \rightarrow$ upper quartile (75th %)
+* $Q_4 \rightarrow$ Max
+
+$$\text{Range} = \text{Max} - \text{Mini}$$
+$$= Q_4 - Q_0$$
+
+$$\text{IQR} = Q_3 - Q_1$$
+
+**standard deviation :** $S$ or $\sigma$
+* $\sigma \uparrow$ if data is spread out
+* $\sigma \downarrow$ if data is grouped together (bunched)
+* $\sigma \ge 0$
+
+--- DAILY NOTES (10A_MWF 10-1 Day 10.pdf) ---
+# PAGE 1
+
+**READING / GRAMMAR**  
+**DAY # 10**
+
+**TOPICS OF THE DAY**
+* Reading Review
+* ACT Reading
+* 
+
+---
+
+# PAGE 2
+
+**MATH**  
+**DAY # 10**
+
+**TOPICS OF THE DAY**
+* Circles
+* 
+* 
+
+---
+
+# PAGE 3
+
+## Algebraic Circles
+
+$$\text{key formulas for success}$$
+$$\text{========================}$$
+
+a circle is the set of all $(x,y)$ coordinates such that  
+* **distance:** $d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$
+* **Midpoint:** $M = (x_m, y_m) = \left(\frac{x_1 + x_2}{2}, \frac{y_1 + y_2}{2}\right)$
+* **slope:** $m = \frac{y_2 - y_1}{x_2 - x_1}$
+
+each one is equidistant to a common fixed point called the center, $(h,k)$. The equal distance is called the radius $(r)$ of the circle.
+
+### [Diagram of a circle]
+* Center is labeled $(h,k)$ and $\text{Center}$.
+* Multiple radii are drawn from the center to points $(x,y)$ on the circumference, each labeled $d = r$.
+
+### Formulas
+* $d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$
+* $r = \sqrt{(x - h)^2 + (y - k)^2}$  
+  *(with "opp" written under $h$ and $k$ to indicate opposite signs)*
+* $r^2 = (x - h)^2 + (y - k)^2$ [boxed]
+* **General form of Circle**
+
+### Example
+* **Ex:** $(x + 3)^2 + (y - 4)^2 = 20$
+  * $\text{center: } (-3, 4)$
+  * $\text{radius: } r = \sqrt{20} = 2\sqrt{5}$
+
+---
+
+## Standard Form of a Circle: $Ax^2 + Ay^2 + Bx + Cy + D = 0$
+
+$$Ax^2 + Ay^2 + Bx + Cy + D = 0 \xrightarrow{\text{CTS}} (x - h)^2 + (y - k)^2 = r^2$$
+
+this form of a circle is effectively useless. As such, you must convert from standard form to General form by **Completing the Squares**.
+
+### Example
+* **Ex:** $2x^2 + 2y^2 + 24x - 36y - 5 = 0$
+  $$\frac{2x^2 + 2y^2 + 24x - 36y = 5}{2}$$
+  $$x^2 + y^2 + 12x - 18y = 5/2$$
+  $$(x^2 + 12x) + (y^2 - 18y) = 5/2$$
+  $$(x^2 + 12x + 36) + (y^2 - 18y + 81) = 5/2 + 36 + 81$$
+  $$(x + 6)^2 + (y - 9)^2 = 119.5$$
+  * $\text{Center: } (-6, 9)$
+  * $r = \sqrt{119.5}$
+
+---
+
+## Circle Modelling
+
+Model a circle given two endpoints of a single diameter: $(x_1, y_1)$ & $(x_2, y_2)$.
+
+* **Step 1:** using the midpoint formula, find the circle's center $(h,k)$
+  $$h = \frac{x_1 + x_2}{2} \quad k = \frac{y_1 + y_2}{2}$$
+* **Step 2:** using the distance formula, find the distance (radius) between any endpoint and the center $(h,k)$
+* **Step 3:** model $(x - h)^2 + (y - k)^2 = r^2$
+
+### Example
+* **Ex:** model a circle that contains a diameter with endpoints of $(6, -2)$ and $(10, 0)$
+  *(with $x_2, y_2$ written above $(6, -2)$)*
+  * **Step 1:**
+    $$h = \frac{x_1 + x_2}{2} \quad k = \frac{y_1 + y_2}{2}$$
+    $$h = \frac{6 + 10}{2} \quad k = \frac{-2 + 0}{2}$$
+    $$h = 8 \text{ (labeled } x_1\text{)} \quad k = -1 \text{ (labeled } y_1\text{)}$$
+  * **Step 2:**
+    $$r = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$$
+    $$r = \sqrt{(6 - 8)^2 + (-2 - (-1))^2}$$
+    $$r^2 = 4 + 1$$
+    $$r^2 = 5$$
+  * **Step 3: Model** $(x - h)^2 + (y - k)^2 = r^2$
+    $$(x - 8)^2 + (y + 1)^2 = 5 \text{ [boxed]}$$
+
+---
+
+# PAGE 4
+
+## Geometric Circles:
+
+| | In terms of the radius | In terms of the diameter |
+|---|---|---|
+| **Circumference** | $C = 2\pi r$ | $C = \pi d$ |
+| **Area** | $A = \pi r^2$ | $A = \frac{1}{4}\pi d^2$ |
+
+---
+
+## Arclength and Sector Area:
+
+### [Diagram of a circle]
+* Center is labeled $O$ and $\text{Center}$.
+* The sector is shaded purple, labeled $\text{Sector}$.
+* The boundary arc is highlighted in blue, labeled $\text{arc of a circle}$.
+* The radius is labeled $r$.
+* The central angle is labeled $\angle AOB = x^\circ$.
+* The arc is labeled $m\widehat{AB} = x^\circ$.
+
+arcs can be measured in two ways:
+1. the measure of an arc ($m\widehat{AB}$) - this measures the number of degrees needed to rotate from one point to the other, and is equal to the number of degrees in the central angle that forms the arc.
+2. the length of the arc ($\widehat{AB}$)
+   $$\widehat{AB} = \frac{m\widehat{AB}}{360^\circ} (2\pi r)$$
+
+$$\text{Sector Area} = \frac{m\widehat{AB}}{360^\circ} (\pi r^2) \text{ [boxed]}$$
+
+$$\frac{\text{Circumference}}{\text{Area}} = \frac{\text{arclength}}{\text{Sector Area}} \text{ [boxed]}$$
+
+---
+
+# PAGE 5
+
+## Circles and its angles
+
+### 1. Central Angle
+this is an angle whose vertex lies on the circle's center and whose two rays intersect the circle to form an arc whose measure equals that of the central angle.
+
+* **[Diagram]:** Circle with center labeled $\text{Center}$, central angle labeled $\angle AOB = x^\circ$, and intercepted arc labeled $m\widehat{AB} = x^\circ$.
+
+---
+
+### 2. Inscribed Angle
+this is an angle whose vertex lies on the circumference of a circle and whose two rays intersect the circle to form an arc whose measure is twice that of the inscribed angle's.
+
+* **[Diagram]:** Circle with inscribed angle on the circumference labeled $\text{Inscribed Angle: } x^\circ$. The central angle is drawn in yellow and labeled $\angle AOB = 2x^\circ$. The intercepted arc is labeled $m\widehat{AB} = 2x^\circ$.
+
+---
+
+### 3. Exterior Angle:
+this is an angle whose vertex lies on the outside of the circle and whose two rays extend to meet the circle.
+
+* **[Diagram 1 (Secants)]:** Vertex $V$ lies outside the circle, forming angle $x^\circ$. The intercepted arcs are labeled $a^\circ$ (far arc) and $b^\circ$ (near arc).  
+  $$x = \frac{1}{2}(a - b) \text{ [boxed]}$$
+* **[Diagram 2 (Tangents)]:** Vertex $V$ lies outside the circle, forming angle $x^\circ$. The intercepted arcs are labeled $a^\circ$ (major arc) and $360^\circ - a^\circ$ (minor arc).  
+  $$x = \frac{1}{2}(a - (360 - a))$$
+  $$x = a - 180 \text{ [boxed]}$$
+
+#### Example
+* **Ex:** [Diagram of a circle with two secants meeting at an angle of $40^\circ$ outside. The far arc is $90^\circ$ and the near arc is $x$.]
+  $$40 = \frac{1}{2}(90 - x)$$
+  $$80 = 90 - x$$
+  $$x = 10^\circ \text{ [boxed]}$$
+
+---
+
+### 4. Internal, not central nor inscribed
+this is an angle whose vertex lies on the interior of the circle, but not at the center nor on the circumference.
+
+* **[Diagram]:** Two chords intersect inside the circle at vertex $V$. The vertical angles are $x^\circ$. The intercepted arcs are $a^\circ$ and $b^\circ$. The center is labeled $\bullet \text{ Center}$.  
+  $$x = \frac{1}{2}(a + b) \text{ [boxed]}$$
+
+---
+
+# PAGE 6
+
+$$\text{[Red Box at top left]}$$
+$$\text{Note: you MUST draw the correct radius - this is a radius that meets all shapes simultaneously.}$$
+
+## Circles and its segments and lines
+
+### 1. Chord -
+a line segment whose two endpoints lie on the circle's circumference. If the segment passes through the circle's center, then the chord is a diameter.
+
+* **[Diagram]:** A circle showing one chord labeled $\text{chord}$ and a diameter labeled $\text{chord = diameter}$.
+
+#### Example
+* **Ex:** [Diagram of a circle with center $O$, chord $AB$, and a perpendicular line from $O$ to $AB$ bisecting it. The radius from $O$ to $A$ is $r$. One half of the chord is labeled $5$. The portion of the perpendicular from the chord to the circle's edge is labeled $x$. The segment from $O$ to the chord is labeled $r-x$.]
+  $$\text{if } \overline{AB} = 10\text{, find } x.$$
+
+---
+
+### 2. Secants
+* this is a line that passes through a circle twice
+* all secants contain chords
+
+* **[Diagram]:** A circle with center $O$ and a secant line (red) passing through it. The internal segment is labeled $\text{chord}$ (orange). A radius (green) is labeled $r$.
+
+---
+
+### 3. Tangent lines -
+these are lines that touch the circle exactly once, at a point called the point of tangency, and meet a radius at the point of tangency at a right angle.
+
+* **[Diagram]:** A circle with center $O$ and a tangent line (red) touching it at a point labeled $\text{Point of tangency}$ (orange). A radius (green) $r$ meets the line at the point of tangency at a right angle.
+
+--- DAILY NOTES (9A_MWF 10-1 Day 9.pdf) ---
+# Page 1
+
+**READING / GRAMMAR**  
+**DAY # 9** *(9 is handwritten)*
+
+**TOPICS OF THE DAY**
+* Grammar Review *(handwritten)*
+* Act Grammar *(handwritten)*
+* ACT READING *(handwritten)*
+
+---
+
+# Page 2
+
+**DAY # 9** *(9 is handwritten)*
+
+**ENGLISH TEST**
+
+*Handwritten annotations on the test text:*
+* In Sentence [1]: "When I was growing up on our farm..."
+  * **S** is written above "**I**"
+  * **V** is written above "**was**"
+* In Sentence [2]: "**In**" is circled.
+* In Sentence [2]: "...the weight of the..."
+  * "**weight of the**" is underlined and labeled with a "**1**".
+* In Sentence [2]: "...and the pungent smell of late summer..."
+  * "**pungent smell**" is circled, with an arrow pointing to the handwritten label "**ICC**".
+* In Sentence [3]: "Pleasantly heavy and warm from the sun. I can still imagine the feel of the fruit."
+  * "**Pleasantly heavy and warm**" is underlined and labeled with a "**2**".
+  * "**I can still imagine the feel of the fruit.**" is underlined.
+* In Sentence [4]: "That smell told us..."
+  * "**That smell**" is underlined and labeled with a "**2**".
+* Under Sentence [4]: "...and the best of the crop being selected for canning."
+  * "**and the best of the crop being selected for canning.**" is underlined and labeled with a "**3**".
+
+*Handwritten answers/selections:*
+* **Question 1:** **D. OMIT the underlined portion.** is circled.
+* **Question 2:** **G. can still imagine the feel of the fruit, pleasantly heavy and warm from the sun.** is circled, with an arrow pointing to the comma after "fruit".
+* **Question 4:** **J. after Sentence 2.** is circled.
+
+---
+
+# Page 3
+
+*Handwritten annotations on the test text:*
+* In the first sentence: "...while a large pot of water heated up on the stove."
+  * "**while a large**" is circled.
+  * "**pot of water heated up on the stove.**" is crossed out.
+* In Sentence [5]: "**When**" is circled.
+* In paragraph 2: "...air and stuck to the walls around us."
+  * "**air and stuck to the walls around us.**" is underlined and labeled with an "**8**".
+  * "**air**" is circled.
+* In paragraph 3: "...rotating on its' squeaky hinge..."
+  * "**squeaky**" is underlined and labeled with a "**10**".
+* In paragraph 4: "Patches of salt forming on our faces..."
+  * "**forming**" is underlined and labeled with an "**11**".
+
+*Handwritten answers/selections:*
+* **Question 5:** **C. establishes a logical transition to the information in the remainder of the paragraph.** is circled and the text of the option is underlined.
+* **Question 8:** **F. NO CHANGE** is circled.
+* **Question 9:** **C. No, because the sentence is consistent with the paragraph's focus on the aspects of canning tomatoes that are memorable to the narrator;** is circled. (Options A and B are crossed out; in Option D, "sets up a logical contrast" is underlined and the option is crossed out).
+* **Question 10:** **H. its squeaky** is circled.
+* **Question 11:** **A. NO CHANGE** is circled.
+
+---
+
+# Page 4
+
+*Handwritten annotations on the test text:*
+* In paragraph 1: "...all gleaming colorfully in their jars. Together they"
+  * "**gleaming colorfully in their jars. Together they**" is underlined and labeled with a "**12**".
+* In paragraph 1: "...protection against the bleak winter."
+  * "**bleak**" is circled.
+* In paragraph 2: "...my family's..."
+  * "**familys'**" is underlined and labeled with a "**13**".
+* In paragraph 2: "...from my childhood."
+  * "**from my childhood.**" is underlined and labeled with a "**15**".
+* In Passage II, Sentence [1]: "For almost two millennia, the yew an evergreen tree with a poisonous fruit and a twisted trunk, was scorned..."
+  * **S** is written above "**yew**".
+  * **V** is written above "**was**", which is circled.
+  * "**yew an evergreen tree with a poisonous fruit**" is underlined.
+  * "**and a twisted trunk,**" is underlined.
+
+*Handwritten answers/selections:*
+* **Question 12:** **F. NO CHANGE** is circled. (In the question, "lishes a visual contrast with the image in the final sentence of this paragraph?" is underlined).
+* **Question 13:** **B. family's** is circled.
+* **Question 14:** **F. NO CHANGE** is circled.
+* **Question 15:** **A. images that reveal that the narrator's memories of canning tomatoes are fading over time.** is circled.
+* **Question 16:** **H. yew, an evergreen tree with a poisonous fruit** is circled.
+* **Question 17:** **D. warned that** is circled.
+
+---
+
+# Page 5
+
+*Handwritten annotations on the test text:*
+* In paragraph 1: "...nothing in changing or altering that reputation."
+  * "**nothing in changing or altering that reputation.**" is underlined and labeled with an "**18**".
+* In Passage II, Paragraph [2]: "...promising anticancer drug. [21] Although pharmaceutical"
+  * "**promising anticancer drug. [21] Although pharmaceutical**" is underlined and labeled with a "**21**".
+* In paragraph 2: "...companies that begun to produce the drug learned..."
+  * "**that begun**" is circled.
+  * "**extracted**" is underlined and labeled with a "**22**".
+  * "**its attention was soon focused on**" is underlined and labeled with a "**23**".
+
+*Handwritten answers/selections:*
+* **Question 18:** **J. to alter that** is circled.
+* **Question 20:** **G. that taxol was** is circled. (Option F is crossed out).
+* **Question 21:** **C. No, because it strays from the main focus of the essay.** is circled.
+* **Question 22:** **J. that began to produce** is circled (with "began" also circled inside the option).
+* **Question 23:** **C. they soon focused their attention** is circled. (Option D is crossed out).
+* **Question 24:** **F. Natural stands in the Pacific Northwest represented the largest available source of yew bark.** is circled (with "largest available source" underlined).
+* **Question 25:** **A. NO CHANGE** is circled.
+
+---
+
+# Page 6
+
+*Handwritten annotations on the test text:*
+* In paragraph 1: "...it is scattered throughout the area. To"
+  * "**it is scattered throughout the area. To**" is circled and labeled with a "**27**".
+* In paragraph 1: "...save the trees and still provide for the patient's needs, scientists began to produce taxol synthetically in the"
+  * The text is underlined and labeled with a "**28**".
+
+*Handwritten answers/selections:*
+* **Question 26:** **J. from approximately** is circled.
+* **Question 27:** **C. American conservationists began to fear that the species would be irreparably depleted.** is circled (with "species would be irreparably depleted." underlined).
+* **Question 28:** **H. patients' needs,** is circled (with the word "**patients'**" handwritten next to it).
+* **Question 29:** **D. Although this process** is circled.
+* **Question 30:** **F. NO CHANGE** is circled.
+
+---
+
+# Page 7
+
+**MATH**  
+**DAY # 9** *(9 is handwritten)*
+
+**TOPICS OF THE DAY**
+* Triangles, Part 2 *(handwritten)*
+
+---
+
+# Page 8
+
+**Trigonometry**
+
+the study of the ratios of two sides of a right triangle as a function of one of the right triangle's acute angles.
+
+```
+       A (acute angle)  [in purple box]
+       /|
+      / |
+     /  |
+    /   | adjacent (pink) / opposite (yellow, crossed out)
+   /    |
+  /     |
+ /      |
+/_______|
+C       B
+(90-x)° 
+C (acute angle) [in orange box]
+```
+* **Side AB:** labeled **adjacent** (in pink) and **opposite** (in yellow, crossed out)
+* **Side BC:** labeled **opposite** (in pink) and **adjacent** (in yellow, crossed out)
+* **Side AC (hypotenuse):** labeled **Hypoteneuse** (in blue) and **Hypotenuse** (in yellow, crossed out)
+
+trig function (acute angle) = ratio  
+there are six trigonometric functions
+
+### Core 3
+* $\sin(AA) = \text{opp}/\text{hyp}$
+* $\cos(AA) = \text{adj}/\text{hyp}$
+* $\tan(AA) = \text{opp}/\text{adj}$
+
+### Reciprocal 3
+* $\csc(AA) = \frac{1}{\sin(AA)} = \text{hyp}/\text{opp}$
+* $\sec(AA) = 1/\cos(AA) = \text{hyp}/\text{adj}$
+* $\cot(AA) = 1/\tan(AA) = \text{adj}/\text{opp}$
+
+---
+
+**Ex: $\tan(A) = 4/7 = \text{opp}/\text{adj}$**
+```
+      A
+     /|
+    / |
+   /  |  adj = 7m
+  /   |
+ /____|
+C     B
+  opp = 4m
+```
+* **Hypotenuse (AC):** $\text{Hyp} = m\sqrt{65}$
+* **Calculations:**
+  $$\text{Hyp}^2 = (7\text{m})^2 + (4\text{m})^2$$
+  $$\text{Hyp}^2 = 49\text{m}^2 + 16\text{m}^2$$
+  $$\text{Hyp}^2 = 65\text{m}^2$$
+  $$\text{Hyp} = m\sqrt{65}$$
+
+---
+
+### SAT Focus
+**What is the relationship between sine and cosine?**
+They are co-functions, meaning that they produce equivalent ratios (meaning they are equal) when evaluated at complementary angles.
+$$\therefore \sin(x^\circ) = \cos(90-x^\circ) \quad \text{OR}$$
+$$\sin(A) = \cos(B) \text{ iff } A+B = 90^\circ$$
+
+* **Ex:** $\cos(3x+10) = \sin(5x-20)$
+  $$\therefore (3x+10) + (5x-20) = 90$$
+  $$8x - 10 = 90$$
+  $$8x = 100$$
+  $$x = 100/8 = 25/2 \text{ or } 12.5$$
+* **Ex:** $\cos(37^\circ) = \sin(?)$
+  $$\mathbf{? = 53^\circ}$$
+
+---
+
+### ACT Focus:
+
+#### Using trigonometry to find a missing side
+* [checked box] the triangle must be right
+* [checked box] Given only one side and effectively both acute angles
+
+1. **Step 1:** choose an acute angle
+2. **Step 2:** hard step - label all three sides in relation to your chosen angle
+3. **Step 3:** based on the labeling of the given side and the missing side, choose a trig function.
+4. **Step 4:** Setup the trig equation
+   $$\text{trig}(AA) = \frac{x}{V} \quad \text{OR} \quad \text{trig}(AA) = \frac{V}{x}$$
+   * For $\text{trig}(AA) = \frac{x}{V} \implies \mathbf{x = V \cdot \text{trig}(AA)}$
+   * For $\text{trig}(AA) = \frac{V}{x} \implies \mathbf{x = \frac{V}{\text{trig}(AA)}}$
+
+#### Using trigonometry to find a missing angle
+* [checked box] again, the triangle must be right
+* [checked box] Given at least two sides
+
+1. **Step 1:** based on the angle you wish to find, label all three sides
+2. **Step 2:** based on the labeling of the two sides, choose a trig function
+3. **Step 3:** Setup formula
+   $$\text{trig}(x) = \text{ratio}$$
+   $$\mathbf{x = \text{trig}^{-1}(\text{ratio})}$$
+
+---
+
+# Page 9
+
+**Isosceles Triangles**
+
+Any triangle that has two sides being congruent, called legs, **AND** also two angles being congruent, called base angles. The non-congruent side is called the base. The non-congruent angle is called the vertex angle.
+
+```
+       VA (vertex angle)
+       /|\
+      / | \
+ leg /  |  \ leg (with congruent hash marks)
+    /   |   \
+   /____|____\
+  BA  base   BA (with double arcs and hash marks)
+```
+*(An altitude is drawn from the vertex angle perpendicular to the base)*
+
+---
+
+**Equilateral Triangle:**
+a triangle in which all sides are $\cong$ and all angles are $\cong$, each measuring $60^\circ$.
+
+```
+         30°\ /30°
+             |
+          s  |  s
+             | (s/2)√3 (altitude)
+   60°_______|_______60°
+      s/2    |    s/2
+             s
+```
+* All three sides are labeled **s** with single hash marks.
+* The altitude divides the base into two segments of **s/2** (each labeled with triple hash marks) and bisects the top angle into $30^\circ$ and $30^\circ$.
+* Base angles are $60^\circ$.
+
+---
+
+**Area of Triangles:**
+* **Generally:** $A = \frac{1}{2}bh$
+* **Equilateral:** $A_{\text{eq}\triangle} = \frac{s^2\sqrt{3}}{4}$
+
+*Grouped under $A_{\text{CT}}$:*
+* **Heron's Formula:**
+  $$A_{\text{SSS}} = \sqrt{s(s-a)(s-b)(s-c)}$$
+  *(Where $s = \text{semi-perimeter} = \frac{1}{2}(a+b+c)$ on a triangle with sides $a$, $b$, and $c$)*
+* **SAS Area:**
+  $$A_{\text{SAS}} = \frac{1}{2}s_1 s_2 \sin\theta$$
+  *(On a triangle with sides $s_1$, $s_2$ and included angle $\theta$)*
+
+---
+
+# Page 10
+
+**Similar Triangles:**
+
+Two triangles are similar ($\sim$) iff all three corresponding angles are $\cong$ and all three corresponding sides are proportional.
+
+```
+     A                 X
+    / \               / \
+   /   \      ~      /   \
+  /_____\           /_____\
+ B       C         Y       Z
+```
+$$\Delta ABC \sim \Delta XYZ$$
+* $\therefore \angle A \cong \angle X$
+* $\angle B \cong \angle Y$
+* $\angle C \cong \angle Z$
+
+$$\therefore \frac{\text{shortest side of }\Delta 1}{\text{shortest side of }\Delta 2} = \frac{\text{middle side of }\Delta 1}{\text{middle side of }\Delta 2} = \frac{\text{largest side of }\Delta 1}{\text{largest side of }\Delta 2}$$
+
+To prove two triangles are similar, you can use the:
+* **Angle-Angle Postulate:** if two angles of one triangle are congruent to two angles of another $\triangle$, then the two $\triangle$s are similar.
+* **OR** SSS
+* **OR** SAS
+
+---
+
+#### Special Similar Triangles
+
+**1. Back to Back + Parallel**
+```
+  \_____/  (top parallel line, double arrows)
+   \   /
+    \ /
+     X
+    / \
+   /   \
+  /_____\  (bottom parallel line, double arrows)
+```
+*(Vertically opposite angles are marked congruent; alternate interior angles are marked congruent)*
+
+**2. Intermeshed + Parallel**
+```
+      /\
+     /__\  (middle parallel line, double arrows)
+    /    \
+   /______\ (bottom parallel line, double arrows)
+```
+*(Corresponding angles are marked congruent; shares the top vertex angle)*
+
+---
+
+# Page 11
+
+**3. Triple Right $\triangle$**
+```
+     |\
+     | \  a
+     |  \
+     |___\
+     |  c \
+     |     \  b
+     |______\
+```
+*(An altitude $c$ is drawn to the hypotenuse, dividing it into segments $a$ and $b$)*
+$$\frac{a}{c} = \frac{c}{b}$$
+
+*(Diagrams below show the three similar right triangles separated: medium, small, and large right triangles, with corresponding angles highlighted in orange/yellow)*
+
+---
+
+**Proving $\triangle$'s Congruent:**
+1. SSS
+2. SAS
+3. ASA
+4. AAS
+5. HL
+
+--- DAILY NOTES (8A_MWF 10-1 Day 8.pdf) ---
+--- Page 2 ---
+READING / GRAMMAR
+DAY # 8
+
+TOPICS OF THE DAY
+* Grammar Review
+* Words in Context
+* Rhetorical Synthesis
+
+--- Page 3 ---
+Words in Context
+S1. the definition of the word that is to be chosen will be found contextually in the text - highlight this definition
+S2. You write a word that could fit this definition
+S3. Choose that word or a similie.
+
+--- Page 4 ---
+diverse -> very different (not connected)
+
+--- Page 5 ---
+dearth of
+less
+alot
+
+--- Page 6 ---
+ing
+
+--- Page 7 ---
+Rhetorical Synthesis:
+Given bulleted research on topics and asked to synthesize (to create in an orderly fashion for efficiency) the information to support some claim given in the question header.
+Step 1: go through each bullet and identify each as either background (B) or evidential (E)
+Step 2: read the question header and highlight the claim you wish to support
+Step 3: choose the bullets you would use to support the claim.
+
+--- Page 8 ---
+B
+B
+B
+B
+E
+goal
+
+--- Page 9 ---
+B
+B
+B
+B
+B
+
+--- Page 10 ---
+B
+B
+B
+B
+B
+
+--- Page 13 ---
+MATH
+DAY # 8
+
+TOPICS OF THE DAY
+* Triangles (•_•)
+
+--- Page 14 ---
+Triangles
+
+Angles of a triangle
+[x] all triangles have three internal angles whose sum is 180°.
+[x] reflexive angle - this is an angle on the outside of the shape that helps to complete a full circle with its corresponding interior angle
+[x] Exterior Angle - this is an angle on the outside of the shape that forms a linear pair with its corresponding interior angle
+
+[x] True for all shapes
+  [x] the sum of all exterior angles is 360°
+  [x] each exterior angle forms a linear pair with the corresponding interior angle
+  ∴ In + En = 180°
+
+[x] True for only triangles
+  each exterior angle is the sum of the two remote interior angles
+  ∴ E1 = I2 + I3
+  E2 = I1 + I3
+  E3 = I1 + I2
+
+Ex:
+x = 50 + 20
+x = 70°
+
+Sides of a Triangle:
+all triangles satisfy the triangle inequality relationships
+[x] the shortest side of a triangle is opposite the smallest angle of the triangle AND the middle side of a triangle is opposite the middle angle of the triangle AND the largest side of a triangle is opposite the largest angle of the triangle.
+[x] the third side of any triangle must be larger than the positive difference of the other two sides AND smaller than the sum of the other two sides
+|1st - 2nd| < 3rd < 1st + 2nd
+Ex: 1m, 2m, 3m
+3m - 1m < 2m < 1m + 3m
+2m < 2m < 4m [X]
+
+Ex: a triangle has sides of 8 and 11.
+find all possible values for its perimeter.
+22 < P < 38
+
+11 - 8 < x < 11 + 8
+3 < x < 19
+
+P = 8 + 11 + x
+P = 19 + x
+
+Pmin = 19 + 3 = 22
+Pmax = 19 + 19 = 38
+∴ 22 < P < 38
+
+--- Page 15 ---
+Right Triangles:
+A right triangle is one that has exactly one right angle, whose measure is 90°, and whose two other angles are acute and complementary.
+Note: yes, the largest side of a right triangle, the side opposite the right angle, is called the hypotenuse. The other two sides are called legs.
+
+Yes, a right triangle does satisfy the triangle inequality relationships. However, a right triangle will more strictly satisfy the Pythagorean theorem. This theorem states: (leg 1)² + (leg 2)² = (hypotenuse)²
+where the legs are often denoted as a and b and the hypotenuse as c.
+∴ (a)² + (b)² = (c)²
+
+you can apply the pythagorean theorem iff:
+[x] the triangle must be right AND
+[x] you know exactly two of the sides OR
+[x] you know exactly one side and the other two are known in terms of one variable OR
+[x] all three sides are expressed in terms of one variable
+
+Ex:
+x -> a = 5
+x + 7 -> b = 12
+x + 8 -> c = 13
+
+a² + b² = c²
+(x)² + (x + 7)² = (x + 8)²
+x² + x² + 14x + 49 = x² + 16x + 64
+2x² + 14x + 49 = x² + 16x + 64
+x² - 2x - 15 = 0
+(x - 5)(x + 3) = 0
+x = 5 or x = -3 (crossed out)
+
+if all three sides of a right triangle are integers, then the set of all three sides is called a Pythagorean Triple
+
+Common Triples
+3-4-5   | 5-12-13  | 7-24-25 | 8-15-17
+6-8-10  | 10-24-26 | 14-48-50| 16-30-34
+9-12-15 | 15-36-39 |         |
+
+--- Page 16 ---
+The Special Right Triangles:
+30°-60°-90°
+Note: any right triangle in which the hypotenuse is double a leg must be a 30°-60°-90° right triangle.
+
+Ex:
+s√3 = 12
+s = 12 / √3 = 4√3
+
+45°-45°-90°
+[x] Isoceles Right Triangle
+[x] Diagonal(s) of a Square
+
+Trigonometry:
+the study of the ratios of the sides of a right triangle as a function of one of the acute angles
+
+Terminology:
+adjacent, opposite
+opposite, adjacent
+hypotenuse, hypotenuse
+
+there are six trigonometric functions:
+Core 3
+sin(AA) = opp/hyp
+cos(AA) = adj/hyp
+tan(AA) = opp/adj
+SOH CAH TOA
+
+Reciprocal 3
+csc(AA) = 1/sin(AA) = hyp/opp
+sec(AA) = 1/cos(AA) = hyp/adj
+cot(AA) = 1/tan(AA) = adj/opp
+
+Ex:
+tan(A) = 8/15
+
+Sine and Cosine are known as co-functions
+this means they produce equivalent ratios when evaluated at complementary angles.
+∴ sin(x) = cos(90-x) OR sin(A) = cos(B) then A+B=90°
+
+if W lies on AB find
+cos(∠ACW) - sin(∠BCW) = 0
+
+--- DAILY NOTES (7A_MWF 10-1 Day 7.pdf) ---
+### Page 1
+**DAY #** 7
+
+**TOPICS OF THE DAY**
+* Transition Review
+* Cross-Text Analysis
+* Text Structure
+
+---
+
+### Page 2
+[Option **B** "then," is circled]
+
+---
+
+### Page 3
+[In the question text, the word "but" is circled, with a proofreading insertion mark and handwritten **S** above "Michel de", a checkmark below "explores", a handwritten **S** above "he", and a checkmark below "expresses".]
+
+[The phrase "Regardless of subject matter," is crossed out.]
+
+**Handwritten notes next to choices:**
+* Next to **A**: claim
+* Next to **B**: cause and effect.
+
+[Option **C** "Fittingly," is circled; options **A** and **B** are crossed out.]
+
+---
+
+### Page 4
+[In the question text, the parenthetical phrase "(the network of people and places that some enslaved people used to escape to freedom)" is crossed out.]
+
+**Handwritten note next to choices:**
+* Next to **A**: S1: claim
+
+[Option **D** "More often," is circled.]
+
+---
+
+### Page 5
+**Handwritten notes on the question text:**
+* Above the blank: Claim
+* Below the blank: C.E.
+
+[Option **D** "subsequently," is circled; options **A** and **B** are crossed out.]
+
+---
+
+### Page 6
+**Handwritten notes next to choices:**
+* Next to **A**: 
+  S1: claim
+  S2: opp.
+
+[Option **A** "however," is circled; options **B**, **C**, and **D** are crossed out.]
+
+---
+
+### Page 7
+**Handwritten notes next to choices:**
+* Next to **A**:
+  Claim: traditional
+  opposition
+
+[Option **B** "However," is circled; options **A**, **C**, and **D** are crossed out.]
+
+---
+
+### Page 8
+**Handwritten notes next to choices:**
+* Next to **A**:
+  S1: claim
+  S2: thus
+
+[Option **A** "Thus," is circled; options **B**, **C**, and **D** are crossed out.]
+
+---
+
+### Page 9
+[In the question text, the words "khar,", "and", and "heseb," are circled. The word "respectively," is crossed out. Below "volume and area" is written: 1 cc]
+
+[Option **C** "measurement. Used" is circled.]
+
+---
+
+### Page 10
+[In the question text, the sentence "He posited that these norms were essential for maintaining social order and cohesion within a group." is crossed out. The word "also" is circled.]
+
+**Handwritten notes next to choices:**
+* Next to **A**:
+  S1: claim
+  S2: opp.
+
+[Option **D** "Moreover," is marked with a checkmark; option **C** is crossed out.]
+
+---
+
+### Page 11
+[Option **B** "then," is circled.]
+
+---
+
+### Page 12
+[Option **A** "however," is circled; options **B**, **C**, and **D** are crossed out.]
+
+---
+
+### Page 13
+[Option **A** "Thus," is circled.]
+
+---
+
+### Page 14
+[In the question text, the word "now" is circled, and the phrase "now known as Lagrange points," is crossed out.]
+
+**Handwritten notes next to choices:**
+* Next to **A**:
+  S1: claim
+  S2: next
+
+[Option **A** "Subsequently," is circled; options **B** and **C** are crossed out.]
+
+---
+
+### Page 17
+**Handwritten note next to choices:**
+* Next to **A**: S1: claim
+
+---
+
+### Page 18
+[In the question text, the phrase "a chemical with a sweet, almond-like smell, while simultaneously giving them a mild foot shock." is crossed out. There is a checkmark above "exposed", a curve above "acetophenone", and an **S** above "mice. They".]
+
+**Handwritten note next to choices:**
+* Next to **A**: S1: claim
+
+[Option **A** "Consequently," is circled.]
+
+---
+
+### Page 22
+**Cross-Text Analysis**
+
+here, you are given two texts that are somehow related to each other.
+
+-> in reading text one, simply perform the transitive foreshadow analysis that I taught on Reading Day 1.
+
+-> in reading the second text, you must identify its relationship to the first passage.
+* [Checked box] it is a disagreement by providing a differing viewpoint
+* [Checked box] it is a disagreement by an attack of the claims in the first text.
+* [Checked box] it is a neutral discussion of a topic by providing a different perspective .
+* [Checked box] they agree by providing further support.
+
+- After finishing text 2, please write down how author two would respond to author 1, ensuring to have evidence from the second text to support your position claims.
+
+---
+
+### Page 23
+**Text 1**
+[The word "Despite" is boxed. The word "beautiful" is circled and has an arrow pointing to the note:] 
+don't focus on the beautiful prose (paragraphs of the story), there is something unique or odd about the story.
+
+[The word "weaknesses" is circled and points to the note:] 
+the lack of depth
+
+[The phrase "fails to address" points to the note:] 
+forces a wrong interpretation.
+
+[The words "thereby", "secondary", and "Had" are circled.]
+
+**Text 2**
+[The words "dated", "introduction", "but", and "is" are circled. The phrase "implausibly reductive" is underlined and points to the note:] 
+too simplified
+
+[Handwritten note next to Text 2:] 
+Neutral; provide a different perspective on the author's lack of depth.
+
+**Handwritten notes between the question and choices:**
+lack of depth -> wrong conclusion
+L.o.D -> oversimplified theory.
+
+[Option **B** is marked with a checkmark; options **A**, **C**, and **D** are crossed out.]
+
+**Handwritten response at the bottom:**
+A2: yes, there is a lack of depth, but I believe it leads to a more simplified (oversimplified) conclusion.
+
+---
+
+### Page 25
+**Text Structuring:**
+
+Here, you are focusing on how the text is structured (put together) and sometimes asked how that functions to accomplish a task.
+
+**Question Type I:** how is the text structured - in this question, determine the function of each sentence. (write these functions down)
+
+**Question Type II:** what is the purpose of ________?
+here, your foreshadows should guide the understanding of what the author is trying to do.
+
+---
+
+### Page 26
+[In the question text, the phrase "an accomplished poet and writer of prose," is crossed out. The word "highlighting" is circled. The phrases "Brennan's fragmented audio elements" and "that the experience of sound is multifaceted." are underlined.]
+
+**Handwritten notes on the text:**
+* Above the first sentence: claim about an album and who worked on it [with an arrow pointing to "debut spoken word poetry album"]
+* Below the first sentence: description of the text and each author's role [with an arrow pointing to "Brennan's fragmented audio elements"]
+* Below the third sentence: critical view of the work. [with a bracket highlighting the underlined clause]
+
+[In choice **A**, the word "approach" is circled. Option **A** is marked with a checkmark; options **B**, **C**, and **D** are crossed out.]
+
+**Handwritten note at the bottom:**
+could become invasive
+
+---
+
+### Page 27
+[In the question text, the words "evolved" and "But" are circled. The sentence "But evolutionary links between predators and their prey can persist across centuries and continents." is underlined.]
+
+**Handwritten notes on the text:**
+* Above "evolved": changed/adapted
+* Top right: the trees came to NA, the beetles could also come to NA
+* Below "continents.": cause and effect
+
+[In the question, the word "function" is circled. Option **B** is circled; options **A**, **C**, and **D** are crossed out. In choice **D**, the phrase "alternative explanation" is underlined.]
+
+---
+
+### Page 28
+[In the question text, the title "The Crisis of the Negro Intellectual" is crossed out. The word "But" is circled. The phrase "himself should culturally assimilate" is circled and points to the note: "become blend with surroundings". The sentence "But he also sharply criticized..." is underlined.]
+
+**Handwritten note at the top:**
+different from worldview [with arrows pointing from "disagreed with them all" and "identified as a Black nationalist"]
+
+[Option **D** is circled and has an arrow pointing to the underlined sentence in the text; options **B** and **C** are crossed out.]
+
+---
+
+### Page 29
+**MATH DAY #** 7
+
+**TOPICS OF THE DAY**
+* finish ratios
+* lines and angles
+
+---
+
+### Page 30
+**Proportions:**
+
+a proportion is when two ratios are equivalent under different circumstances.
+
+$$\frac{\text{Quantity 1}}{\text{Quantity 2}} = \boxed{\text{Ratio 1}}_{\text{Circumstance 1}} = \boxed{\text{Ratio 2}}_{\text{Circumstance 2}}$$
+
+**Ex:** Manasa is throwing a party, inviting her $f$ friends and ordering $p$ slices of pizza to feed them. However, Avaneesh and Abi show up uninvited. Manasa, being the gracious host she is, will order more pizza so as to feed everyone at the $\boxed{\text{same}}$ original $\boxed{\text{rate}}$. How many additional slices should she order?
+[A bracket connects the boxed words "same" and "rate" with the note:] proportion
+
+$$\frac{\text{friends}}{\text{pizza}} = \boxed{\frac{f}{p}}_{\text{Invited}} = \boxed{\frac{\cancel{2}\ f+2}{\cancel{x}\ x}}_{\text{Uninvited}}$$
+
+**Handwritten Equations:**
+[In red box]:
+$$fx = 2p$$
+$$x = \frac{2p}{f}$$
+
+[In blue next to it]:
+$$\frac{f}{p} = \frac{f+2}{x}$$
+$$fx = p(f+2)$$
+$$x = \frac{p(f+2)}{f}$$
+
+$$\frac{p(f+2)}{f} - \frac{pf}{f}$$
+$$= \frac{pf + 2p - pf}{f}$$
+$$= \frac{2p}{f}$$
+[An arrow points from $= \frac{2p}{f}$ back to the red box equation $x = \frac{2p}{f}$]
+
+---
+
+### Page 31
+**Handwritten Equations:**
+[In red]:
+$$\frac{\text{miles}}{\$} = \boxed{\frac{25\ \cancel{100}}{\cancel{16}\ 4}}_{\text{Current}} = \boxed{\frac{m}{s}}_{\text{Save}}$$
+
+[In purple]:
+$$4m = 25(5)$$
+$$\frac{4}{25}m = 5$$
+
+[Option **D** is circled; options **A** and **C** are crossed out.]
+
+---
+
+### Page 32
+**Lines and Angles:**
+
+**Angle Pairs:** this defines relationships between two angles
+
+**Vertical Angle Pairs:** this is a set of two angles that share a common vertex and whose two rays extend in opposite directions
+
+$\angle DVP$ and $\angle AVE$ form a vertical angle pair.
+[Handwritten next to the intersecting lines diagram]: $\angle DVP$
+
+* [Checked box] all vertical angle pairs form congruent angles.
+  $$\therefore \angle DVP \cong \angle AVE$$
+* [Checked box] all vertical angle pairs form an adjacent vertical angle pair.
+  $$\therefore \angle DVC \text{ forms a vertical angle pair with } \angle PVA$$
+
+**Complementary Angle Pair:** this is a set of 2 angles whose measures sum to $90^\circ$.
+Note: there need not be any relationship b/w the angles besides their measures summing to $90^\circ$.
+
+| Angle | Complement |
+| :--- | :--- |
+| $10^\circ$ | $80^\circ$ |
+| $42^\circ$ | $48^\circ$ |
+| $1^\circ$ | $89^\circ$ |
+| $\mathbf{x^\circ}$ | $\mathbf{(90-x)^\circ}$ | [This row is boxed]
+
+**Supplementary Angle Pair:** this is a set of two angles whose measures sum to $180^\circ$. Again, there need not be any relationship b/w the two angles besides their measures summing to $180^\circ$.
+
+| Angle | Supplement |
+| :--- | :--- |
+| $x^\circ$ | $(180-x)^\circ$ |
+
+**Linear Pair:** this is a set of two angles that share a common vertex and one common ray, and whose non common rays extend in opposite directions.
+
+$\angle APK$ and $\angle KPB$ form a linear pair.
+* [Checked box] all linear pairs are a supplementary pair.
+
+---
+
+### Page 33
+**Angle Pairs formed by a transversal cutting through two parallel lines**
+
+[Diagram of parallel lines $m$ and $n$ cut by a transversal line, creating angles 1, 2, 3, 4 at the top intersection and 5, 6, 7, 8 at the bottom intersection.]
+
+*This cut creates eight angles, four at each cut.*
+*It is our goal to compare two angles, one at each cut.*
+
+**Congruent Angle Pairs**
+1. **Corresponding Angle Pairs -** this is a set of two angles that lie in the same relative position in two locations.
+   $$\boxed{\begin{matrix} \angle 1, \angle 5 \\ \angle 2, \angle 6 \\ \angle 3, \angle 7 \\ \angle 4, \angle 8 \end{matrix}}$$
+2. **Alternate Interior Angle Pair -** this is a set of two angles that lie on the interior of the two parallel, but on opposite sides of the transversal.
+   $$\boxed{\begin{matrix} \angle 4, \angle 6 \\ \angle 3, \angle 5 \end{matrix}}$$
+3. **Alternate Exterior Angle Pair -** this is a set of 2 angles that lie on the exterior of the 2 parallel, but on opposite sides of the transversal.
+   $$\boxed{\begin{matrix} \angle 1, \angle 7 \\ \angle 2, \angle 8 \end{matrix}}$$
+
+**Supplementary Angle Pairs**
+1. **Same-Side Interior Angle Pair:** this is a set of two angles that lie on the interior of the two parallel lines, but on the same side of the transversal.
+   $$\boxed{\begin{matrix} \angle 4, \angle 5 \\ \angle 3, \angle 6 \end{matrix}}$$
+2. **Same-side Exterior Angle Pair:** this is a set of two angles that lie on the exterior of the two parallel lines, but on the same side of the transversal.
+   $$\boxed{\begin{matrix} \angle 1, \angle 8 \\ \angle 2, \angle 7 \end{matrix}}$$
+
+[At the bottom, a green dot highlights angle 3 and a purple dot highlights angle 6, with the equation:]
+$$\text{[green dot]} + \text{[purple dot]} = 180^\circ$$
+
+---
+
+### Page 34
+**Ex:**
+
+[Diagram 1: Parallel lines $m$ and $n$ cut by intersecting transversals.
+Angles labeled:
+* $130^\circ$ and $50^\circ$ on line $m$
+* $10^\circ$ inside the triangle
+* $170^\circ$ (crossed out) and $10^\circ$ on the transversal at line $m$
+* $170^\circ$ (crossed out) and $10^\circ$ on the transversal at line $n$
+* $120^\circ$ external and $\boxed{60^\circ = x^\circ}$ internal at the bottom vertex of the triangle.]
+
+[Diagram 2: Three parallel horizontal lines cut by a V-shape.
+Angles labeled:
+* $120^\circ$ at the top left
+* $x^\circ$ at the middle right vertex
+* $130^\circ$ at the bottom left]
+
+---
+
+### Page 35
+[In the question text, the equation $x + y = u + w$ has $y$ and $w$ crossed out.]
+
+**Handwritten note in purple:**
+$$\text{But } y = u \therefore x = w$$
+
+[Roman numeral **I** ($x = z$) and **III** ($z = t$) are circled in red.]
+
+[Option **B** "I and III only" is circled in red.]
+
+--- DAILY NOTES (6A_MWF 10-1 Day 6.pdf) ---
+### Page 1
+**Day # 6**
+
+**TOPICS OF THE DAY**
+* Grammar Quiz
+* Reading - Answer
+* Reading - Evidence + Inferencing
+
+---
+### Page 2
+**Question 1**
+* "simple present" (above "produces toxins")
+* "S" (above "species of")
+* "V" (above "produces")
+* "MCC" (below "produces")
+* "S" (above "toxins")
+* "V" (above the blank)
+* Option B ("increase") is circled/selected. Options A and D are crossed out.
+
+---
+### Page 3
+**Question 2**
+* "S" (above "3,020 years old")
+* "V" (above "located")
+* "S" (above "tree rings")
+* "V" (above "claims")
+* "MCC" (below the blank)
+* Option D ("dendrochronologist") is circled/selected. Options A, B, and C are crossed out.
+
+---
+### Page 4
+**Question 3**
+* "S" (above "Oyster mushrooms")
+* "V" (above "get")
+* "p" (above "logs")
+* "cc" (above "but")
+* "S" (above "fungi")
+* "V" (above "are")
+* "ecc" (above "with")
+* "icc" (above "shown")
+* "S" (above "mushrooms")
+* "MV" (above "release")
+* "plural" (with an arrow pointing from "that" to "nematodes")
+* "NMV" (under the blank)
+* Option D ("come") is boxed/selected. Options A, B, and C are crossed out.
+
+---
+### Page 5
+**Question 4**
+* "S" (above "Proto-Atlantic-Congo")
+* "V" (above "is said")
+* "S1: claim" (above "This")
+* "Example" (above "designation")
+* Option A ("hypothetical, however:") is circled/selected.
+
+---
+### Page 6
+**Question 5**
+* "S" (above "liquid compounds")
+* "V" (above "have")
+* Option C ("g/mol, respectively (in stoichiometry, molar") is circled/selected. Option B has a line next to it.
+
+---
+### Page 7
+**Question 6**
+* "S" (above "Psychologists")
+* "V" (above "first proposed")
+* "S" (above "the researchers")
+* "V" (above "introduced")
+* Option D ("theory, and") is circled/selected, with a comma added after "and".
+
+---
+### Page 8
+**Question 7**
+* "S" (above "Theology")
+* "V" (above "was shaped")
+* "cc" (above "but")
+* "S" (above "rediscovery")
+* "S" (above "rise")
+* "V" (above "caused")
+* "compound S" (above "and the rise")
+* Option A ("it") is circled/selected.
+
+---
+### Page 9
+**Question 8**
+* "S" (above "theories")
+* "V" (above "were")
+* "S" (above "ideas")
+* "V" (above "were")
+* Option C ("they evolve") is circled/selected. Options A, B, and D are crossed out.
+
+---
+### Page 10
+**Question 9**
+* "S" (above "theory")
+* "V" (above "was")
+* "MCC" (below the blank)
+* "S1: claim that NS is where we investigate."
+* "S2: sequencing."
+* Option B ("then,") is circled/selected. Options A, C, and D are crossed out.
+
+---
+### Page 11
+**Question 10**
+* "S" (above "It")
+* "V" (above "was")
+* "as" (circled)
+* "ing adv to an ecc."
+* Option D ("motion: finding") is circled/selected. Options B and C are crossed out.
+
+---
+### Page 12
+**Question 11**
+* "S" (above "Montaigne")
+* "V" (above "explores")
+* "cc" (above "but")
+* "S" (above "he")
+* "V" (above "expresses")
+* "claim" (above "Montaigne")
+* Option C ("Fittingly,") is circled/selected.
+
+---
+### Page 13
+**Question 12**
+* "S" (above "Blanche K. Bruce")
+* "V" (above "was")
+* "S" (above "home")
+* "V" (above "was")
+* "claim" (above "supporters")
+* Option D ("More often,") is circled/selected.
+
+---
+### Pages 14–21
+*(No handwritten annotations)*
+
+---
+### Page 22
+**Answer Questions**
+
+**step 1:** Answer the question yourself - yes, I want you to write your own answer to the question. Your response should be generated using evidence or context from the actual text.
+
+**step 2:** begin to proceed through the answer choices with the goal of eliminating at least two answer choices, called dummy answer choices.
+
+What makes an answer choice dummy?
+* [x] it provides a viewpoint that is not inherently discussed in the text.
+* [x] it provides a viewpoint that opposes the view of the author
+* [x] the response is significantly different than what you expressed
+* [x] the response is too extremely harsh.
+* [x] the response is too absolute in nature
+    * Only
+    * always
+    * never
+    * : (red dots)
+
+**step 3:** if two choices remain, then find the wrong answer
+* every wrong answer has something wrong with it, even if it is one word wrong.
+
+let us assume that you identify A-C as dummy responses.
+This does not ensure that D is correct blindly.
+
+---
+### Page 23
+**Evidence Analysis:**
+
+You are effectively tasked to provide evidence from either the text or some graphic to support some claim.
+
+**Step 1:** highlight/underline the actual claim that you wish to find evidence for. This claim can be within the text or the question header.
+
+**Step 2:** effectively writing your own response.
+* ask yourself what evidence you would like to see that would support this claim.
+* then find this evidence in the text or the graphic.
+
+**Step 3:** proceed through answer choices.
+
+---
+### Page 24
+**Question ID: d102706f**
+* "looking for: two or more methods that show diff. results." (at top of page)
+* Red box around table header "Estimation method"
+* Red underline under "muscular and skeletal modeling" (Cost et al. row)
+* Red curved arrow connecting "35,000-63,000" and "35,000-57,000"
+* Red arrow pointing from "35,000-63,000" to "8,000-34,000" and another to "183,000-235,000"
+* "S" (above "largest tyrannosaurids")
+* "V" (above "are thought")
+* "thought to" (boxed)
+* "however" (boxed)
+* Underline on "influenced by the methodology used in generating that estimate." (with "influenced" circled)
+* Handwritten arrow from "influenced" to:
+    * the methodology used to find the estimate is critical and could lead to different results.
+    * - thus, better and more consistent methodology is needed.
+* Option C is circled/selected. Options A, B, and D are crossed out.
+* Option A has "scaling" checked and "lowest estimated maximum bite force" underlined.
+* Option B has "interaction analysis" checked.
+* Option D has "same method" underlined.
+
+---
+### Page 25
+**Question ID: af9e3240**
+* Highlight/underline on "is aware of the intensity of her grief but believes it to be justified"
+* Circle around the colon in "justified:", with an arrow pointing to:
+    * "answer that shows she knows her grief is large but also has a reason for it."
+* Option A: "O thou pure" is crossed out. "how often have ye heard the strains of my lament" is underlined, with a "?" written under "when dark night fails!"
+* Option B: Underline on "no more the strength" and "load of grief that weighs me down."
+* Option C is circled/selected. Underline on "I know my own passion, it escapes me not; but, seeing that the causes are so dire,"
+* Option D is crossed out. Underline on "dirge and sore lament"
+
+---
+### Page 26
+**Inferencing**
+to answer these questions, you must verify your foreshadow in the answer choices.
+
+---
+### Page 27
+**Question ID: b5e9f3c2**
+* "Inferences" is circled under "Skill" in the table.
+* "and" in "southwestern United States and dispersed" is circled.
+* Underline on "dispersed suddenly in the late 1200s C.E., abandoning established villages with systems for farming crops and turkeys."
+* Underline on "1280."
+* Purple circle:
+    * "expand thier expertise" (with arrow pointing to "why would they abandon such expertise")
+* Option B is circled/selected. Options A, C, and D are crossed out.
+
+---
+### Page 28
+**Question ID: 4f9f8ea6**
+* Blue/purple notes at the top:
+    * "colors $\rightarrow$ light manipulation"
+    * "contrast $\rightarrow$ color important"
+* "and" in "male birds' feathers, and because" is circled.
+* Underline on "is known as an honest signal of a bird's overall fitness to potential mates."
+* "However," is circled.
+* Option D is circled/selected. Options B and C are crossed out.
+
+---
+### Page 29
+**MATH**
+**Day # 6**
+
+**TOPICS OF THE DAY**
+* Factor of Change
+* Ratios, Rates, and Proportions
+
+---
+### Page 30
+**Factor of Change**
+
+it given how certain quantities change by a certain percent or by a certain factor AND asked how a related quantity will thus change, then you can apply the factor of change approach.
+
+**Step 1:** start with a formula (given or known) [$A = \pi r^2$]
+**Step 2:** eliminate all constants [$A \sim r^2$]
+**Step 3:** replace each variable with its factor of change [$A \sim (1.1)^2$]
+**Step 4:** solve the unknown variable [$A \sim 1.21$]
+**Step 5:** find how far from 1 and convert to a percent
+
+**Note:**
+* if larger than 1, an increase by the %
+* if smaller than 1, a decrease by the %.
+
+**Ex:** If an object's mass is decreased by 20% and its speed increased by 20%, then by what % does its kinetic energy change? **Note:** $k = \frac{1}{2}mv^2$
+$$k = \frac{1}{2}mv^2$$
+$$k \sim mv^2$$
+$$k \sim (0.8)(1.2)^2$$
+$$k \sim 1.152$$
+$$\therefore \text{kinetic energy is increased by } 15.2\%$$
+
+$$A = \frac{\pi r^3 c^2}{2 \sqrt{d}}$$
+if $c$ is held constant, then by what % will $A$ change if $r$ is inc. by 25% and $d$ is inc. by 10%.
+
+---
+### Page 31
+**Ratios:**
+
+a ratio is a comparison of two or more quantities by their lowest corresponding parts $\rightarrow$ this means, ratios are always simplified.
+
+This creates a problem $\rightarrow$ ratios do not give exact values
+
+**Ex:** if the ratio of boys to girls is 2:3, then:
+* a) how many boys are there? IDK
+* b) how many girls are there? IDK
+* c) has many total people? IDK
+* d) How many more girls than boys? IDK.
+
+the solution to this problem: each part must be a multiple ($m$) of its corresponding value.
+
+**Ex:** if the ratio of boys to girls is 2:3, then:
+* a) how many boys are there? IDK $\rightarrow$ 2m
+* b) how many girls are there? IDK $\rightarrow$ 3m
+* c) has many total people? IDK $\rightarrow$ 5m
+* d) How many more girls than boys? IDK $\rightarrow$ m
+
+**Ex:** If a rectangle's width and length are in a 5:2 ratio and it has an area of 200, then what is its perimeter?
+$$W = 5m$$
+$$L = 2m$$
+$$A = 10m^2 \implies \therefore 10m^2 = 200$$
+$$P = 14m$$
+$$m^2 = 20$$
+$$m = 2\sqrt{5}$$
+$$\therefore P = 28\sqrt{5}$$
+
+---
+### Page 32
+**Rates**
+
+a rate is a special ratio that defines some sort of quantity vs some amount of consumption.
+
+**Formula:** $\text{Quantity} = \text{Rate} \cdot (\text{Consumption } Q)$
+* $35\text{ mph} \rightarrow M = (35)(H)$
+* $\$3/\text{gal} \rightarrow C = (3)(g)$
+
+a special rate is called speed, which compares the quantity of distance to the consumption of time.
+$$\therefore D = (\text{Speed})(T)$$
+
+$$\text{average speed } (\bar{S}) = \frac{\text{total distance}}{\text{total time}}$$
+
+**Note:** if a problem involves two or more speeds, then create the following chart:
+
+| | Trip 1 at speed 1 | Trip 2 at speed 2 |
+|---|---|---|
+| D | | |
+| S | | |
+| T | | |
+
+I will allow a variable for one of these:
+$$T = \frac{D}{S}$$
+
+**Ex:** If Ashish drives to AHA at an avg. speed of 40mph and returns home, along the same route, at an avg. speed of 60mph, then what is his avg. speed for the whole trip?
+
+| | Trip 1 (to AHA at 40mph) | Trip 2 (to home at 60mph) |
+|---|---|---|
+| D | $x$ | $x$ |
+| S | 40 | 60 |
+| T | $\frac{x}{40}$ | $\frac{x}{60}$ |
+
+$$\bar{S} = \frac{\text{total d}}{\text{total t}} = \frac{x + x}{\frac{x}{40} + \frac{x}{60}} = \frac{2x \cdot 120}{\frac{x}{40} \cdot 120 + \frac{x}{60} \cdot 120} = \frac{240x}{3x + 2x} = \frac{240x}{5x} = 48\text{mph}$$
+$$= 48\text{mph}$$
+
+--- DAILY NOTES (5A_MWF 10-1 Day 5.pdf) ---
+### Page 1
+**READING / GRAMMAR**
+**DAY #** 5
+**TOPICS OF THE DAY**
+* Verb Tenses
+* Reading
+* 
+
+---
+### Page 2
+**Verb Tenses**
+
+**Simple Present**
+* **Definition**: this refers to action that is occurring in the moment now without any reference to any other time period. *(Note: "without" is underlined)*
+* **Intermediate Helping Verb**: *(A diagonal slash line)*
+* **Special Note**: Multiple actions, though not all in the present, can be grouped into a single one time present action.
+  * *Ex:* Manasa is attending SAT class today. She will also attend tomorrow and for the next six weeks.
+  * *(Arrow pointing to):* Manasa is attending SAT class for the next six weeks.
+
+**Simple Past**
+* **Definition**: this refers to a single one time past action without reference to any other time period. *(Note: "without" is underlined)*
+* **Intermediate Helping Verb**: *(A diagonal slash line)*
+* **Special Note**: Multiple one time past actions can be grouped into a single one time past action.
+  * *Ex:* Michael Jordan won the NBA championship in the '93-'94 season and won again in the '94-'95 season.
+  * *(Arrow pointing to):* Michael Jordan won two NBA championships, in the '93-'94 season and in the '94-'95 season.
+
+**"Future"**
+* **Definition**: this, I will refer to as action that has not occurred.
+* **Intermediate Helping Verb**:
+  * will ───> Ashish will buy a Porsche *(with H under "will", V under "buy")*
+  * would ───> Ashish would buy a Porsche if... *(with H under "would", V under "buy")*
+  * could ───> Ashish could buy a Porsche *(with H under "could", V under "buy")*
+  * would have
+  * could have
+* **Special Note**: *(Blank)*
+
+---
+### Page 3
+**Past Perfect**
+* **Definition**: this refers to action that started in the past, occurred continuously in the past, and stopped in the past.
+* **Intermediate Helping Verb**:
+  * had (singular and plural)
+  * *Ex:* It had rained for seven consecutive days. *(with H over "had", V over "rained")*
+  * *Ex:* They had dated.
+* **Special Note**: to use either of the perfect cases, there needs to be some word that references continuity in action. This can include phrases such as 'since,' 'until,' 'continuously,' 'consecutive,' etc... *(Note: arrow from "continuously" pointing to the Special Note of the Present Perfect table)*
+
+**Present Perfect**
+* **Definition**: this refers to action that started in the past, occurred continuously in the past, and is still happening today.
+* **Intermediate Helping Verb**:
+  * has (singular)
+  * have (plural)
+  * It has rained since March. *(with a line under "has")*
+  * They have dated since high school. *(with a line under "have")*
+* **Special Note**: Also, if you see a continuity in action words, it can override any other choice of tense.
+
+---
+### Page 4
+**44.**
+American physicist Percy Spencer __________ magnetrons—vacuum tubes used in early radar systems—when he discovered that the chocolate bar in his pocket had melted. Using a magnetron to emit electromagnetic waves into a metal box, he built the world's first microwave cooking oven.
+Which choice completes the text so that it conforms to the conventions of Standard English?
+A) built
+B) builds
+C) will build
+D) was building
+
+*Handwritten Annotations:*
+* Above "magnetrons": `MCG`
+* Above "when he": `N`
+* Above "discovered": `simple past`
+* Circle around "had melted" with `past perfect` written above it.
+* Below "built": `simple past`
+* Cross-out lines over Options B and C.
+* Checkmark next to Option D.
+
+---
+### Page 5
+Public campaigns about the need to reduce food waste can be successful, according to a study by the University of Sheffield, when consumers are given a choice to adjust the portion sizes on their plates. The study found that when participants were given the option to choose their own portions at an all-you-can-eat buffet, _________ tended to waste less food than when the portion sizes were predetermined.
+Which choice completes the text so that it conforms to the conventions of Standard English?
+A) it
+B) you
+C) one
+D) they
+
+*Handwritten Annotations:*
+* Above "Public": `adj`
+* Above "campaigns": `S`
+* Above "need": `P`
+* Above "reduce": `P`
+* Above "Sheffield": `DC`
+* Above "participants": `S`
+* Above "own": `P`
+* Under "buffet,": `individual`
+* A curved arrow from "participants" to the blank line "_________".
+* Cross-out over Option A.
+* Slashes next to Options B and C.
+* Checkmark next to Option D.
+
+**46.**
+Before reaching their adult form, _________ butterflies start as eggs, hatch into larvae (caterpillars), and go through a pupa state—a process called metamorphosis. While the metamorphosis process _________ place, the butterflies rely on their stored nutrients and energy reserves to prepare for the transformation.
+
+*Handwritten Annotations:*
+* Above "Before": `ic`
+* An `X` marked before "butterflies".
+* Above "butterflies": `S`
+* "start" is underlined with `V` written above it.
+* "hatch" is underlined with `V` written above it.
+* "go" is underlined with `V` written above it.
+* "process called metamorphosis" is underlined.
+* A box drawn around the blank before "place".
+* Above "place": `V`
+* "rely" is underlined with `V` written above it.
+
+---
+### Page 6
+Which choice completes the text so that it conforms to the conventions of Standard English?
+A) took
+B) will take
+C) is taking
+D) had took
+
+*Handwritten Annotations:*
+* Next to A: `simple past`
+* Next to B: `future`
+* Next to C: `simple present`
+* Next to D: `past perfect`
+* Option C is circled and has a checkmark next to it.
+
+---
+### Page 7
+**READING vs READING**
+
+* **kiddy garten reading** - you simply follow each word but do not make connections between words.
+  * *(Arrow pointing down to)*
+  * **you read so well** that you make connections between words, make connections between sentences and even foreshadow events.
+
+To do this proper reading approach, you MUST annotate the passage (SAT only); however, I do not care what YOU think is important. *(Note: "MUST" and "YOU" are underlined)*
+
+**Step 1:** highlight or circle any and all transitional words/phrases and any and all transitional punctuation.
+
+| Transitional Words/Phrases | Transitional Punctuation |
+| --- | --- |
+| * but | : |
+| and (if it acts as a coordinating conjunction) | ; |
+| however, furthermore, for example, although ... | — |
+| yet, if, in short, though | ... |
+| moreover, including, nevertheless, even still | ( ) |
+
+*(Note: a line is drawn under "including")*
+
+**Step 2:** focus on fully understanding the part after the transition — use it to foreshadow the events of the passage. Write down your foreshadow. *(Note: "Write down your foreshadow." is underlined)*
+
+**Step 3:** as you continue to read (every single word), confirm or deny your foreshadow. If confirmed, keep reading. If denied, stop and start over.
+
+---
+### Page 8
+ID: 303537cf
+
+*(Handwritten note at top)*
+excitement for mystery - to find something out
+
+*(Passage text with annotations)*
+The following text is adapted from Lewis Carroll's 1889 satirical novel Sylvie and Bruno. A crowd has gathered outside a room belonging to the Warden, an official who reports to the Lord Chancellor.
+One man, who was more excited than the rest, flung his hat high into the air, and shouted (as well as I could make out) "Who roar for the Sub-Warden?" Everybody roared, but whether it was for the Sub-Warden, or not, did not clearly appear: some were shouting "Bread!" and some "Taxes!", but no one seemed to know what it was they really wanted.
+All this I saw from the open window of the Warden's breakfast-saloon, looking across the shoulder of the Lord Chancellor.
+"What can it all mean?" he kept repeating to himself. "I never heard such shouting before—and at this time of the morning, too! And with such unanimity!"
+
+*Annotations:*
+* "and" (before "shouted") is circled with an arrow pointing to the top note.
+* "as well" is underlined.
+* "but" (after "roared") is circled with an arrow pointing to the top note.
+* "but" (after "Taxes!,") is circled.
+* "no one seemed to know what it was they really wanted." is underlined with an arrow pointing to the top note.
+* The dash in "—and" is circled.
+* "And" (in "And with such unanimity!") is circled.
+
+---
+### Page 9
+ID: a3fb5e77
+
+*(Handwritten notes at top)*
+Contradiction vs Unanimous
+Natural vs controlling
+① ethical discussion of captivity
+② compare the purposes
+
+*(Passage text with annotations)*
+Some animal-behavior studies involve observing wild animals in their natural habitat, and some involve capturing wild animals and observing them in a laboratory. Each approach has advantages over the other. In wild studies, researchers can more easily presume that the animals are behaving normally, and in lab studies, researchers can more easily control factors that might affect the results. But if, for example, the results from a wild study and a lab study of Western scrub-jays (Aphelocoma californica) contradict each other, one or both of the studies must have failed to account for some factor that was relevant to the birds' behavior.
+
+*Annotations:*
+* "laboratory" is underlined with an arrow pointing to "② compare the purposes".
+* "and" (before "some involve") is circled.
+* "and" (before "in lab studies") is circled.
+* "But" is circled.
+* "contradict each other" is underlined.
+
+*(Handwritten note below passage)*
+↳ a contradiction is critical to help understand that a factor was missed. -> redo.
+
+---
+### Page 10
+**MATH**
+**DAY #** 5
+**TOPICS OF THE DAY**
+* Percents
+* 
+* 
+
+---
+### Page 11
+What is this standard that I talked about?
+the standard is always the second item listed in a comparison. *(Note: "always the second item listed" is underlined)*
+
+Percents are always multiplied by the original value, the whole value, or the standard value. *(Note: "always multiplied" is underlined)*
+
+the only time %s should be added is if the %'s represent different categories of a whole total.
+
+*Ex:* A bag of Skittles contains 25% red, 30% green, 10% orange, 15% purple, and actually 6 yellow skittles. How many red skittles are in the bag?
+
+| Color | % | Amount |
+| --- | --- | --- |
+| R | 25 | ? |
+| O | 10 | |
+| G | 30 | |
+| P | 15 | |
+| y | 20 | 6 |
+| T | 100 | 30 |
+
+*(Calculations to the right)*
+$\frac{25\%}{?} = \frac{20\%}{6}$
+$150 = 20(?)$ *(with the zeros crossed out)*
+$? = 7.5$ *(boxed)*
+
+$0.20(T) = 6$
+$T = 30$
+$R = 0.25(30)$
+$= 7.5$ *(boxed)*
+
+*Ex:* After receiving a 20% discount and paying 10% sales tax,
+*(Annotations: "20% discount" has an arrow to "80% -> 0.80", "10% sales tax" has an arrow to "110% -> 1.10")*
+Viraj buys the entire store for S dollars. What was the price of the store before any discounts and taxes?
+
+effectively, we wish to know the original price of the store? (x)
+$x(0.80)(1.10) = S$
+$x(0.88) = S$
+$x = \frac{S}{0.88} \cdot \frac{100}{100}$
+$x = \frac{100S}{88} = \frac{25S}{22}$ *(boxed)*
+
+---
+### Page 12
+**finding percents**
+there are effectively two types of %s to find.
+
+**1. Basic %**
+$\% = \frac{\text{part}}{\text{whole}} \times 100 \quad \text{OR} \quad \% = \frac{\text{part}}{\text{standard}} \times 100$ *(boxed)*
+
+**2. % of difference or % of change**
+$\% \text{ change} = \frac{\text{New} - \text{Old}}{\text{Old}} \times 100 \quad \text{or} \quad \% \text{ change} = \frac{\text{New} - \text{Standard}}{\text{Standard}} \times 100$ *(boxed)*
+
+*Ex:* Aashni is 16 years old while Ashish is 42 years old.
+
+* **Q1: Aashni is what % younger than Ashish?**
+  $\% \text{ younger} = \frac{Aa - As}{As} \times 100$ *(with "diff" written above the numerator)*
+  $= \frac{16 - 42}{42} \times 100$
+  $= 61.9\%$
+* **Q2: Aashni's age is what % of Ashish's?**
+  $\% = \frac{Aa}{As} \times 100$
+  $= \frac{16}{42} \times 100$
+  $= 38.1\%$
+* **Q3: Ashish's age is what % of Aashni's?**
+  $\% = \frac{As}{Aa} \times 100$
+  $= \frac{42}{16} \times 100$
+  $= 262.5\%$
+* **Q4: Ashish is what % older than Aashni?**
+  $\% \text{ older} = \frac{As - Aa}{Aa} \times 100$
+  $= \frac{42 - 16}{16} \times 100$
+  $= 162.5\%$
+
+*Ex:* if I am 25% older than Bob, then Bob is what % younger than me?
+$As = 1.25x$
+$Bob = x$
+$\% \text{ younger} = \frac{Bob - Ashish}{Ashish} \times 100$
+$= \frac{x - 1.25x}{1.25x} \times 100$
+$= \frac{-0.25x}{1.25x} \times 100$ *(with x's crossed out)*
+$= -\frac{1}{5} \times 100 = 20\%$ *(boxed)*
+
+*Ex:* if I am 25% older than you today, What % older am I in 10 years?
+
+| Today | In a decade |
+| --- | --- |
+| Me: $1.25x$ | $1.25x + 10$ |
+| you: $x$ | $x + 10$ |
+
+$\% \text{ older} = \frac{(1.25x + 10) - (x + 10)}{x + 10} \times 100$
+$= \frac{0.25x}{x + 10} \times 100$
+
+---
+### Page 13
+$= \frac{25x}{x + 10}$ *(boxed, at the top of the page)*
+
+I have 20% less $ than you. If I stole $50 from Matias, then what % is my $ in terms of yours? *(Note: "yours" is circled)*
+
+| Currently: | After Robbery |
+| --- | --- |
+| A: $0.8x$ | $0.8x + 50$ |
+| M: $x$ | $x - 50$ |
+
+$\% = \frac{0.8x + 50}{x - 50} \times 100$
+$= \frac{80x + 5000}{x - 50}$ *(boxed)*
+
+**Mixture Problems:**
+
+| Acid | Total |
+| --- | --- |
+| Given Mix 1 at x% of acid | $m \left(\frac{x}{100}\right)$ | $m$ |
+| Given Mix 2 at y% of acid | $(50 - m)\left(\frac{y}{100}\right)$ | $50 - m$ |
+| Produce a Mix at z% of acid | $50 \left(\frac{z}{100}\right)$ | $50$ |
+
+*(Annotations: A brace brackets the "m" and "50 - m" columns with a "+" pointing to "50". Blue arrows show addition of Acid column values resulting in the final mixture. A purple box outlines the Total column with the note "fill first".)*
+Note: $x < z < y$
+Eqn: $m\left(\frac{x}{100}\right) + (50 - m)\left(\frac{y}{100}\right) = 50\left(\frac{z}{100}\right)$
+
+*Ex:* How many liters of a 25% acidic solution must be added to 40L of a 40% acidic solution to make a solution that is 30% acidic?
+
+| | A | T |
+| --- | --- | --- |
+| Mix 1 at 25% acidic | $0.25x$ | $x$ |
+| Mix 2 at 40% acidic | $0.40(40)$ | $40$ |
+| Make a 30% acidic | $0.30(x + 40)$ | $x + 40$ |
+
+Eqn: $0.25x + 0.40(40) = 0.30(x + 40)$
+$0.25x + 16 = 0.30x + 12$
+$4 = 0.05x$
+$x = 80\text{ L}$ *(boxed)*
+
+---
+### Page 14
+**Question 5**
+
+$a = -2 \quad b = 8 \quad c = \left(-\frac{b}{a}\right)$
+$d = -2 \quad e = 8 \quad f = -\frac{b}{a}$ *(Note: the "b" in the printed equation is crossed out and "f = -b/a" is written next to it)*
+$-2x^2 + 8x - \frac{b}{a} = 0$ *(with $dx^2 + ex + f = 0$ written underneath it)*
+*(Note: "product of the solutions to the given equation is 5/7" has an arrow pointing to "P_R = f/d")*
+
+In the equation above, a, b, and c are positive constants. The product of the solutions to the given equation is 5/7. The number b is 64% less than the number c. The number a is p% less than the number c. What is the value of p?
+
+*(Handwritten calculations)*
+$\frac{+\frac{b}{a}}{+2} = \frac{5}{7}$
+$\frac{b}{2a} = \frac{5}{7}$
+$b = \frac{10a}{7}$
+
+$b = 0.36c$
+$p = \frac{c - a}{c} \times 100$
+$= \frac{\left(\frac{7}{10}\right)b - \left(\frac{1}{0.36}\right)b}{\left(\frac{1}{0.36}\right)b} \times 100$ *(with b's crossed out)*
+$=$
+
+--- DAILY NOTES (4A_MWF 10-1 Day 4.pdf) ---
+--- Page 1 ---
+
+**READING / GRAMMAR**  
+**DAY # 4**
+
+**TOPICS OF THE DAY**
+* **TRANSITIONS**
+* 
+* 
+
+3. $3x - 10y = -12$  
+   $cx + 8y = 16$  
+   
+   $y = \frac{3}{10}x + \frac{6}{5}$  
+   $y = -\frac{c}{8}x + 2$  
+   
+   $\frac{3}{10} = \frac{-c}{8}$  
+   $-10c = 24$  
+   $c = -2.4$
+
+5. Ashish enjoys playing many sports including: pickleball, tennis, football, and baseball.
+
+--- Page 2 ---
+
+# TRANSITIONS
+
+| TRUE RELATIONSHIP | COMMON TRANSITIONS | EXAMPLE |
+| :--- | :--- | :--- |
+| present an opposing point of view or balance an idea that is either too positive or too negative.<br><br>S1. claim $\leftarrow$<br>S2. another claim that either opposes or balances | however, fortunately, on the other hand, conversely, whereas, **while**, **in contrast**, on the contrary, yet. | While **[claim]** Final Fantasy is often considered the greatest video game franchise, there are many that deem the franchise boring. **[balances]** |
+| to give emphasis to a claim by adding a specific piece of evidence (1st piece)<br><br>S1. claim $\leftarrow$<br>S2. a piece of evidence to support (1st piece of support) | In fact, as a matter of fact, **indeed**, to illustrate, **for instance**, for example. | **[claim]** Biology is an amazing scientific subject. Indeed, there are many **[1st]** **[evidence]** hands-on applications such as in the field of foresenic sciences. |
+| to add new and supporting evidence (2nd+ evidence)<br><br>S3. a piece of evidence to support (2nd+ piece of support) | **furthermore**, in addition, also, moreover, and, too, as well, additionally, not to mention | Furthermore, Biology blends the best applications of many other disciplines of study. |
+| to show a cause and effect relationship<br><br>S1. cause<br>S2. effect | Consequently, as a result, because, hence, **therefore**, thus, accordingly, so, for this reason. | "The Backrooms" is a movie devoid of any logic. Therefore, the movie is horrible. |
+
+--- Page 3 ---
+
+| TRUE RELATIONSHIP | COMMON TRANSITIONS | EXAMPLE |
+| :--- | :--- | :--- |
+| to concede a prior claim so as to give space to provide a claim that is more important.<br><br>S1. claim $\leftarrow$<br>S2. another claim as if [S1] is useless. | Granted, nevertheless, **although**, regardless, despite, even if, nonetheless, still, even so | Although Matias has no desire to study, Ashish plans to lock him in a cage with so many factoring exercises that he has no option but to complete. |
+| to show order or sequencing of events that either move forwards or backwards<br><br>S1. an event or action<br>S2. an event or action that logically moves forwards or backwards | finally, subsequently, previously, afterwards, **next**, then, eventually, before | Divyang skipped his SAT class to play basketball. Next, he walked inside to see that his entire wardrobe had been stolen by his infamous SAT instructor. |
+| to show similarity with some constant theme.<br><br>S1. claim $\leftarrow$<br>S2. another claim that has some similarity (some constant theme) to [S1] | In the same way, similarly, **likewise**, by the same token | Goldfish is the best snack, especially when listening to Ashish's boring lecture. Likewise, popcorn is the best for when watching an exciting movie such as "The Backrooms". |
+| to provide a conclusion or a restatement of an idea<br><br>S1. an idea<br>S2. a summary or restatement of that idea | In conclusion, in summary, to sum up, in short, in other words | [X drawn through the box] |
+
+--- Page 4 ---
+
+**Note:**  
+transitions can be expressed in two major ways
+1. Transition S1 , S2  *(pointing to Transition: ICC)*
+2. S1. Transition, S2
+
+**Process**  
+Step 1: read either the ICC or the sentence before the transition and determine its function.  
+Step 2: read the sentence including the transition and identify its relationship to the prior.  
+Step 3: identify an appropriate transition  
+Step 4: do not force  
+
+--- Page 5 ---
+
+25. In the early 1900s, American dancer and choreographer *(labeled: adj)* Isadora Duncan revolutionized the world of dance with her free-form movements and expressive style. Despite her success, she struggled to find acceptance in the traditional dance world. Duncan persevered, [transition], and is still remembered today as a pioneer of modern contemporary dance.
+
+Which choice completes the text with the most logical transition?
+* A) meanwhile,
+* B) in contrast,
+* C) nonetheless, *(circled)*
+* D) moreover,
+
+26. Found in areas with ample food sources, western lowland gorillas *(gorillas: S, live: V)* live in breeding groups that usually consist of one adult male, several adult females, and their offspring. Chimpanzees *(Chimpanzees: S, are: V, form: V)*, [transition], are social animals and form larger communities, bonding through grooming sessions and sharing resources. *(labeled: adj)*
+
+relationship = contrast
+* on the other hand
+* however
+* yet
+
+--- Page 6 ---
+
+Which choice completes the text with the most logical transition?
+* A) in other words,
+* B) for example,
+* C) on the other hand, *(circled)*
+* D) in fact,
+
+27. Ocean currents—vast, continuous movements of water—are largely driven by temperature differences and wind patterns. ________ they form as a result of the Sun heating the Earth's surface unevenly; warm water near the equator moves toward the poles, while cooler water near the poles sinks and moves toward the equator.
+
+Which choice completes the text with the most logical transition?
+* A) Similarly,
+* B) However,
+* C) Therefore,
+* D) Specifically,
+
+28. 
+
+--- Page 7 ---
+
+**MATH**  
+**DAY # 4**
+
+**TOPICS OF THE DAY**
+* **Quadratics, Part II**
+* **Introduction to Percents**
+* 
+
+--- Page 8 ---
+
+# Roots of a Quadratic
+a root is a value of $x$ that makes the $y$ value of the quadratic equal to $0$.
+
+```
+                    ┌──────────────────────────┐
+                    │ Root = Solution = Zeros  │
+                    └────────────┬─────────────┘
+          x-intercepts           │          Not x-intercepts
+          b² - 4ac ≥ 0           │            b² - 4ac < 0
+                 ┌───────────────┴───────────────┐
+                 ▼                               ▼
+               Real                           Complex
+         ┌───────┴───────┐                       │
+ b²-4ac=0│       │b²-4ac>0                       │
+         ▼       ▼                               ▼
+Rational +    District [Distinct]          x₁ = a + bi
+Repeated         ┌───────┴───────┐         x_cp = a - bi
+         b²-4ac= │               │b²-4ac=
+  perfect square ▼               ▼non-perfect square
+             Rational        Irrational
+                             x₁ = a + √b
+                             x_cp = a - √b
+```
+
+**Note:** If a parabola does not cross the $x$ axis, nor touch the $x$ axis, then the quadratic has complex roots.  
+**Note:** from standard form ($y = f(x) = ax^2 + bx + c$), there exists a value called the discriminant ($b^2 - 4ac$) that helps to classify the roots.  
+In both of these situations, the two roots of the quadratic come in conjugate pairs *(linked by arrows to Irrational and Complex roots)*.
+
+**Ex:** $3x^2 - 4x + p = 0$  
+In the above quadratic equation, where $p$ is a constant, find the value of $p$ such that the quadratic has no real solution.  
+$\therefore$ both roots (both solutions) are complex  
+$\therefore b^2 - 4ac < 0$  
+
+$(-4)^2 - 4(3)(p) < 0$  
+$16 - 12p < 0$  
+$-12p < -16$  
+$p > 16/12$  
+$\therefore p > 4/3$
+
+--- Page 9 ---
+
+### finding the roots:
+it is possible to find the roots of a quadratic in either vertex form or intercept form.
+
+**Intercept form:** $y = f(x) = a(x-p)(x-q)$ *(pointing to f(x): 0)*  
+**Method: Zero Product Property (zpp)**  
+$\therefore$ Since $a(x-p)(x-q) = 0$  
+then either $(x-p)=0$ or $(x-q)=0$  
+$x=p$ or $x=q$  
+
+**Ex:** if $-3(x-2)(x+7) = 0$  
+then which of the following must be correct.  
+I. $x = -3$  
+II. $x = 2$  
+III. $x = -7$  
+
+**None.** *(boxed)*
+
+**Vertex form:** $y = f(x) = a(x-h)^2 + k$ *(pointing to f(x): 0)*  
+**Method: Square Root Method**  
+
+| Solving (General) | Example: $y = f(x) = 2(x+7)^2 + 15$ |
+| :--- | :--- |
+| $0 = a(x-h)^2 + k$ | $0 = 2(x+7)^2 + 15$ |
+| $-k = a(x-h)^2$ | $-15 = 2(x+7)^2$ |
+| $\frac{-k}{a} = (x-h)^2$ | $-\frac{15}{2} = (x+7)^2$ |
+| $(x-h) = \pm\frac{\sqrt{-k}}{\sqrt{a}} \cdot \frac{\sqrt{a}}{\sqrt{a}}$ | $(x+7) = \pm\frac{\sqrt{-15}}{\sqrt{2}} \cdot \frac{\sqrt{2}}{\sqrt{2}}$ |
+| $(x-h) = \pm\frac{\sqrt{-ak}}{a}$ | $(x+7) = \pm\frac{i\sqrt{30}}{2}$ |
+| $x = h \pm \frac{\sqrt{-ak}}{a}$ | $x = -7 \pm \frac{i\sqrt{30}}{2}$ |
+| **$x = \frac{ah \pm \sqrt{-ak}}{a}$** | **$x = \frac{-14 \pm i\sqrt{30}}{2}$** |
+
+--- Page 10 ---
+
+**Standard form:** $y = f(x) = ax^2 + bx + c$  
+Technically, there are no ways to find the roots of a quadratic in standard form.  
+
+```
+                 ┌─── FACTOR ───► Intercept form ─── zpp ───► Roots
+                 │
+ax² + bx + c = 0 ┤
+                 │
+                 └───  CTS   ───► Vertex ─── Square Root Method ───► Roots
+```
+
+### Quadratic Formula
+$y = f(x) = ax^2 + bx + c$ *(pointing to f(x): 0)*  
+$0 = ax^2 + bx + c$  
+$0 = (ax^2 + bx) + c$  
+$0 = a(x^2 + \frac{b}{a}x) + c$  
+$0 = a(x^2 + \frac{b}{a}x + \frac{b^2}{4a^2}) + c - a(\frac{b^2}{4a^2})$  
+$0 = a(x + \frac{b}{2a})^2 + c - \frac{b^2}{4a}$  
+
+$a(x + \frac{b}{2a})^2 = \frac{b^2}{4a} - c$  
+$a(x + \frac{b}{2a})^2 = \frac{b^2 - 4ac}{4a}$  
+$(x + \frac{b}{2a})^2 = \frac{b^2 - 4ac}{4a^2}$  
+$x + \frac{b}{2a} = \pm \frac{\sqrt{b^2 - 4ac}}{2a}$  
+
+**$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$**  **QF**
+
+--- Page 11 ---
+
+**15.**  
+$x^2 - \frac{k}{2}x = 2p$  
+In the quadratic equation above, $k$ and $p$ are constants. What are the solutions for $x$?  
+A) $x = \frac{k}{4} \pm \frac{\sqrt{k^2+2p}}{4}$  
+B) $x = \frac{k}{4} \pm \frac{\sqrt{k^2+32p}}{4}$ *(circled/boxed)*  
+C) $x = \frac{k}{2} \pm \frac{\sqrt{k^2+2p}}{2}$  
+D) $x = \frac{k}{2} \pm \frac{\sqrt{k^2+32p}}{4}$  
+
+*(Handwritten work on right)*  
+$(x^2 - \frac{k}{2}x - 2p = 0)(2)$  
+$2x^2 - kx - 4p = 0$  
+$a = 2 \quad b = -k \quad c = -4p$  
+$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$  
+$x = \frac{k \pm \sqrt{k^2 - 4(2)(-4p)}}{4}$  
+$x = \frac{k \pm \sqrt{k^2 + 32p}}{4} = \frac{k}{4} \pm \frac{\sqrt{k^2+32p}}{4}$
+
+---
+
+Solve the roots of $4x^2 + \frac{k}{3}x = \frac{2}{5}$
+
+| Sum of the roots | Product of the Roots |
+| :--- | :--- |
+| $S_R = -\frac{b}{a}$ | $P_R = \frac{c}{a}$ |
+
+--- Page 12 ---
+
+5. The product of two positive numbers is 385. The second number is 13 greater than twice the first number. What is the value of one of the numbers?  
+
+*(Handwritten work)*  
+$xy = 385$  
+$x(13 + 2x) = 385$  
+$2x^2 + 13x = 385$  
+$2x^2 + 13x - 385 = 0$  
+$a = 2 \quad b = 13 \quad c = -385$  
+
+$x = \frac{-13 \pm \sqrt{169 - 4(2)(-385)}}{4}$  
+$x = \frac{-13 \pm 57}{4}$  
+
+* $\frac{-13 + 57}{4} = \mathbf{11}$ *(boxed)*
+* $\frac{-13 - 57}{4} = -\frac{70}{4}$ *(crossed out)*
+
+$y = 13 + 2x$  
+$y = 13 + 22$  
+$y = \mathbf{35}$ *(boxed)*
+
+--- Page 13 ---
+
+# Percents:
+
+**Note:** a percent must be converted to a factor to be used.  
+To convert a % to a factor, either divide the % by 100 or move the decimal place two units to the left.
+
+| % | factor |
+| :--- | :--- |
+| 20% | $\frac{20}{100} = \frac{1}{5}$ or 0.20 |
+| 0.5% | $\frac{0.5}{100} = \frac{1}{200}$ or 0.005 |
+| x% | **$\frac{x}{100}$** *(boxed)* or 0.01(x) |
+
+When given a % in the problem, you need to know which version of the % to use.
+
+* **Version 1** *(boxed)*  
+  the % is of some total or of some standard  
+  *use the % as is and convert to a factor*
+
+* **Version 2** *(boxed)*  
+  the % is of some increase to some total or some standard  
+  *use (100 + %)*  
+  *and then convert to some factor*
+
+* **Version 3** *(boxed)*  
+  the % is of some decrease to some total or some standard  
+  *(use 100 - %)*  
+  *and then convert to a factor.*
+
+--- DAILY NOTES (3A_MWF 10-1 Day 3.pdf) ---
+**Page 1**
+
+READING / GRAMMAR
+DAY # 3
+
+TOPICS OF THE DAY
+* Punctuation
+
+---
+
+**Page 2**
+
+Punctuation
+
+Commas
+Use 1: to separate the items of a list
+... item 1, item 2, item 3, and, item 4...
+* [Arrow from the comma after item 3]: "Oxford Comma: the oxford comma is not mandatory in writing. As such, you will not be tested on its use. However, you will be tested on its location - it is located before the "and"."
+* [Arrow from the comma after "and"]: "wrong"
+
+Note: the items of a list can also be separated by the use of a semi-colon (;). You do so if the items of the list themselves contain commas.
+* [Handwritten note next to it]: "this is the only exception where a semi-colon can be joined with "and""
+
+Ex: Ruhi plans to read Title 1, description 1; Title 2, description 2; and Title 3, description 3.
+* [Underline/brackets under components]: 
+  * "Title 1, description 1" -> item 1
+  * "Title 2, description 2" -> item 2
+  * "Title 3, description 3" -> item 3
+
+Use 2: to join two full sentences with the use of a coordinating conjunction.
+* ∴ two expressed subjects
+* two expressed verbs
+* two full ideas
+
+form: sentence 1, (cc) sentence 2.
+
+Where your coordinating conjunctions (CC) are your FANBOYS
+* F - for
+* A - and
+* N - nor
+* B - but
+* O - or
+* Y - yet
+* S - so
+
+Ex: Ashish plans to buy a new car and will have it shipped to him. [Checked]
+* (S1: Ashish, V1: plans)
+Ashish plans to buy a new car, and he will have it shipped to him. [Box with X]
+* (S1: Ashish, V1: plans, S2: he, V2: will have)
+
+---
+
+**Page 3**
+
+Correctly Joining 2 Independent Clauses (Green Box):
+1. IC. IC
+2. IC; IC
+3. IC, cc IC
+4. IC: IC
+
+Incorrectly join 2 independent clauses (Red Box):
+1. IC IC (no punctuation) (run-on sentence)
+2. IC, IC (no coordinating conjunction) (comma splice)
+3. IC; cc IC
+4. IC, false cc IC
+
+Most common false cc is "however"
+[Box with X] Tom is dating Emily, however he is attracted to Julie.
+* [Above "however"]: cc = false
+* [Under "Tom is dating Emily"]: sentence
+* [Under "he is attracted to Julie"]: sentence
+
+[Checked Box] Correctly using "however"
+1. IC. However, IC
+   Tom is dating Emily. However, he is attracted to Julie.
+2. IC; however, IC
+3. IC. IC, however.
+   Tom is dating Emily. He is attracted to Julie, however.
+4. IC; IC, however.
+5. IC. IC 1/2, however, IC 2/2
+   Tom is dating Emily. He, however, is attracted to Julie.
+6. IC; IC 1/2, however, IC 2/2
+
+Careful: the SAT often tests which sentence the "however" is part of - it needs to be a part of the sentence performing the opposition.
+
+Use 3: to join a dependent clause with an independent clause; however, the use of the comma depends on the location of the dependent clause.
+
+If the dependent clause comes before the independent clause, then you MUST use a comma.
+If the dependent clause comes after the independent clause, then you MIGHT use a comma. You do so if the dependent clause begins with an adverb of concession.
+Your concessional adverbs:
+
+---
+
+**Page 4**
+
+supposing it rains, the party will be cancelled.
+The party will be cancelled supposing it rains.
+Even though I have no water, Vishesh keeps taking my water bottle.
+Vishesh keeps taking my water bottle, even though I have no water.
+
+Use 4: before and after a middle comma clause (also known as an appositive or non-essential clause)
+
+Note: a middle comma clause can actually be punctuated in 3 ways:
+1. IC 1/2, mcc, IC 2/2
+2. IC 1/2 - mcc - IC 2/2
+3. IC 1/2 (mcc) IC 2/2
+no mixing punctuation
+
+Note: the SAT/ACT Trap
+Subject, ~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~ - Verb ~~~~~~~~.
+
+Use 5: to enter an ending comma clause (ecc)
+Recall: most ending comma clauses begin with an -ing adverb.
+Recall: ending comma clauses are usually defining or clarifying phrases.
+
+Ex: Vishesh keeps taking the water bottle, hoping that he will find water.
+
+Use 6: between two adjectives that describe the same noun.
+Ex: Ashish is wearing a big, red t-shirt.
+Ex: Viraj is wearing a light gray shirt.
+
+---
+
+**Page 5**
+
+Colon (:)
+Note: to use a colon, there MUST be a full sentence before the colon.
+
+Use 1: to enter a list with no introductory phrase to the list.
+* No for example \
+* No such as       |
+* No to illustrate  > No introductory phrase
+* No including     |
+* No with         /
+
+Ex: Aashni eats a big breakfast: waffles, pancakes, cereal, and fruit.
+Note: do not ever enter a list with a semicolon.
+Note: you can enter a list with no punctuation.
+Ex: Aashni eats waffles, pancakes, cereal, and fruit every morning.
+Note: you can use an introductory phrase as long as you don't enter the list with a colon.
+Ex: Aashni eats a big breakfast including pancakes, cereal, waffles, and fruit.
+
+Use 2: to add information at the end of a sentence about the sentence.
+Ex: Ashish studied eight long years for the SAT: he scored a perfect 1600.
+
+DASH (-)
+
+Use 1: before and after a MCC
+
+Use 2: to add information at the end of a sentence about the sentence; however, this information is usually shocking.
+Ex: Ashish studied eight long years for the SAT - he scored a 420.
+
+---
+
+**Page 6**
+
+Semi-colon (;)
+
+Use 1: to separate the items of a list when the items themselves contain commas.
+Use 2: to join two full sentences without the use of a cc.
+
+Apostrophe (')
+
+Use 1: to make a contraction, the joining of two words into one.
+CONTRACTIONS [crossed out]
+the only acceptable contraction is "it is" = "it's"
+
+Use 2: to show possession
+Note: there are non-apostrophe possessives:
+* its
+* their
+* his
+* her
+* hers
+* my
+* mine
+* our
+* ours
+
+[Cloud containing]:
+* its'
+* its's  } Not words
+* itss
+
+[Flowchart]:
+to show possessive with an apostrophe
+  |
+  +---> if the word does not end in -S  ----> 's
+  |
+  +---> if the word ends in s
+          |
+          +---> Simple noun ---> s' ---> cars' (vs. car's)
+          |
+          +---> Proper noun ---> s's ---> Jesus's
+
+---
+
+**Page 7**
+
+MATH
+DAY # 2
+
+TOPICS OF THE DAY
+* Quadratics
+
+---
+
+**Page 8**
+
+Quadratics
+
+a quadratic is a relationship between y and the square of x. (x^2)
+If the quadratic passes through the origin, then y ~ x^2.
+* ∴ if x is doubled, y is quadrupled
+* If x is tripled, y is scaled by factor of 9.
+* If y is doubled, x is scaled by \sqrt{2}
+
+all quadratics produce a curve called a parabola, a U shaped curve that opens either up or down.
+* opens up (a > 0)
+* opens down (a < 0)
+
+all parabolas have two characteristics:
+* a vertex AND
+* an axis of symmetry
+
+Vertex: this is a coordinate point (x_v, y_v) that corresponds to either the maximum point of the parabola (if parabola opens down) or the minimum point of the parabola (if parabola opens up)
+* opens up (a > 0) -> Vertex (minimum point)
+* opens down (a < 0) -> Vertex (maximum point)
+
+Note: for any question involving a quadratic that refers to either maximum or minimum, simply find the vertex!!
+
+---
+
+**Page 9**
+
+Axis of Symmetry: this is an imaginary vertical line that passes through the parabola's vertex, dividing the parabola into two equal halves
+* [Left Parabola (opens up, a > 0)]: AoS, Vertex (minimum point)
+* [Right Parabola (opens down, a < 0)]: AoS, Vertex (maximum point)
+
+all quadratics can be expressed in one of three forms
+1. Standard form: y = f(x) = ax^2 + bx + c
+2. Vertex form: y = f(x) = a(x - h)^2 + k (opp under h, norm under k)
+3. Intercept form: y = f(x) = a(x - p)(x - q) (opp under p, opp under q)
+
+[SAT cloud]:
+each form gives, as a constant or a coefficient, the _______________ of the parabola.
+* y-intercept (from c in standard form)
+* vertex (h, k) (from h, k in vertex form)
+* x-intercepts (p, 0) (q, 0) (from p, q in intercept form)
+
+finding the vertex:
+
+Vertex form: y = f(x) = a(x - h)^2 + k (opp, normal)
+* Vertex: x_v = h
+* y_v = k
+* V(h, k)
+
+Standard form: y = f(x) = ax^2 + bx + c
+* Vertex: x_v = -b / 2a
+* y_v = f(-b / 2a)
+* V(-b / 2a, f(-b / 2a))
+
+Intercept form: y = f(x) = a(x - p)(x - q) (opp, opp)
+* Vertex: x_v = (p + q) / 2
+* y_v = f((p + q) / 2)
+* V((p + q) / 2, f((p + q) / 2))
+
+finding the Axis of Symmetry:
+x = x_v
+
+Ex: y = f(x) = -2(x + 3)(x - 7)
+* x_v = (-3 + 7) / 2 = 2
+* y_v = f(2) = -2(5)(-5) = 50
+* V: (2, 50)
+
+---
+
+**Page 10**
+
+CONVERSION TOOLBOX
+
+[Table Layout]:
+* Column Headers: Standard | Vertex | Intercept
+* Row Headers: Standard | Vertex | Intercept
+
+* [Standard -> Standard]: Shaded
+* [Standard -> Vertex]: 
+  Complete the square
+  * if a = 1
+    y = x^2 + 12x - 8  (1) group the x's
+    y = (x^2 + 12x) - 8  (2) factor the 'a'
+    y = 1(x^2 + 12x) - 8  (3) add ___ inside and balance outside
+    y = 1(x^2 + 12x + 36) - 8 - 1(36) [where ___ = (1/2 * coeff)^2]
+    y = 1(x + 6)^2 - 44  (4) factor the group into ()^2
+    y = (x + 6)^2 - 44
+  * if a ≠ 1
+    y = 3x^2 + 10x - 8
+    y = (3x^2 + 10x) - 8
+    y = 3(x^2 + 10/3 x) - 8
+    y = 3(x^2 + 10/3 x + 25/9) - 8 - 3(25/9)
+    y = 3(x + 5/3)^2 - 8 - 25/3
+    y = 3(x + 5/3)^2 - 49/3
+
+    y = -x^2 + 5x - 2
+    y = -(x^2 - 5x) - 2
+    y = -1(x^2 - 5x) - 2
+    y = -1(x^2 - 5x + 25/4) - 2 + 1(25/4)
+    y = -(x - 5/2)^2 + 17/4
+
+  Ex: y = 3x^2 - 6x + 1
+
+* [Standard -> Intercept]:
+  factor, if possible
+  (if b^2 - 4ac = discriminant is either 0 or a perfect square, then the quadratic is factorable)
+  Ex: 6x^2 + 7x - 49
+  (2x + 7)(3x - 7)
+  = 6(x + 7/2)(x - 7/3)
+
+* [Vertex -> Standard]:
+  FOIL
+  y = 3(x + 4)^2 - 8
+  y = 3(x^2 + 8x + 16) - 8
+  y = 3x^2 + 24x + 48 - 8
+  y = 3x^2 + 24x + 40
+
+* [Vertex -> Vertex]: Shaded
+* [Vertex -> Intercept]:
+  Vertex --(FOIL)--> Standard --(FACTOR)--> Intercept
+
+* [Intercept -> Standard]:
+  FOIL
+  y = 2(x + 1)(x - 3/2)
+  y = 2(x^2 - 1/2 x - 3/2)
+  y = 2x^2 - x - 3
+
+* [Intercept -> Vertex]:
+  Intercept --(FOIL)--> Standard --(CTS)--> Vertex
+
+* [Intercept -> Intercept]: Shaded
+
+---
+
+**Page 11**
+
+[Handwritten annotations on printed Question 6]:
+* Above "quadratic function": Vertex -> (7, 1296)
+* Above "height": DV (y)
+* Above "time": IV (x)
+* Under "hits the ground 16 seconds after being launched": -> (16, 0)
+* Under "reach a height of 972 feet": -> y
+* "maximum height of 1,296 feet", "7 seconds", and "first" are circled.
+
+[Handwritten Calculations]:
+y = a(x - 7)^2 + 1296  (arrow from (16, 0) pointing to "to find a")
+0 = a(16 - 7)^2 + 1296
+0 = a(9)^2 + 1296
+-1296 = 81a
+a = -16
+
+y = -16(x - 7)^2 + 1296
+
+972 = -16(x - 7)^2 + 1296
+-324 = -16(x - 7)^2
+(x - 7)^2 = 20.25
+
+x - 7 = ± 4.5
+x = 7 ± 4.5
+x = 2.5, 11.5 (2.5 is circled)
+
+---
+
+**Page 13**
+
+[Handwritten annotations on printed text]:
+* Above "Fruit flies rely on flight for their most vital tasks—including":
+  * Red circle around the dash after "tasks" and handwritten note "MCC".
+* In Option C: "C) migration—but":
+  * Red circle around the dash with a red arrow pointing to the dash in the sentence.
+=== CANVAS ===
+📚 **Recent Canvas Assignments:**
+[LHS HOSA] August Virtual Chapter Meeting - Due: No due date (Updated: 2025-09-05)
+[LHS HOSA] September Chapter Meeting - Due: No due date (Updated: 2025-09-26)
+[LHS HOSA] October Chapter Meeting - Due: No due date (Updated: 2025-12-04)
+[LHS HOSA] November Virtual Chapter Meeting - Due: No due date (Updated: 2025-12-01)
+[LHS HOSA] December Chapter Meeting - Due: No due date (Updated: 2025-12-15)
+[LHS HOSA] First Responder Holiday Cards - Due: No due date (Updated: 2025-12-18)
+[LHS HOSA] January Chapter Meeting - Due: No due date (Updated: 2026-01-25)
+[LHS HOSA] Limited Event MOCK Auditions - Due: No due date (Updated: 2026-01-24)
+[LHS HOSA] February Chapter Meeting - Due: No due date (Updated: 2026-02-13)
+[LHS HOSA] NBCF Encouragement Card Drive Dropbox - Due: No due date (Updated: 2025-10-10)
+[LHS Investment Club] Shark Tank Competition Slideshow Dropbox - Due: 2025-03-26T03:59:59Z (Updated: 2025-05-12)
+[LHS Investment Club] FINAL Challenge Submission - Due: 2025-05-16T03:59:59Z (Updated: 2025-09-08)
+[LHS Investment Club] Permission Form Dropbox - Due: 2025-11-04T04:59:59Z (Updated: 2025-11-03)
+[LHS Investment Club] November Meeting Attendance - Due: 2025-11-03T13:30:00Z (Updated: 2026-03-02)
+[LHS Investment Club] March Meeting Attendance - Due: 2026-03-02T14:00:00Z (Updated: 2026-03-02)
+[LHS Investment Club] Meeting 2 Attendance - Due: 2025-09-30T12:30:00Z (Updated: 2025-10-05)
+[LHS Investment Club] Oct Full Club Meet Attendance - Due: 2025-10-06T12:30:00Z (Updated: 2026-01-12)
+[LHS Robotics] T-shirt Design submission - Due: 2024-01-20T04:59:59Z (Updated: 2024-01-10)
+[LHS Robotics] T-shirt voting - Due: No due date (Updated: 2024-01-24)
+[LHS SkillsUSA] SkillsUSA CAREER PATHWAY POSTER - Online submission - Due: No due date (Updated: 2025-09-02)
+[LHS SkillsUSA] FLC # 1 - Social Media Campaign Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-10-31)
+[LHS SkillsUSA] FLC # 2 - Spirit Week Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-11-12)
+[LHS SkillsUSA] FLC # 3 - Promotional Video Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-11-07)
+[LHS SkillsUSA] FLC # 4 - Song Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-10-31)
+[LHS SkillsUSA] FLC # 5 - SkillsSWAG Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-11-08)
+[LHS SkillsUSA] Chipotle - Receipt Dropbox - Due: No due date (Updated: 2024-12-03)
+[LHS SkillsUSA] Event 1 - Advertising Design - Due: 2024-12-13T03:00:00Z (Updated: 2024-12-13)
+[LHS SkillsUSA] Event 2 - Crime Scene Investigation - Due: 2024-12-13T03:00:00Z (Updated: 2024-12-13)
+[LHS SkillsUSA] Event 8 - Pin Design - Due: 2024-12-13T03:00:00Z (Updated: 2024-12-13)
+[LHS Student Information Course] Student Council OFFICER Application - Due: 2026-04-11T03:59:59Z (Updated: 2026-04-13)
+[LHS Student Information Course] 26-27 Student Council OFFICER Application! - Due: 2026-04-17T03:59:59Z (Updated: 2026-05-06)
+[LHS Student Information Course] SOPHOMORE Homecoming Court Nominations  - Due: 2025-09-09T19:40:00Z (Updated: 2025-09-09)
+[LHS Student Information Course] SOPHOMORE Homecoming Court - Final Ballot - Due: 2025-09-12T15:15:00Z (Updated: 2025-09-12)
+[LHS Student Information Course] 26-27 Student Council Application!  - Due: 2026-04-17T03:59:59Z (Updated: 2026-04-22)
+[LHS Student Information Course] 26/27 Vote for your JUNIOR OFFICERS next year!  - Due: 2026-04-24T03:59:59Z (Updated: 2026-04-20)
+[LHS TSA] Six Flags Fall Rally Registration Form - Due: No due date (Updated: 2025-09-26)
+[LHS TSA] Intro Slides - Due: No due date (Updated: 2024-08-28)
+[LHS TSA] Intro Slides - Due: No due date (Updated: 2025-08-27)
+[LHS TSA] Six Flags Fall Rally Rubrics - Due: No due date (Updated: 2025-09-13)
+[LHS TSA] Freshman Officer Application - Due: 2024-09-14T03:59:59Z (Updated: 2025-09-11)
+[LHS TSA] Six Flags Code of Behavior Form - Due: No due date (Updated: 2024-10-02)
+[LHS TSA] Six Flags Release Form - Due: No due date (Updated: 2024-10-02)
+[LHS TSA] 6 Flags Forms - Due: No due date (Updated: 2025-10-10)
+[LHS TSA] Hurricane Helene Donation Drive - Due: 2024-10-15T03:59:59Z (Updated: 2024-10-04)
+[LHS TSA] TSA WEEK 10/7 - MENTOR MONDAY - Due: 2024-10-15T03:59:59Z (Updated: 2024-10-10)
+
+No recent Canvas announcements.
+
+📄 **Recently Updated Canvas Pages:**
+- [LHS HOSA] Lambert HOSA Homepage (updated 2026-02-13)
+- [LHS HOSA] February Chapter Meeting (updated 2026-02-12)
+- [LHS HOSA] NTHS Credit Opportunities (updated 2026-02-05)
+
+=== CLASSROOM ===
+🏫 **Google Classroom Assignments:**
+[2026 Summer SAT/ACT @ AHA] Day 11 Homework — Due: 2026-06-26 03:59
+    📎 B_PT1_M2.pdf (https://drive.google.com/file/d/1_y_Eig35BFuH2ippN_i6CdNLYjdGAy2h/view?usp=drive_web)
+    📎 B_PT1_M (Ans).pdf (https://drive.google.com/file/d/1Y6KFSNe65yv5J2t5fVV7YVlvY0zabPkI/view?usp=drive_web)
+    📎 B_PT1_RW2.pdf (https://drive.google.com/file/d/14m7RdABqZR_3B7pRwiHGhTCPiRHnNCWb/view?usp=drive_web)
+    📎 B_PT1_RW (Ans).pdf (https://drive.google.com/file/d/1hA9_VnxQuHXKnhLrFaUpl7AOQx6MFMPd/view?usp=drive_web)
+    📎 11A_MWF 10-1 Day 11.pdf (https://drive.google.com/file/d/1VosFzsPIObBlIGqJ3nT19Q7O8rJuD8Yj/view?usp=drive_web)
+    📎 11B_MWF 2-5 Day 11.pdf (https://drive.google.com/file/d/1au7xH4Zsy2Adepzq3wSFmg-6cjOCUeL5/view?usp=drive_web)
+    📎 11C_MWF 530-830 Day 11.pdf (https://drive.google.com/file/d/1tGE3p22K932e16iObSCmWxQBtfJru0R3/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 7 — Due: 2026-06-25 03:59
+    📎 Vocab Quiz 13 (https://docs.google.com/document/d/16GgsMuXpJEOJlhRpX4K95avkbngK1kv2nUNdeSf_pmQ/edit?usp=drive_web)
+    📎 Vocab Quiz 14 (https://docs.google.com/document/d/1dPsF2UQXWr26JamRcdw7-eSnsSeaEb7bsLfrzDNAX2M/edit?usp=drive_web)
+    📎 Vocab Quiz 15 (https://docs.google.com/document/d/1uJHyUYWzso5UQvfnZjlkBXqdvR0vhtL9pM9CwKtiJ-M/edit?usp=drive_web)
+    📎 5_Rates_Answers.pdf (https://drive.google.com/file/d/1dKs9zp9XToVWYRQte1qDuMHJ9MQfuLhA/view?usp=drive_web)
+    📎 4_Proportion_Answers.pdf (https://drive.google.com/file/d/13NAnz19NdN_wuS6sINh0ps0gRXpbaBo7/view?usp=drive_web)
+    📎 6_Ratios and Rates_Answers.pdf (https://drive.google.com/file/d/1x2GvlUwlfJlvlPyIdryk32wERt9kGpRE/view?usp=drive_web)
+    📎 16_Lines and Angles.pdf (https://drive.google.com/file/d/1fzYiMnkrPgI3_cOBu0WwpZJrkNiDjLKr/view?usp=drive_web)
+    📎 17_Triangles.pdf (https://drive.google.com/file/d/1ory_bn6X-bT-GANSOXY5oFspQTSGiOGI/view?usp=drive_web)
+    📎 Inferences_L2 (1).pdf (https://drive.google.com/file/d/1FIIG2KY8hc96FY3k5289olA17D7V_RT8/view?usp=drive_web)
+    📎 Cross Text_L2 (1).pdf (https://drive.google.com/file/d/11dS_668zQCq2OC5pzoRvDGnjI_UAP_hX/view?usp=drive_web)
+    📎 Text Struc Pur_L2 (1).pdf (https://drive.google.com/file/d/1xfcbpZoWinOElKqJeEb4YkJHhp3BxTG9/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 10 Homework — Due: 2026-06-24 03:59
+    📎 10A_MWF 10-1 Day 10.pdf (https://drive.google.com/file/d/1354XWpihz0N0p-ozM1LR-Bcsjqy8va5s/view?usp=drive_web)
+    📎 10B_MWF 2-5 Day 10.pdf (https://drive.google.com/file/d/1ALFEfqPq1gxEhH0iN-3EIfwp2Lyvwihx/view?usp=drive_web)
+    📎 10C_MWF 530-830 Day 10.pdf (https://drive.google.com/file/d/1eKBQsLE351Lcupi2CqdsfitxBTBlWl_y/view?usp=drive_web)
+    📎 10D_TuThSat 10-1 Day 10.pdf (https://drive.google.com/file/d/1SJoVi2KCru0cSV3ZYmpbESBM9OpUsVkx/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 9 Homework — Due: 2026-06-23 03:59
+    📎 DSAT 9.pdf (https://drive.google.com/file/d/1AnS00fIBQOq6epspKbENX-3Wz4jYh4Ed/view?usp=drive_web)
+    📎 DSAT 9 Answers.pdf (https://drive.google.com/file/d/1gJBJc02qSiqgZoPRb7c4HEN8lKpxD5Cw/view?usp=drive_web)
+    📎 ACT_2017_12 A10.pdf (https://drive.google.com/file/d/1vvsRNlQXDQduyqa4igPKppZCn2jnHX0Y/view?usp=drive_web)
+    📎 9A_MWF 10-1 Day 9.pdf (https://drive.google.com/file/d/1pjMkBzNRRhsQI4P1VLAn3hQuX4xo9SZW/view?usp=drive_web)
+    📎 9B_MWF 2-5 Day 9.pdf (https://drive.google.com/file/d/1vpe0O7vq60Junvhis0aL9jWd5KAxh1ds/view?usp=drive_web)
+    📎 9C_MWF 530-830 Day 9.pdf (https://drive.google.com/file/d/1Kl6WJk4jM8TzkTos6ItYEMbeMbvZQX4e/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 8 Homework (Morning 1) — Due: 2026-06-19 03:59
+    📎 8A_MWF 10-1 Day 8.pdf (https://drive.google.com/file/d/1evQ4nA5-FSB_xwShpmKVnMhYjtT9HNgF/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 6 — Due: 2026-06-20 03:59
+    📎 Vocab Quiz 11 (https://docs.google.com/document/d/1lFZTt2CWxCqttcyoXV_qhdtYH2Tqj_5x647TBUsj-7A/edit?usp=drive_web)
+    📎 Vocab Quiz 12 (https://docs.google.com/document/d/18y4yDKaErKa5cEIGGZWcYMo3CmF5S7LdcvsjUKN99t0/edit?usp=drive_web)
+    📎 16_Quadratics_Answers.pdf (https://drive.google.com/file/d/1vhvVzhGHRSO8KQrTVcQ6mBF4Bz6o2aoe/view?usp=drive_web)
+    📎 7_Percent_Answers.pdf (https://drive.google.com/file/d/1YbogtI8nnt_inyr-GGG2MMRs4Q31qabV/view?usp=drive_web)
+    📎 6_Ratios and Rates_Answers.pdf (https://drive.google.com/file/d/1x2GvlUwlfJlvlPyIdryk32wERt9kGpRE/view?usp=drive_web)
+    📎 5_Rates.pdf (https://drive.google.com/file/d/1o0kJrjWoIqoGe1gAkbx5bjDEsgj2Rr6h/view?usp=drive_web)
+    📎 4_Proportion.pdf (https://drive.google.com/file/d/1U2-kqljG3zf2j9XB6AIecx0TXzGeBxkp/view?usp=drive_web)
+    📎 Central Idea_L2 (3).pdf (https://drive.google.com/file/d/1pl5ECdodddHcBjUDTQgvTZd85vz53kAb/view?usp=drive_web)
+    📎 Central Idea_L3 (1).pdf (https://drive.google.com/file/d/17PpKF6pL9-M-ttKL0UIgJ7dXEY_cPJUC/view?usp=drive_web)
+    📎 Evidence_L2 (3).pdf (https://drive.google.com/file/d/1ZTNBDx4Wp24Gtp9DqH3dEuU6vv64CI_m/view?usp=drive_web)
+    📎 Evidence_L2 (4).pdf (https://drive.google.com/file/d/1x-o3YwHojtv5KldkOATUl7yXGveqxYbh/view?usp=drive_web)
+    📎 Cross Text_L2 (1).pdf (https://drive.google.com/file/d/11dS_668zQCq2OC5pzoRvDGnjI_UAP_hX/view?usp=drive_web)
+    📎 6_Ratios and Rates.pdf (https://drive.google.com/file/d/13jgwI4os3LJDP6whD7YJykhFBkqEO_cU/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 5 — Due: 2026-06-18 03:59
+    📎 Vocab Quiz 8 (https://docs.google.com/document/d/1Zf_WMGuqZk1mD0mbJxD-mUJeh-sy0BImL8YTcz7ECB0/edit?usp=drive_web)
+    📎 Vocab Quiz 9 (https://docs.google.com/document/d/1GN8aLsISSmE7I8SXTdCtqcEuwAYunp5_H7q3zHj5Awg/edit?usp=drive_web)
+    📎 Vocab Quiz 10 (https://docs.google.com/document/d/1sh35tOAZ3KD4P1JnLha2D4iejMXwxdeq2wgHp4M4ov0/edit?usp=drive_web)
+    📎 11_Quadratics_Answers.pdf (https://drive.google.com/file/d/1Vm4RwbjOS9KoItyg_kqAX41nzecp2PLt/view?usp=drive_web)
+    📎 Form_L2 (1)_Answers.pdf (https://drive.google.com/file/d/1Ys25Y4gILztbxh6JXLqq81tCbjzgLpD6/view?usp=drive_web)
+    📎 13_(Ans) Tenses.pdf (https://drive.google.com/file/d/1m0zlUdBViOGQpcpSu9b0jFS8a6sfmNIM/view?usp=drive_web)
+    📎 16_Quadratics.pdf (https://drive.google.com/file/d/1DcOrxc2SONzA0GzsPPyHs97UVbfUj5Mv/view?usp=drive_web)
+    📎 7_Percent.pdf (https://drive.google.com/file/d/1X-k7liJElt4yt8Q4-MUQb_Tn9ileZv43/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 7 Homework (Morning 1) — Due: 2026-06-17 03:59
+    📎 7A_MWF 10-1 Day 7.pdf (https://drive.google.com/file/d/1bb7ZIBmAAApIQdXZJjDkZUfQmBJRufNJ/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 6 Homework (Morning 1) — Due: 2026-06-16 03:59
+    📎 8_W (Standard English Conventions 1).pdf (https://drive.google.com/file/d/1JWtUub2zqymZuCpuxYTA6rczps388xcu/view?usp=drive_web)
+    📎 9_W (Standard English Conventions 2).pdf (https://drive.google.com/file/d/1bQ7XhVGoG5292RTPyUQnNASYGiSLVcXe/view?usp=drive_web)
+    📎 10_W (Standard English Conventions 3).pdf (https://drive.google.com/file/d/1neZ7hIBx4kq8oZLD8W_rfoTwP410BuKe/view?usp=drive_web)
+    📎 11_W (Standard English Conventions 3).pdf (https://drive.google.com/file/d/1FzDJ9csjzHVy3neeyOfwZkHQDk2gea1v/view?usp=drive_web)
+    📎 Quadratics.pdf (https://drive.google.com/file/d/1MsrMnCt9pmwtGOad77ZhgK0zOyaU9e1g/view?usp=drive_web)
+    📎 6A_MWF 10-1 Day 6.pdf (https://drive.google.com/file/d/1-ym7GCFXUgsnQB9K7gokkOY2USsizudW/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 4 — Due: 2026-06-12 03:59
+    📎 5_(Ans) Modifiers.pdf (https://drive.google.com/file/d/162JTd82JXSHVu5EFkPfoG2XhtFFT34Fr/view?usp=drive_web)
+    📎 14_(Ans) Commas, Dashes, Colons.pdf (https://drive.google.com/file/d/1-nDj2JkWcckkHCVfbiO_K9s_VDvaGgRa/view?usp=drive_web)
+    📎 11_Quadratics.pdf (https://drive.google.com/file/d/1XyI-ygV-QjfHnRfygAwfe0VKa_gyqKfl/view?usp=drive_web)
+    📎 Boundaries_L2 (1).pdf (https://drive.google.com/file/d/1un3rXLb2vsUjGtT5YqsyI_pHRy1lprB6/view?usp=drive_web)
+    📎 Form_L2 (1).pdf (https://drive.google.com/file/d/1w7VTga6WdE5ttzp8ObFm5kt3KrPKqI83/view?usp=drive_web)
+    📎 13_Tenses.pdf (https://drive.google.com/file/d/1RnNZG7kOH0RqKN0Tr-Xng6pxBmG9frFY/view?usp=drive_web)
+    📎 Vocab Quiz 7 (https://docs.google.com/document/d/1fV-qN5XWSJSkSjiAWZOyNtTqRYMSSEcaOwO44E-NT4M/edit?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 5 Homework (Morning 1) — Due: 2026-06-12 03:59
+    📎 5A_MWF 10-1 Day 5.pdf (https://drive.google.com/file/d/1ePVDwXSx0f1sM1v8bl0rA6eSLgSaIDbL/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 3 — Due: 2026-06-11 03:59
+    📎 4_(Ans) Subject Verb Agreement.pdf (https://drive.google.com/file/d/1ITdKC4y_d66HSB8iH7aCnGJqqDoGQKGm/view?usp=drive_web)
+    📎 10_Systems of Equations_Answers.pdf (https://drive.google.com/file/d/1IDhRTRd-zZQ-TZVQ7TldPB18tWI9CBSW/view?usp=drive_web)
+    📎 3A_Systems Only (Ans).png (https://drive.google.com/file/d/1s8a9PbotftQKZRqQJy5fU9ydVZE44-Uy/view?usp=drive_web)
+    📎 Vocab Quiz 4 (https://docs.google.com/document/d/1jnv2YMeBkTBmg9aghHuTBbIjkA5SGZpsAEwB72xmfZc/edit?usp=drive_web)
+    📎 Vocab Quiz 5 (https://docs.google.com/document/d/1HnXzGo-JxuO3Iu4k8vF2MoLXxQ_pC5h14CYLMHh0ZWc/edit?usp=drive_web)
+    📎 Vocab Quiz 6 (https://docs.google.com/document/d/1nBvWrgit90XNHa8hYKL6122hHMnI-HkBkErtxOIbtqw/edit?usp=drive_web)
+    📎 5_Modifiers.pdf (https://drive.google.com/file/d/1HdgdhIPuG2VQoqIl5tDlOv4fHgDiukWR/view?usp=drive_web)
+    📎 14_Commas, Dashes, Colons.pdf (https://drive.google.com/file/d/1hMbWvxSNG0TGT476npBe6QkjO1nh75m4/view?usp=drive_web)
+    📎 7_W (Boundaries 2) (https://docs.google.com/presentation/d/1ZmRqRdu-k9FReES8X0awKYWh1IEXr9wMXpI_AE1i5LE/edit?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 4 Homework (Morning 1) — Due: 2026-06-10 03:59
+    📎 4A_MWF 10-1 Day 4.pdf (https://drive.google.com/file/d/1EHJcikAJ8oPJ_IajlQmrNxzn5KPLQTVT/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 3 Homework (Morning 1) — Due: 2026-06-09 03:59
+    📎 3A_MWF 10-1 Day 3.pdf (https://drive.google.com/file/d/1DFkK-FZ1V6vSi8fVd5vczM0Y9R31m8J2/view?usp=drive_web)
+    📎 Heart of Algebra.pdf (https://drive.google.com/file/d/1tpFFT3i8tNgbFlKWgtvufNJZnS5ohDAz/view?usp=drive_web)
+    📎 Heart of Algebra (Ans).pdf (https://drive.google.com/file/d/1Y7z3ZSAHHibUsuYWlfh1slq-AVjTHUlz/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 2 — Due: 2026-06-06 03:59
+    📎 Vocab Quiz 2 (https://docs.google.com/document/d/1WEj6OkcPpcIgQk-dFe_B1Z4apRXdl97wJsIBVDauHnI/edit?usp=drive_web)
+    📎 Vocab Quiz 3 (https://docs.google.com/document/d/1PBPa5ztwMULV4Z_KrjJv0hhzuBYxr0BgUJsC4wSPx88/edit?usp=drive_web)
+    📎 3_Linear Func Only (Ans).png (https://drive.google.com/file/d/1WBjBl4cnznDepCtnvxACHdZXehAcUdYa/view?usp=drive_web)
+    📎 13_Lines_Answers.pdf (https://drive.google.com/file/d/1beXJUrDvrR4rTt4PbnDR7LLQsREnDdPP/view?usp=drive_web)
+    📎 14_Interpreting Linear Models_Answers.pdf (https://drive.google.com/file/d/1ISJdy3WQaihJJ65JU0qDkRUvmESZyLae/view?usp=drive_web)
+    📎 4_Subject Verb Agreement.pdf (https://drive.google.com/file/d/1nzdUcLr5fiy2N7ZqytWuk0pBW6egEnLj/view?usp=drive_web)
+    📎 10_Systems of Equations.pdf (https://drive.google.com/file/d/1Etf7rcIGTx6Hhbt11WeO2tFGiWwC8SN5/view?usp=drive_web)
+    📎 3_W (Form, Structure, and Sense 1).pdf (https://drive.google.com/file/d/1Ypl6PpR3GdtzI6bPPqyB1hMhPvXpkYZS/view?usp=drive_web)
+    📎 3A_Systems Only.pdf (https://drive.google.com/file/d/1g8PHYyIif63YOmUjKlZ0lZg6LYGSIiKL/view?usp=drive_web)
+
+=== CLASSROOM_ANNOUNCEMENTS ===
+📢 **Google Classroom Announcements:**
+[2026 Summer SAT/ACT @ AHA] 8 am post  What are you specifically doing to prepare for the mock test this Friday/Saturday?  Be very detailed!  Text me at 678.429.1709
+[2026 Summer SAT/ACT @ AHA] IMPORTANT ANNOUNCEMENT!  PLEASE READ EVERYTHING!  You will take a practice SAT on either Friday (6/26) OR Saturday (6/27) at 8 AM. Please read ALL instructions carefully.  NOTE: Since you will be taki...
+[2026 Summer SAT/ACT @ AHA] Submit your Day 10 homework (Geometry Formulas) video below.
+[2026 Summer SAT/ACT @ AHA] 8 am Post Day 14 Update   Everyone please stop doing the problem and resubmit. I'm very disappointed that I showed in class I'm even asked are we going to be lazy and not draw the three right triangle...
+[2026 Summer SAT/ACT @ AHA] 8 am Post Day 14  Hello all, and welcome to the last week of June. I'm excited to have you all do your mock test this Friday/Saturday.    For today,   If Triangle abc is a right triangle with right an...
+[2026 Summer SAT/ACT @ AHA] 8 AM posts - Hello all, with this weekend being Father's Day weekend, I gave you all a small break for the 8 AM posts.  I expect that you all have been awake (even earlier since the mock exam is arriv...
+[2026 Summer SAT/ACT @ AHA] 8 AM Post Day 14  Dancing in the rain while thunder roared in the deep night was the memorable moment of our evening together.   Find the subject of this sentence.   A triangle has sides of 9 and 6, f...
+[2026 Summer SAT/ACT @ AHA] 8 AM Post Day 13  Our first mock exam is arriving in nearly a week.  As such, I need you to understand the importance of being awake and alert.  Please detail what you will be doing from today onwards...
+[2026 Summer SAT/ACT @ AHA] Formula Sheet Assignment: Part of Day 8 Homework and an Ongoing Assignment  (DO NOT use ChatGPT or any other AI tools! You must go through your notes!)  Start organizing and writing BY HAND all import...
+[2026 Summer SAT/ACT @ AHA] 8 AM Post Day 12  An angle's supplement is 75% more than the angle itself.  Find both the angle and the supplement.  A rectangle has its length and width in a 5:12 ratio. If the rectangle's diagonal i...
+
+=== GMAIL ===
+No urgent gmail updates.
+
+=== GROUPME ===
+No urgent groupme updates.
+
+=== GDOCS ===
+No recently modified Google Docs found.
+
+=== CANVAS ===
+📚 **Recent Canvas Assignments:**
+[LHS HOSA] August Virtual Chapter Meeting - Due: No due date (Updated: 2025-09-05)
+[LHS HOSA] September Chapter Meeting - Due: No due date (Updated: 2025-09-26)
+[LHS HOSA] October Chapter Meeting - Due: No due date (Updated: 2025-12-04)
+[LHS HOSA] November Virtual Chapter Meeting - Due: No due date (Updated: 2025-12-01)
+[LHS HOSA] December Chapter Meeting - Due: No due date (Updated: 2025-12-15)
+[LHS HOSA] First Responder Holiday Cards - Due: No due date (Updated: 2025-12-18)
+[LHS HOSA] January Chapter Meeting - Due: No due date (Updated: 2026-01-25)
+[LHS HOSA] Limited Event MOCK Auditions - Due: No due date (Updated: 2026-01-24)
+[LHS HOSA] February Chapter Meeting - Due: No due date (Updated: 2026-02-13)
+[LHS HOSA] NBCF Encouragement Card Drive Dropbox - Due: No due date (Updated: 2025-10-10)
+[LHS Investment Club] Shark Tank Competition Slideshow Dropbox - Due: 2025-03-26T03:59:59Z (Updated: 2025-05-12)
+[LHS Investment Club] FINAL Challenge Submission - Due: 2025-05-16T03:59:59Z (Updated: 2025-09-08)
+[LHS Investment Club] Permission Form Dropbox - Due: 2025-11-04T04:59:59Z (Updated: 2025-11-03)
+[LHS Investment Club] November Meeting Attendance - Due: 2025-11-03T13:30:00Z (Updated: 2026-03-02)
+[LHS Investment Club] March Meeting Attendance - Due: 2026-03-02T14:00:00Z (Updated: 2026-03-02)
+[LHS Investment Club] Meeting 2 Attendance - Due: 2025-09-30T12:30:00Z (Updated: 2025-10-05)
+[LHS Investment Club] Oct Full Club Meet Attendance - Due: 2025-10-06T12:30:00Z (Updated: 2026-01-12)
+[LHS Robotics] T-shirt Design submission - Due: 2024-01-20T04:59:59Z (Updated: 2024-01-10)
+[LHS Robotics] T-shirt voting - Due: No due date (Updated: 2024-01-24)
+[LHS SkillsUSA] SkillsUSA CAREER PATHWAY POSTER - Online submission - Due: No due date (Updated: 2025-09-02)
+[LHS SkillsUSA] FLC # 1 - Social Media Campaign Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-10-31)
+[LHS SkillsUSA] FLC # 2 - Spirit Week Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-11-12)
+[LHS SkillsUSA] FLC # 3 - Promotional Video Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-11-07)
+[LHS SkillsUSA] FLC # 4 - Song Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-10-31)
+[LHS SkillsUSA] FLC # 5 - SkillsSWAG Submission - Upon submission enter - Submitted in the text area - Due: 2024-11-07T04:59:59Z (Updated: 2024-11-08)
+[LHS SkillsUSA] Chipotle - Receipt Dropbox - Due: No due date (Updated: 2024-12-03)
+[LHS SkillsUSA] Event 1 - Advertising Design - Due: 2024-12-13T03:00:00Z (Updated: 2024-12-13)
+[LHS SkillsUSA] Event 2 - Crime Scene Investigation - Due: 2024-12-13T03:00:00Z (Updated: 2024-12-13)
+[LHS SkillsUSA] Event 8 - Pin Design - Due: 2024-12-13T03:00:00Z (Updated: 2024-12-13)
+[LHS Student Information Course] Student Council OFFICER Application - Due: 2026-04-11T03:59:59Z (Updated: 2026-04-13)
+[LHS Student Information Course] 26-27 Student Council OFFICER Application! - Due: 2026-04-17T03:59:59Z (Updated: 2026-05-06)
+[LHS Student Information Course] SOPHOMORE Homecoming Court Nominations  - Due: 2025-09-09T19:40:00Z (Updated: 2025-09-09)
+[LHS Student Information Course] SOPHOMORE Homecoming Court - Final Ballot - Due: 2025-09-12T15:15:00Z (Updated: 2025-09-12)
+[LHS Student Information Course] 26-27 Student Council Application!  - Due: 2026-04-17T03:59:59Z (Updated: 2026-04-22)
+[LHS Student Information Course] 26/27 Vote for your JUNIOR OFFICERS next year!  - Due: 2026-04-24T03:59:59Z (Updated: 2026-04-20)
+[LHS TSA] Six Flags Fall Rally Registration Form - Due: No due date (Updated: 2025-09-26)
+[LHS TSA] Intro Slides - Due: No due date (Updated: 2024-08-28)
+[LHS TSA] Intro Slides - Due: No due date (Updated: 2025-08-27)
+[LHS TSA] Six Flags Fall Rally Rubrics - Due: No due date (Updated: 2025-09-13)
+[LHS TSA] Freshman Officer Application - Due: 2024-09-14T03:59:59Z (Updated: 2025-09-11)
+[LHS TSA] Six Flags Code of Behavior Form - Due: No due date (Updated: 2024-10-02)
+[LHS TSA] Six Flags Release Form - Due: No due date (Updated: 2024-10-02)
+[LHS TSA] 6 Flags Forms - Due: No due date (Updated: 2025-10-10)
+[LHS TSA] Hurricane Helene Donation Drive - Due: 2024-10-15T03:59:59Z (Updated: 2024-10-04)
+[LHS TSA] TSA WEEK 10/7 - MENTOR MONDAY - Due: 2024-10-15T03:59:59Z (Updated: 2024-10-10)
+
+No recent Canvas announcements.
+
+📄 **Recently Updated Canvas Pages:**
+- [LHS HOSA] Lambert HOSA Homepage (updated 2026-02-13)
+- [LHS HOSA] February Chapter Meeting (updated 2026-02-12)
+- [LHS HOSA] NTHS Credit Opportunities (updated 2026-02-05)
+
+=== CLASSROOM ===
+🏫 **Google Classroom Assignments:**
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 8 — Due: No due date
+    📎 Vocab Quiz 16 (https://docs.google.com/document/d/15KsX75DBXGpu9SqUYbaDTvgY4ZdmvHBmhdBqtWXA4uQ/edit?usp=drive_web)
+    📎 Vocab Quiz 17 (https://docs.google.com/document/d/1jtayJ3QzdHYk6YYfcPUdibz_DYaPvs_qm8v1XyRTzA8/edit?usp=drive_web)
+    📎 Inferences_L2 (2).pdf (https://drive.google.com/file/d/10CYCwMTEKoMTBX73fnEQk2Z80zJ41oMS/view?usp=drive_web)
+    📎 Inferences_L3 (1).pdf (https://drive.google.com/file/d/1gEzAQVQu9FEfdZLnOUFhvBjbxwJfrcHV/view?usp=drive_web)
+    📎 Cross Text_L3 (1).pdf (https://drive.google.com/file/d/1pvqD6EpYa4caQ0Vhe9-5jCtr1ivRd3t-/view?usp=drive_web)
+    📎 Rhetorical Synthesis_L3 (1).pdf (https://drive.google.com/file/d/10wcA9ZEiJ3h7WCfNujbtIYbYwjWfI8Fk/view?usp=drive_web)
+    📎 SAT Geometry Problems.pdf (https://drive.google.com/file/d/158r9di-sxiYlnBvlLyMLFzsPvoqNDfw4/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 11 Homework — Due: 2026-06-26 03:59
+    📎 B_PT1_M2.pdf (https://drive.google.com/file/d/1_y_Eig35BFuH2ippN_i6CdNLYjdGAy2h/view?usp=drive_web)
+    📎 B_PT1_M (Ans).pdf (https://drive.google.com/file/d/1Y6KFSNe65yv5J2t5fVV7YVlvY0zabPkI/view?usp=drive_web)
+    📎 B_PT1_RW2.pdf (https://drive.google.com/file/d/14m7RdABqZR_3B7pRwiHGhTCPiRHnNCWb/view?usp=drive_web)
+    📎 B_PT1_RW (Ans).pdf (https://drive.google.com/file/d/1hA9_VnxQuHXKnhLrFaUpl7AOQx6MFMPd/view?usp=drive_web)
+    📎 11A_MWF 10-1 Day 11.pdf (https://drive.google.com/file/d/1VosFzsPIObBlIGqJ3nT19Q7O8rJuD8Yj/view?usp=drive_web)
+    📎 11B_MWF 2-5 Day 11.pdf (https://drive.google.com/file/d/1au7xH4Zsy2Adepzq3wSFmg-6cjOCUeL5/view?usp=drive_web)
+    📎 11C_MWF 530-830 Day 11.pdf (https://drive.google.com/file/d/1tGE3p22K932e16iObSCmWxQBtfJru0R3/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 7 — Due: 2026-06-25 03:59
+    📎 Vocab Quiz 13 (https://docs.google.com/document/d/16GgsMuXpJEOJlhRpX4K95avkbngK1kv2nUNdeSf_pmQ/edit?usp=drive_web)
+    📎 Vocab Quiz 14 (https://docs.google.com/document/d/1dPsF2UQXWr26JamRcdw7-eSnsSeaEb7bsLfrzDNAX2M/edit?usp=drive_web)
+    📎 Vocab Quiz 15 (https://docs.google.com/document/d/1uJHyUYWzso5UQvfnZjlkBXqdvR0vhtL9pM9CwKtiJ-M/edit?usp=drive_web)
+    📎 5_Rates_Answers.pdf (https://drive.google.com/file/d/1dKs9zp9XToVWYRQte1qDuMHJ9MQfuLhA/view?usp=drive_web)
+    📎 4_Proportion_Answers.pdf (https://drive.google.com/file/d/13NAnz19NdN_wuS6sINh0ps0gRXpbaBo7/view?usp=drive_web)
+    📎 6_Ratios and Rates_Answers.pdf (https://drive.google.com/file/d/1x2GvlUwlfJlvlPyIdryk32wERt9kGpRE/view?usp=drive_web)
+    📎 16_Lines and Angles.pdf (https://drive.google.com/file/d/1fzYiMnkrPgI3_cOBu0WwpZJrkNiDjLKr/view?usp=drive_web)
+    📎 17_Triangles.pdf (https://drive.google.com/file/d/1ory_bn6X-bT-GANSOXY5oFspQTSGiOGI/view?usp=drive_web)
+    📎 Inferences_L2 (1).pdf (https://drive.google.com/file/d/1FIIG2KY8hc96FY3k5289olA17D7V_RT8/view?usp=drive_web)
+    📎 Cross Text_L2 (1).pdf (https://drive.google.com/file/d/11dS_668zQCq2OC5pzoRvDGnjI_UAP_hX/view?usp=drive_web)
+    📎 Text Struc Pur_L2 (1).pdf (https://drive.google.com/file/d/1xfcbpZoWinOElKqJeEb4YkJHhp3BxTG9/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 10 Homework — Due: 2026-06-24 03:59
+    📎 10A_MWF 10-1 Day 10.pdf (https://drive.google.com/file/d/1354XWpihz0N0p-ozM1LR-Bcsjqy8va5s/view?usp=drive_web)
+    📎 10B_MWF 2-5 Day 10.pdf (https://drive.google.com/file/d/1ALFEfqPq1gxEhH0iN-3EIfwp2Lyvwihx/view?usp=drive_web)
+    📎 10C_MWF 530-830 Day 10.pdf (https://drive.google.com/file/d/1eKBQsLE351Lcupi2CqdsfitxBTBlWl_y/view?usp=drive_web)
+    📎 10D_TuThSat 10-1 Day 10.pdf (https://drive.google.com/file/d/1SJoVi2KCru0cSV3ZYmpbESBM9OpUsVkx/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 9 Homework — Due: 2026-06-23 03:59
+    📎 DSAT 9.pdf (https://drive.google.com/file/d/1AnS00fIBQOq6epspKbENX-3Wz4jYh4Ed/view?usp=drive_web)
+    📎 DSAT 9 Answers.pdf (https://drive.google.com/file/d/1gJBJc02qSiqgZoPRb7c4HEN8lKpxD5Cw/view?usp=drive_web)
+    📎 ACT_2017_12 A10.pdf (https://drive.google.com/file/d/1vvsRNlQXDQduyqa4igPKppZCn2jnHX0Y/view?usp=drive_web)
+    📎 9A_MWF 10-1 Day 9.pdf (https://drive.google.com/file/d/1pjMkBzNRRhsQI4P1VLAn3hQuX4xo9SZW/view?usp=drive_web)
+    📎 9B_MWF 2-5 Day 9.pdf (https://drive.google.com/file/d/1vpe0O7vq60Junvhis0aL9jWd5KAxh1ds/view?usp=drive_web)
+    📎 9C_MWF 530-830 Day 9.pdf (https://drive.google.com/file/d/1Kl6WJk4jM8TzkTos6ItYEMbeMbvZQX4e/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 8 Homework (Morning 1) — Due: 2026-06-19 03:59
+    📎 8A_MWF 10-1 Day 8.pdf (https://drive.google.com/file/d/1evQ4nA5-FSB_xwShpmKVnMhYjtT9HNgF/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 6 — Due: 2026-06-20 03:59
+    📎 Vocab Quiz 11 (https://docs.google.com/document/d/1lFZTt2CWxCqttcyoXV_qhdtYH2Tqj_5x647TBUsj-7A/edit?usp=drive_web)
+    📎 Vocab Quiz 12 (https://docs.google.com/document/d/18y4yDKaErKa5cEIGGZWcYMo3CmF5S7LdcvsjUKN99t0/edit?usp=drive_web)
+    📎 16_Quadratics_Answers.pdf (https://drive.google.com/file/d/1vhvVzhGHRSO8KQrTVcQ6mBF4Bz6o2aoe/view?usp=drive_web)
+    📎 7_Percent_Answers.pdf (https://drive.google.com/file/d/1YbogtI8nnt_inyr-GGG2MMRs4Q31qabV/view?usp=drive_web)
+    📎 6_Ratios and Rates_Answers.pdf (https://drive.google.com/file/d/1x2GvlUwlfJlvlPyIdryk32wERt9kGpRE/view?usp=drive_web)
+    📎 5_Rates.pdf (https://drive.google.com/file/d/1o0kJrjWoIqoGe1gAkbx5bjDEsgj2Rr6h/view?usp=drive_web)
+    📎 4_Proportion.pdf (https://drive.google.com/file/d/1U2-kqljG3zf2j9XB6AIecx0TXzGeBxkp/view?usp=drive_web)
+    📎 Central Idea_L2 (3).pdf (https://drive.google.com/file/d/1pl5ECdodddHcBjUDTQgvTZd85vz53kAb/view?usp=drive_web)
+    📎 Central Idea_L3 (1).pdf (https://drive.google.com/file/d/17PpKF6pL9-M-ttKL0UIgJ7dXEY_cPJUC/view?usp=drive_web)
+    📎 Evidence_L2 (3).pdf (https://drive.google.com/file/d/1ZTNBDx4Wp24Gtp9DqH3dEuU6vv64CI_m/view?usp=drive_web)
+    📎 Evidence_L2 (4).pdf (https://drive.google.com/file/d/1x-o3YwHojtv5KldkOATUl7yXGveqxYbh/view?usp=drive_web)
+    📎 Cross Text_L2 (1).pdf (https://drive.google.com/file/d/11dS_668zQCq2OC5pzoRvDGnjI_UAP_hX/view?usp=drive_web)
+    📎 6_Ratios and Rates.pdf (https://drive.google.com/file/d/13jgwI4os3LJDP6whD7YJykhFBkqEO_cU/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 5 — Due: 2026-06-18 03:59
+    📎 Vocab Quiz 8 (https://docs.google.com/document/d/1Zf_WMGuqZk1mD0mbJxD-mUJeh-sy0BImL8YTcz7ECB0/edit?usp=drive_web)
+    📎 Vocab Quiz 9 (https://docs.google.com/document/d/1GN8aLsISSmE7I8SXTdCtqcEuwAYunp5_H7q3zHj5Awg/edit?usp=drive_web)
+    📎 Vocab Quiz 10 (https://docs.google.com/document/d/1sh35tOAZ3KD4P1JnLha2D4iejMXwxdeq2wgHp4M4ov0/edit?usp=drive_web)
+    📎 11_Quadratics_Answers.pdf (https://drive.google.com/file/d/1Vm4RwbjOS9KoItyg_kqAX41nzecp2PLt/view?usp=drive_web)
+    📎 Form_L2 (1)_Answers.pdf (https://drive.google.com/file/d/1Ys25Y4gILztbxh6JXLqq81tCbjzgLpD6/view?usp=drive_web)
+    📎 13_(Ans) Tenses.pdf (https://drive.google.com/file/d/1m0zlUdBViOGQpcpSu9b0jFS8a6sfmNIM/view?usp=drive_web)
+    📎 16_Quadratics.pdf (https://drive.google.com/file/d/1DcOrxc2SONzA0GzsPPyHs97UVbfUj5Mv/view?usp=drive_web)
+    📎 7_Percent.pdf (https://drive.google.com/file/d/1X-k7liJElt4yt8Q4-MUQb_Tn9ileZv43/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 7 Homework (Morning 1) — Due: 2026-06-17 03:59
+    📎 7A_MWF 10-1 Day 7.pdf (https://drive.google.com/file/d/1bb7ZIBmAAApIQdXZJjDkZUfQmBJRufNJ/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 6 Homework (Morning 1) — Due: 2026-06-16 03:59
+    📎 8_W (Standard English Conventions 1).pdf (https://drive.google.com/file/d/1JWtUub2zqymZuCpuxYTA6rczps388xcu/view?usp=drive_web)
+    📎 9_W (Standard English Conventions 2).pdf (https://drive.google.com/file/d/1bQ7XhVGoG5292RTPyUQnNASYGiSLVcXe/view?usp=drive_web)
+    📎 10_W (Standard English Conventions 3).pdf (https://drive.google.com/file/d/1neZ7hIBx4kq8oZLD8W_rfoTwP410BuKe/view?usp=drive_web)
+    📎 11_W (Standard English Conventions 3).pdf (https://drive.google.com/file/d/1FzDJ9csjzHVy3neeyOfwZkHQDk2gea1v/view?usp=drive_web)
+    📎 Quadratics.pdf (https://drive.google.com/file/d/1MsrMnCt9pmwtGOad77ZhgK0zOyaU9e1g/view?usp=drive_web)
+    📎 6A_MWF 10-1 Day 6.pdf (https://drive.google.com/file/d/1-ym7GCFXUgsnQB9K7gokkOY2USsizudW/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 4 — Due: 2026-06-12 03:59
+    📎 5_(Ans) Modifiers.pdf (https://drive.google.com/file/d/162JTd82JXSHVu5EFkPfoG2XhtFFT34Fr/view?usp=drive_web)
+    📎 14_(Ans) Commas, Dashes, Colons.pdf (https://drive.google.com/file/d/1-nDj2JkWcckkHCVfbiO_K9s_VDvaGgRa/view?usp=drive_web)
+    📎 11_Quadratics.pdf (https://drive.google.com/file/d/1XyI-ygV-QjfHnRfygAwfe0VKa_gyqKfl/view?usp=drive_web)
+    📎 Boundaries_L2 (1).pdf (https://drive.google.com/file/d/1un3rXLb2vsUjGtT5YqsyI_pHRy1lprB6/view?usp=drive_web)
+    📎 Form_L2 (1).pdf (https://drive.google.com/file/d/1w7VTga6WdE5ttzp8ObFm5kt3KrPKqI83/view?usp=drive_web)
+    📎 13_Tenses.pdf (https://drive.google.com/file/d/1RnNZG7kOH0RqKN0Tr-Xng6pxBmG9frFY/view?usp=drive_web)
+    📎 Vocab Quiz 7 (https://docs.google.com/document/d/1fV-qN5XWSJSkSjiAWZOyNtTqRYMSSEcaOwO44E-NT4M/edit?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 5 Homework (Morning 1) — Due: 2026-06-12 03:59
+    📎 5A_MWF 10-1 Day 5.pdf (https://drive.google.com/file/d/1ePVDwXSx0f1sM1v8bl0rA6eSLgSaIDbL/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Problem-Solving 3 — Due: 2026-06-11 03:59
+    📎 4_(Ans) Subject Verb Agreement.pdf (https://drive.google.com/file/d/1ITdKC4y_d66HSB8iH7aCnGJqqDoGQKGm/view?usp=drive_web)
+    📎 10_Systems of Equations_Answers.pdf (https://drive.google.com/file/d/1IDhRTRd-zZQ-TZVQ7TldPB18tWI9CBSW/view?usp=drive_web)
+    📎 3A_Systems Only (Ans).png (https://drive.google.com/file/d/1s8a9PbotftQKZRqQJy5fU9ydVZE44-Uy/view?usp=drive_web)
+    📎 Vocab Quiz 4 (https://docs.google.com/document/d/1jnv2YMeBkTBmg9aghHuTBbIjkA5SGZpsAEwB72xmfZc/edit?usp=drive_web)
+    📎 Vocab Quiz 5 (https://docs.google.com/document/d/1HnXzGo-JxuO3Iu4k8vF2MoLXxQ_pC5h14CYLMHh0ZWc/edit?usp=drive_web)
+    📎 Vocab Quiz 6 (https://docs.google.com/document/d/1nBvWrgit90XNHa8hYKL6122hHMnI-HkBkErtxOIbtqw/edit?usp=drive_web)
+    📎 5_Modifiers.pdf (https://drive.google.com/file/d/1HdgdhIPuG2VQoqIl5tDlOv4fHgDiukWR/view?usp=drive_web)
+    📎 14_Commas, Dashes, Colons.pdf (https://drive.google.com/file/d/1hMbWvxSNG0TGT476npBe6QkjO1nh75m4/view?usp=drive_web)
+    📎 7_W (Boundaries 2) (https://docs.google.com/presentation/d/1ZmRqRdu-k9FReES8X0awKYWh1IEXr9wMXpI_AE1i5LE/edit?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 4 Homework (Morning 1) — Due: 2026-06-10 03:59
+    📎 4A_MWF 10-1 Day 4.pdf (https://drive.google.com/file/d/1EHJcikAJ8oPJ_IajlQmrNxzn5KPLQTVT/view?usp=drive_web)
+[2026 Summer SAT/ACT @ AHA] Day 3 Homework (Morning 1) — Due: 2026-06-09 03:59
+    📎 3A_MWF 10-1 Day 3.pdf (https://drive.google.com/file/d/1DFkK-FZ1V6vSi8fVd5vczM0Y9R31m8J2/view?usp=drive_web)
+    📎 Heart of Algebra.pdf (https://drive.google.com/file/d/1tpFFT3i8tNgbFlKWgtvufNJZnS5ohDAz/view?usp=drive_web)
+    📎 Heart of Algebra (Ans).pdf (https://drive.google.com/file/d/1Y7z3ZSAHHibUsuYWlfh1slq-AVjTHUlz/view?usp=drive_web)
+
+=== CLASSROOM_ANNOUNCEMENTS ===
+📢 **Google Classroom Announcements:**
+[2026 Summer SAT/ACT @ AHA] 8 am post  What are you specifically doing to prepare for the mock test this Friday/Saturday?  Be very detailed!  Text me at 678.429.1709
+[2026 Summer SAT/ACT @ AHA] IMPORTANT ANNOUNCEMENT!  PLEASE READ EVERYTHING!  You will take a practice SAT on either Friday (6/26) OR Saturday (6/27) at 8 AM. Please read ALL instructions carefully.  NOTE: Since you will be taki...
+[2026 Summer SAT/ACT @ AHA] Submit your Day 10 homework (Geometry Formulas) video below.
+[2026 Summer SAT/ACT @ AHA] 8 am Post Day 14 Update   Everyone please stop doing the problem and resubmit. I'm very disappointed that I showed in class I'm even asked are we going to be lazy and not draw the three right triangle...
+[2026 Summer SAT/ACT @ AHA] 8 am Post Day 14  Hello all, and welcome to the last week of June. I'm excited to have you all do your mock test this Friday/Saturday.    For today,   If Triangle abc is a right triangle with right an...
+[2026 Summer SAT/ACT @ AHA] 8 AM posts - Hello all, with this weekend being Father's Day weekend, I gave you all a small break for the 8 AM posts.  I expect that you all have been awake (even earlier since the mock exam is arriv...
+[2026 Summer SAT/ACT @ AHA] 8 AM Post Day 14  Dancing in the rain while thunder roared in the deep night was the memorable moment of our evening together.   Find the subject of this sentence.   A triangle has sides of 9 and 6, f...
+[2026 Summer SAT/ACT @ AHA] 8 AM Post Day 13  Our first mock exam is arriving in nearly a week.  As such, I need you to understand the importance of being awake and alert.  Please detail what you will be doing from today onwards...
+[2026 Summer SAT/ACT @ AHA] Formula Sheet Assignment: Part of Day 8 Homework and an Ongoing Assignment  (DO NOT use ChatGPT or any other AI tools! You must go through your notes!)  Start organizing and writing BY HAND all import...
+[2026 Summer SAT/ACT @ AHA] 8 AM Post Day 12  An angle's supplement is 75% more than the angle itself.  Find both the angle and the supplement.  A rectangle has its length and width in a 5:12 ratio. If the rectangle's diagonal i...
+
+=== GMAIL ===
+No urgent gmail updates.
+
+=== GROUPME ===
+No urgent groupme updates.
+
+=== GDOCS ===
+No recently modified Google Docs found.
+

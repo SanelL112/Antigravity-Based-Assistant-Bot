@@ -1,6 +1,7 @@
 import os
 import glob
 import logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 import asyncio
 import httpx
 
