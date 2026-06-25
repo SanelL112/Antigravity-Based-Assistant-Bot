@@ -1,8 +1,14 @@
 import os
+import sys
 import json
 import logging
 from youtubesearchpython import VideosSearch
 from youtube_transcript_api import YouTubeTranscriptApi
+
+# Ensure project root is on sys.path for standalone usage
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 from ai_processor import call_agy
 
 logger = logging.getLogger(__name__)

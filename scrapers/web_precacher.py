@@ -69,8 +69,6 @@ async def pre_cache_web():
         logger.info(f"Identified topic for pre-caching: {topic}")
         
         # 2. Search the web (using a simple DuckDuckGo HTML scrape)
-        search_url = f"https://html.duckduckgo.com/html/?q={httpx.urls.URL(topic).query}" # weak url encoding but fine
-        # Better encoding:
         from urllib.parse import quote_plus
         search_url = f"https://html.duckduckgo.com/html/?q={quote_plus(topic + ' explanation examples')}"
         

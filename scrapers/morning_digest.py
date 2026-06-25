@@ -45,6 +45,9 @@ def get_pending_tasks():
         return []
 
 async def send_morning_digest():
+    if not TELEGRAM_BOT_TOKEN:
+        logger.error("TELEGRAM_BOT_TOKEN not set")
+        return
     bot = Bot(token=TELEGRAM_BOT_TOKEN)
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     context_file = os.path.join(base_dir, "bot_context.txt")

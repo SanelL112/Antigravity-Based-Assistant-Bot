@@ -81,6 +81,8 @@ def call_agy(prompt: str, timeout: int = 180, model: str = "flash") -> str:
     import pty, select, time, os as _os
     
     def _run_model(target_model: str) -> str:
+        master = -1
+        proc = None
         try:
             master, slave = pty.openpty()
             proc = subprocess.Popen(
@@ -116,10 +118,9 @@ def call_agy(prompt: str, timeout: int = 180, model: str = "flash") -> str:
                         pass
                     break
 
-            proc.wait(timeout=5) if proc.poll() is None else None
             try:
-                _os.close(master)
-            except OSError:
+                proc.wait(timeout=5)
+            except Exception:
                 pass
 
             raw = b"".join(output_chunks).decode("utf-8", errors="replace")
@@ -141,6 +142,19 @@ def call_agy(prompt: str, timeout: int = 180, model: str = "flash") -> str:
         except Exception as e:
             logger.error(f"agy pty error ({target_model}): {e}")
             return ""
+        finally:
+            # Always close master FD to prevent file descriptor leak
+            if master >= 0:
+                try:
+                    _os.close(master)
+                except OSError:
+                    pass
+            # Ensure process is cleaned up
+            if proc and proc.poll() is None:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
 
     logger.info(f"Attempting processing with {model}...")
     result = _run_model(model)
@@ -280,21 +294,22 @@ def assemble_digest(summaries: dict) -> dict:
     topics = []
     digest = output
     
-    if "TASKS_JSON:" in digest:
-        parts = digest.rsplit("TASKS_JSON:", 1)
-        digest = parts[0].strip()
+    import re as _re
+    tasks_match = _re.search(r'TASKS_JSON:(.*?)(?:STUDY_TOPICS_JSON:|$)', digest, _re.DOTALL)
+    if tasks_match:
         try:
-            tasks = json.loads(parts[1].strip())
+            tasks = json.loads(tasks_match.group(1).strip())
         except Exception:
             pass
-            
-    if "STUDY_TOPICS_JSON:" in digest:
-        parts = digest.rsplit("STUDY_TOPICS_JSON:", 1)
-        digest = parts[0].strip()
+        digest = digest.replace('TASKS_JSON:' + tasks_match.group(1), '').strip()
+
+    topics_match = _re.search(r'STUDY_TOPICS_JSON:(.*?)(?:TASKS_JSON:|$)', digest, _re.DOTALL)
+    if topics_match:
         try:
-            topics = json.loads(parts[1].split("\n")[0].strip())
+            topics = json.loads(topics_match.group(1).strip().split('\n')[0])
         except Exception:
             pass
+        digest = digest.replace('STUDY_TOPICS_JSON:' + topics_match.group(1).split('\n')[0], '').strip()
 
     # ── Deduplication: compare with previous digest via agy Flash ────────────
     previous_digest_path = os.path.join(BOT_DIR, "latest_digest.txt")

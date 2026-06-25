@@ -16,6 +16,9 @@ def get_google_creds():
 
 def rescue():
     creds = get_google_creds()
+    if not creds:
+        print("No credentials available")
+        return
     drive = build("drive", "v3", credentials=creds)
     classroom = build("classroom", "v1", credentials=creds)
     
@@ -48,5 +51,6 @@ def rescue():
     with open(os.path.join(BASE_DIR, "..", "curated_brain.md"), "a") as f:
         f.write(output)
 
-rescue()
-print("Rescued documents to index.")
+if __name__ == "__main__":
+    rescue()
+    print("Rescued documents to index.")

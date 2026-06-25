@@ -72,70 +72,71 @@ async def consolidate_memory():
         logger.error("All local models failed to consolidate memory. Aborting to protect PII.")
         return
 
+    # Phase 1: Write brain to file
     try:
-            brain_file = os.path.join(base_dir, "curated_brain.md")
-            existing_brain = ""
-            if os.path.exists(brain_file):
-                with open(brain_file, "r") as f:
-                    existing_brain = f.read()
-            
-            final_brain = brain
-            if existing_brain:
-                # Merge old and new
-                merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
-                try:
-                    import httpx
-                    async with httpx.AsyncClient() as client:
-                        resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "llama3.1", "prompt": merge_prompt, "stream": False}, timeout=7200.0)
-                        if resp2.status_code == 200:
-                            final_brain = resp2.json().get("response", "").strip()
-                        else:
-                            raise Exception("Ollama merge failed")
-                except Exception as e:
-                    logger.warning(f"Local Llama 3.1 failed to merge brain ({e}). Falling back to secure local G1 Flash...")
-                    from ai_processor import call_agy
-                    merged = call_agy(merge_prompt, timeout=180, model="flash")
-                    if merged: final_brain = merged
-                        
-            with open(brain_file, "w") as f:
-                f.write(final_brain)
-                
-            # Trigger Deep-Dive Online Researcher
-            logger.info("Triggering offline topic researcher...")
+        brain_file = os.path.join(base_dir, "curated_brain.md")
+        existing_brain = ""
+        if os.path.exists(brain_file):
+            with open(brain_file, "r") as f:
+                existing_brain = f.read()
+        
+        final_brain = brain
+        if existing_brain:
+            # Merge old and new
+            merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
             try:
-                import subprocess
-                subprocess.run(["python3", os.path.join(base_dir, "overnight_researcher.py")], timeout=1800)
+                async with httpx.AsyncClient() as client:
+                    resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "llama3.1", "prompt": merge_prompt, "stream": False}, timeout=7200.0)
+                    if resp2.status_code == 200:
+                        final_brain = resp2.json().get("response", "").strip()
+                    else:
+                        raise Exception("Ollama merge failed")
             except Exception as e:
-                logger.error(f"Overnight researcher failed: {e}")
-                
-            # 3. Massive Historical Indexing
-            logger.info("Running massive historical data export...")
-            try:
-                from scrapers.historical_export import run_all_exports
-                run_all_exports()
-            except Exception as e:
-                logger.error(f"Historical export failed: {e}")
-                
-            logger.info("Running nightly massive indexer via OpenRouter...")
-            try:
-                # Run it asynchronously
-                from scrapers.offline_indexer import run_indexing
-                await run_indexing()
-            except Exception as e:
-                logger.error(f"Nightly indexer failed: {e}")
-                
-            logger.info("Daily pipeline complete.")
-
-            # WIPE RAW LOGS
-            if os.path.exists(summaries_file):
-                os.remove(summaries_file)
-            for cf in chat_files:
-                os.remove(cf)
-                
-            logger.info("Memory consolidation complete! Raw logs wiped.")
-            
+                logger.warning(f"Local Llama 3.1 failed to merge brain ({e}). Falling back to secure local G1 Flash...")
+                from ai_processor import call_agy
+                merged = call_agy(merge_prompt, timeout=180, model="flash")
+                if merged: final_brain = merged
+                    
+        with open(brain_file, "w") as f:
+            f.write(final_brain)
     except Exception as e:
-        logger.error(f"Failed to consolidate memory: {e}")
+        logger.error(f"Failed to write brain file: {e}")
+            
+    # Phase 2: Trigger Deep-Dive Online Researcher
+    logger.info("Triggering offline topic researcher...")
+    try:
+        import subprocess
+        subprocess.run(["python3", os.path.join(base_dir, "overnight_researcher.py")], timeout=1800)
+    except Exception as e:
+        logger.error(f"Overnight researcher failed: {e}")
+            
+    # Phase 3: Massive Historical Indexing
+    logger.info("Running massive historical data export...")
+    try:
+        from scrapers.historical_export import run_all_exports
+        run_all_exports()
+    except Exception as e:
+        logger.error(f"Historical export failed: {e}")
+            
+    # Phase 4: Nightly Indexer
+    logger.info("Running nightly massive indexer via OpenRouter...")
+    try:
+        from scrapers.offline_indexer import run_indexing
+        await run_indexing()
+    except Exception as e:
+        logger.error(f"Nightly indexer failed: {e}")
+            
+    logger.info("Daily pipeline complete.")
+
+    # Phase 5: Wipe raw logs (always attempt, even if earlier phases failed)
+    try:
+        if os.path.exists(summaries_file):
+            os.remove(summaries_file)
+        for cf in chat_files:
+            os.remove(cf)
+        logger.info("Memory consolidation complete! Raw logs wiped.")
+    except Exception as e:
+        logger.error(f"Failed to wipe raw logs: {e}")
 
 if __name__ == "__main__":
     asyncio.run(consolidate_memory())

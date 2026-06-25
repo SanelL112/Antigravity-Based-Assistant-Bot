@@ -36,6 +36,7 @@ async def main():
             
             # Automatically push the massive generated documents to GitHub
             print("Pushing generated study guides to GitHub...")
+            os.chdir("/home/sanel/personal-assistant-bot")
             subprocess.run(["git", "add", output_md, output_docx], check=True)
             subprocess.run(["git", "commit", "-m", f"docs: Auto-update {filename_base} study guide"], check=True)
             subprocess.run(["git", "push"], check=True)

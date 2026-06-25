@@ -6,7 +6,6 @@ from googleapiclient.discovery import build
 from canvasapi import Canvas
 from dotenv import load_dotenv
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +17,7 @@ os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 def get_google_creds():
     from google.oauth2.credentials import Credentials
     if os.path.exists(TOKEN_PATH):
-        from google_scraper import SCOPES
+        from scrapers.google_scraper import SCOPES
         return Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
     return None
 
@@ -113,7 +112,7 @@ def export_all_classroom():
                     import PyPDF2
                     import sys
                     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-                    from google_scraper import download_drive_file
+                    from scrapers.google_scraper import download_drive_file
                     
                     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                         path = tmp.name
@@ -200,7 +199,7 @@ def export_all_canvas():
                     try:
                         p = c.get_page(p_id)
                         import re
-                        clean = re.sub('<[^<]+?>', '', getattr(p, 'body', ''))
+                        clean = re.sub('<[^<]+?>', '', getattr(p, 'body', '') or '')
                         append_to_delta(f"=== CANVAS COURSE: {c.name} ===\nPage: {page.title}\n{clean}")
                         state["canvas"].append(p_id)
                     except Exception: pass

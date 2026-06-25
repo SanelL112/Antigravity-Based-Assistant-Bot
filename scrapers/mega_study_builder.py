@@ -170,11 +170,11 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
 --- YOUR PERSONAL NOTES (CANVAS/CLASSROOM/DOCS) ---
 {internal_notes}
 
---- YOUTUBE TRANSCRIPTS ({yt_meta["title"] if yt_meta else "None"}) ---
-{yt_text if yt_text else "None"}
+--- YOUTUBE TRANSCRIPTS ({yt_meta['title'] if yt_meta else 'None'}) ---
+{yt_text if yt_text else 'None'}
 
---- WEB ARTICLE SUMMARIES ({web_meta["title"] if web_meta else "None"}) ---
-{web_text if web_text else "None"}
+--- WEB ARTICLE SUMMARIES ({f'{len(web_meta)} sources' if web_meta else 'None'}) ---
+{web_text if web_text else 'None'}
 """
     from dotenv import load_dotenv
     load_dotenv()
@@ -182,8 +182,6 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not api_key:
         return "❌ Missing OPENROUTER_API_KEY in .env"
     
-    yt_meta, yt_text = search_youtube(search_topic)
-    web_sources, web_text = search_web_article(search_topic)
     image_sources = search_images(search_topic)
     
     # Format the Visual Asset Library for the AI
@@ -194,15 +192,8 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     else:
         visual_asset_library += "(No visual assets found.)\n"
     
-    # Pull in the user's internal notes from Canvas/Docs/Classroom and Extracted PDFs
-    internal_notes = ""
-    try:
-        with open("/home/sanel/personal-assistant-bot/scrapers/source_cache/pdf_exports.txt", "r", encoding="utf-8") as f:
-            internal_notes = f.read()
-    except Exception:
-        pass
-    
-    source_context = f"Internal Classroom Notes: {internal_notes[:15000]}\n\nWeb Articles: {web_text[:20000]}\n\nYouTube Transcripts: {yt_text[:20000]}"
+    # Re-use web_meta as web_sources for the final citation assembly
+    web_sources = web_meta
     
     def _call_or(prompt_text):
         import time
@@ -361,8 +352,8 @@ INSTRUCTIONS:
 
 def build_guide_for_drive_file(file_id: str, topic: str):
     import tempfile
-    from google_scraper import download_drive_file
-    from extract_notes import transcribe_handwritten_pdf
+    from scrapers.google_scraper import download_drive_file
+    from scrapers.extract_notes import transcribe_handwritten_pdf
     
     logger.info(f"Building guide for Drive file {file_id} on topic {topic}")
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:

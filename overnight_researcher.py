@@ -44,7 +44,7 @@ def run_overnight_research():
         
         # Clean up output
         if "```" in topics_raw:
-            topics_raw = topics_raw.split("```")[1]
+            topics_raw = topics_raw.split("```")[1].lstrip("json").lstrip()
             
         topics = [t.strip() for t in topics_raw.split(",") if t.strip()]
     except Exception as e:
@@ -66,8 +66,8 @@ def run_overnight_research():
         try:
             # We now route the knowledge base directly through the 100-page Visual Image Pipeline
             import sys
-            sys.path.append(os.path.join(BASE_DIR, "scrapers"))
-            from mega_study_builder import generate_mega_guide
+            sys.path.insert(0, BASE_DIR)
+            from scrapers.mega_study_builder import generate_mega_guide
             
             research_text = generate_mega_guide(topic)
             

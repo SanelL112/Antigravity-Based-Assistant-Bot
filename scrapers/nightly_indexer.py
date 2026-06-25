@@ -75,6 +75,7 @@ async def run_indexing():
     chunks = list(chunk_text(text, chunk_size=25000))
     total_chunks = len(chunks)
     
+    success_count = 0
     for i, chunk in enumerate(chunks):
         logger.info(f"Processing chunk {i+1}/{total_chunks} for delta_export...")
         result = await process_chunk(chunk, i+1, "delta_export")
@@ -82,10 +83,14 @@ async def run_indexing():
             with open(OUTPUT_FILE, "a", encoding="utf-8") as out_f:
                 out_f.write(f"\n\n## Source: Nightly Delta (Part {i+1}/{total_chunks})\n\n")
                 out_f.write(result)
+            success_count += 1
                 
-    # Clear the delta file after successful processing
-    open(delta_file, 'w').close()
-    logger.info("Delta Indexing Complete. Output appended to mega_index.md.")
+    # Only clear the delta file if ALL chunks were processed successfully
+    if success_count == total_chunks:
+        open(delta_file, 'w').close()
+        logger.info("Delta Indexing Complete. Output appended to mega_index.md.")
+    else:
+        logger.warning(f"Only {success_count}/{total_chunks} chunks succeeded. Keeping delta file for retry.")
 
 if __name__ == "__main__":
     asyncio.run(run_indexing())

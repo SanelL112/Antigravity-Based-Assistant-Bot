@@ -1,0 +1,51 @@
+Already up to date.
+YouTube error: post() got an unexpected keyword argument 'proxies'
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+=== Nightly Processor Started at 2026-06-24 02:00:01.586212 ===
+Executing Google Classroom & Drive Sync...
+Successfully synced and downloaded all new queued PDFs and Docs into the memory bank.
+
+==============================================
+Starting Nightly Build Pipeline for: SAT Math and Geometry Master Guide
+==============================================
+
+Traceback (most recent call last):
+  File "/home/sanel/personal-assistant-bot/nightly_processor.py", line 114, in <module>
+    main()
+    ~~~~^^
+  File "/home/sanel/personal-assistant-bot/nightly_processor.py", line 87, in main
+    build_and_push("SAT Math and Geometry Master Guide")
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sanel/personal-assistant-bot/nightly_processor.py", line 39, in build_and_push
+    result = generate_mega_guide(topic)
+  File "/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py", line 176, in generate_mega_guide
+    --- WEB ARTICLE SUMMARIES ({web_meta["title"] if web_meta else "None"}) ---
+                                ~~~~~~~~^^^^^^^^^
+TypeError: list indices must be integers or slices, not str
+Already up to date.
+Some characters could not be decoded, and were replaced with REPLACEMENT CHARACTER.
+=== Nightly Processor Started at 2026-06-25 02:00:02.176521 ===
+Executing Google Classroom & Drive Sync...
+Successfully synced and downloaded all new queued PDFs and Docs into the memory bank.
+
+==============================================
+Starting Nightly Build Pipeline for: SAT Math and Geometry Master Guide
+==============================================
+
+Traceback (most recent call last):
+  File "/home/sanel/personal-assistant-bot/nightly_processor.py", line 114, in <module>
+    main()
+    ~~~~^^
+  File "/home/sanel/personal-assistant-bot/nightly_processor.py", line 87, in main
+    build_and_push("SAT Math and Geometry Master Guide")
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sanel/personal-assistant-bot/nightly_processor.py", line 39, in build_and_push
+    result = generate_mega_guide(topic)
+  File "/home/sanel/personal-assistant-bot/scrapers/mega_study_builder.py", line 176, in generate_mega_guide
+    --- WEB ARTICLE SUMMARIES ({web_meta["title"] if web_meta else "None"}) ---
+                                ~~~~~~~~^^^^^^^^^
+TypeError: list indices must be integers or slices, not str

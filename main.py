@@ -3,6 +3,7 @@ import json
 import logging
 import asyncio
 import subprocess
+import sys
 import datetime
 import pytz
 from dotenv import load_dotenv
@@ -28,6 +29,11 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+# Ensure project root is on sys.path once (avoids repeated sys.path.append)
+BOT_DIR = os.path.dirname(os.path.abspath(__file__))
+if BOT_DIR not in sys.path:
+    sys.path.insert(0, BOT_DIR)
 
 
 # ── Transcript helpers ─────────────────────────────────────────────────────────
@@ -126,7 +132,6 @@ async def detect_topic(message: str, chat_id: int) -> str:
     )
     
     try:
-        import subprocess
         result = await asyncio.wait_for(
             asyncio.get_event_loop().run_in_executor(
                 None,
@@ -627,7 +632,7 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
     if is_sleep_window(): return
     chat_id = context.job.chat_id
     state = load_state()
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    # sys.path already set at module level
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
@@ -651,7 +656,6 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
     raw_data = f"CANVAS:\n{canvas}\n\nCLASSROOM:\n{classroom}\n\nCLASSROOM ANNOUNCEMENTS:\n{classroom_ann}\n\nGMAIL:\n{gmail}\n\nGROUPME:\n{groupme}"
     
     import re
-    import json
     
     # Match all attached files
     all_files = re.findall(r"📎\s+([^\(]+)\s*\((https://drive\.google\.com/file/d/([^/]+)/[^\)]+)\)", classroom)
@@ -749,17 +753,18 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
         if not result:
             logger.info("Falling back to G1 Flash for watchdog alert...")
             from ai_processor import call_agy
-            import asyncio
             result = await asyncio.to_thread(call_agy, prompt, 3600, "flash")
-            if result and "NO_ALERT" not in result and len(result) > 10:
-                logger.info(f"Watchdog triggered: {result}")
-                await context.bot.send_message(
-                    chat_id=chat_id, 
-                    text=f"🚨 **WATCHDOG ALERT** 🚨\n\n{result}",
-                    parse_mode="Markdown"
-                )
-            else:
-                logger.info("Watchdog check clear (no alerts).")
+                
+        # Send alert regardless of which model produced the result
+        if result and "NO_ALERT" not in result and len(result) > 10:
+            logger.info(f"Watchdog triggered: {result}")
+            await context.bot.send_message(
+                chat_id=chat_id, 
+                text=f"🚨 **WATCHDOG ALERT** 🚨\n\n{result}",
+                parse_mode="Markdown"
+            )
+        else:
+            logger.info("Watchdog check clear (no alerts).")
     except Exception as e:
         logger.error(f"Watchdog Ollama error: {e}")
 
@@ -768,7 +773,7 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     chat_id = context.job.chat_id
     state = load_state()
     
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    # sys.path already set at module level
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
@@ -1024,7 +1029,7 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await context.bot.send_message(chat_id=chat_id, text="⏳ Generating your summary digest... This might take a minute.")
     
     import sys
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    # sys.path already set at module level
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
@@ -1038,13 +1043,15 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     announcements = get_classroom_announcements() or "No Announcements"
     docs = get_recent_google_docs() or "No Docs"
     
-    ai_result = process_all_sources(canvas, classroom, gmail, groupme, classroom_ann_data=announcements, gdocs_data=docs)
+    ai_result = await asyncio.to_thread(process_all_sources, canvas, classroom, gmail, groupme, announcements, docs)
     
     # Ask user before pushing tasks to Notion
     state = load_state()
     new_tasks = []
     for task in ai_result.get("tasks", []):
-        thash = get_hash(task.get("id", task.get("title", "")))
+        task_title = task.get("title", "").strip().lower()
+        task_source = task.get("source", "").strip().lower()
+        thash = get_hash(task_title + "_" + task_source)
         if thash not in state.setdefault("seen_tasks", []):
             new_tasks.append(task)
             state["seen_tasks"].append(thash)
@@ -1298,16 +1305,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Run it synchronously since we are just blocking this callback (or ideally async, but this is fine for now)
         loop = asyncio.get_event_loop()
         
-        def _build():
-            from scrapers.mega_study_builder import build_guide_for_drive_file
-            # Use a default topic like XA_MWF Notes
-            return build_guide_for_drive_file(file_id, "XA_MWF Notes")
-            
         try:
-            # We must import from the current directory, but python might not know it
-            import sys, os
-            sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-            from mega_study_builder import build_guide_for_drive_file
+            from scrapers.mega_study_builder import build_guide_for_drive_file
             
             result = await loop.run_in_executor(None, build_guide_for_drive_file, file_id, "XA_MWF Notes")
             
@@ -1347,9 +1346,9 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
         # 4. Auto-Generate SAT Guides
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Web Pre-cached.\n4️⃣ Building Separated SAT Study Guides (Math, Reading, Writing)...", parse_mode="Markdown")
         except Exception: pass
-        os.system("/home/sanel/personal-assistant-bot/venv/bin/python /home/sanel/personal-assistant-bot/run_builder.py 'SAT Math and Geometry Master Guide' > /dev/null 2>&1")
-        os.system("/home/sanel/personal-assistant-bot/venv/bin/python /home/sanel/personal-assistant-bot/run_builder.py 'SAT Reading Comprehension Master Guide' > /dev/null 2>&1")
-        os.system("/home/sanel/personal-assistant-bot/venv/bin/python /home/sanel/personal-assistant-bot/run_builder.py 'SAT Writing and Grammar Master Guide' > /dev/null 2>&1")
+        subprocess.run(['/home/sanel/personal-assistant-bot/venv/bin/python', '/home/sanel/personal-assistant-bot/run_builder.py', 'SAT Math and Geometry Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(['/home/sanel/personal-assistant-bot/venv/bin/python', '/home/sanel/personal-assistant-bot/run_builder.py', 'SAT Reading Comprehension Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(['/home/sanel/personal-assistant-bot/venv/bin/python', '/home/sanel/personal-assistant-bot/run_builder.py', 'SAT Writing and Grammar Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
         # 5. Dynamic Daily Topic Guide
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ SAT Guide Built.\n5️⃣ Analyzing today's notes to build a dynamic subject guide...", parse_mode="Markdown")
@@ -1366,7 +1365,7 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
                 if not dynamic_topic or len(dynamic_topic) > 50:
                     dynamic_topic = "General Academic Concepts"
                     
-        os.system(f"/home/sanel/personal-assistant-bot/venv/bin/python /home/sanel/personal-assistant-bot/run_builder.py '{dynamic_topic}' > /dev/null 2>&1")
+        subprocess.run(['/home/sanel/personal-assistant-bot/venv/bin/python', '/home/sanel/personal-assistant-bot/run_builder.py', dynamic_topic], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"💤 **Sleep Cycle Complete:**\n✅ PDFs Processed\n✅ Memory Consolidated\n✅ Web Pre-cached\n✅ SAT Guide Updated\n✅ '{dynamic_topic}' Guide Generated!\n\nGood night! 🌙", parse_mode="Markdown")
         except Exception: pass
