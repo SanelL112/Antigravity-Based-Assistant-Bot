@@ -16,7 +16,12 @@ class TelegramHandler(logging.Handler):
             return
         log_entry = self.format(record)
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        payload = {"chat_id": self.chat_id, "text": f"⚙️ `{log_entry}`", "parse_mode": "Markdown"}
+        payload = {
+            "chat_id": self.chat_id, 
+            "text": f"⚙️ `{log_entry}`", 
+            "parse_mode": "Markdown",
+            "disable_notification": True
+        }
         try:
             requests.post(url, json=payload, timeout=2)
         except:
