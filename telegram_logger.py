@@ -14,6 +14,11 @@ class TelegramHandler(logging.Handler):
     def emit(self, record):
         if not self.token or not self.chat_id:
             return
+            
+        # Ignore noisy internal library logs
+        if record.name.startswith("urllib3") or record.name.startswith("httpx") or record.name.startswith("telegram") or record.name.startswith("apscheduler"):
+            return
+            
         log_entry = self.format(record)
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         payload = {
