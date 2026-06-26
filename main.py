@@ -293,8 +293,8 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                         "https://openrouter.ai/api/v1/chat/completions",
                         headers={
                             "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-                            "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
-                            "X-Title": "TaskBot"
+                            "HTTP-Referer": "https://github.com/SanelL112/Antigravity-Based-Assistant-Bot",
+                            "X-Title": "Antigravity-Based-Assistant-Bot"
                         },
                         json={
                             "model": m_name,

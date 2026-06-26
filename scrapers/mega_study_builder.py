@@ -190,8 +190,8 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
                     "https://openrouter.ai/api/v1/chat/completions",
                     headers={
                         "Authorization": f"Bearer {api_key}",
-                        "HTTP-Referer": "https://github.com/SanelL112/TaskBot",
-                        "X-Title": "TaskBot"
+                        "HTTP-Referer": "https://github.com/SanelL112/Antigravity-Based-Assistant-Bot",
+                        "X-Title": "Antigravity-Based-Assistant-Bot"
                     },
                     json={
                         "models": ["openrouter/owl-alpha"],

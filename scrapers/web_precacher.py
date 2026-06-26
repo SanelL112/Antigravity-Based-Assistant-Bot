@@ -41,7 +41,7 @@ async def pre_cache_web():
             async with httpx.AsyncClient() as client:
                 resp = await client.post(
                     "https://openrouter.ai/api/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {api_key}", "HTTP-Referer": "https://github.com/SanelL112/TaskBot", "X-Title": "TaskBot"},
+                    headers={"Authorization": f"Bearer {api_key}", "HTTP-Referer": "https://github.com/SanelL112/Antigravity-Based-Assistant-Bot", "X-Title": "Antigravity-Based-Assistant-Bot"},
                     json={"model": m_name, "messages": [{"role": "user", "content": prompt_text}]},
                     timeout=120.0
                 )

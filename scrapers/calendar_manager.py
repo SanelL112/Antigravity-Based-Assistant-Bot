@@ -14,7 +14,7 @@ def add_study_session(summary: str, start_time_iso: str, duration_minutes: int) 
 
         event = {
             'summary': f"📚 Study Session: {summary}",
-            'description': 'Automatically scheduled study session via TaskBot.',
+            'description': 'Automatically scheduled study session via Antigravity-Based-Assistant-Bot.',
             'start': {
                 'dateTime': start_time.isoformat(),
                 'timeZone': 'America/New_York', # Assuming EST based on user's local time metadata
