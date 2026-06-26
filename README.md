@@ -1,57 +1,48 @@
 # Personal Assistant Bot (Local AI Ecosystem)
 
-Welcome to the Personal Assistant Bot! This is a highly integrated, privacy-focused AI assistant built with Python, Telegram, and a local **Llama 3.2** model running via Ollama. 
-
-Unlike traditional chatbots, this assistant acts as an autonomous ecosystem that continuously scrapes, indexes, and monitors your digital life to provide proactive assistance, study guides, and daily digests.
+Welcome to the Personal Assistant Bot! This is a highly integrated AI assistant that acts as an autonomous ecosystem. It continuously scrapes, indexes, and monitors your digital life to provide proactive assistance, massive study guides, and daily digests.
 
 ## Core Features
 
 - **Telegram Interface**: Interact with the bot natively through Telegram. Ask questions, upload images (for OCR/homework help), and receive push notifications.
-- **Local AI Processing**: Uses a local `llama3.2` model (via Ollama) to process all data. No data is sent to external LLM providers like OpenAI, ensuring total privacy.
+- **OpenRouter & Hybrid Processing**: Uses OpenRouter (Owl-Alpha / Flash) for incredibly powerful reasoning and multi-stage document generation, with local processing fallbacks.
+- **Syncthing & Obsidian Integration**: Completely integrated with Syncthing. All generated master study guides and brain logs are strictly deposited into an isolated `study_guides/` folder that magically beams directly into your local Obsidian Vault.
 - **Continuous Knowledge Indexing**: 
-  - Automatically scrapes Google Classroom (announcements, assignments, PDFs), Canvas, Google Docs, and Gmail.
-  - Builds an append-only timeline (`curated_brain.md`) and a summarized knowledge graph (`mega_index.md`).
+  - Automatically scrapes Google Classroom, Canvas, Google Docs, and Gmail.
+  - OCRs handwritten notes and automatically weaves them into your existing study guides.
+- **Nightly Delta-Update Generation**: Scrapes daily school notes and uses lightweight AI calls to append new knowledge to existing massive `.md` textbooks without wasting tokens rebuilding them from scratch.
 - **Morning Digest**: Sends a scheduled daily briefing (7:00 AM ET) summarizing upcoming assignments, unread emails, and events.
-- **Notion Watchdog**: Automatically pushes new assignments and tasks to a Notion database and asks for status updates.
-- **Study Guide Generation**: Can instantly generate comprehensive study guides using your uploaded coursework, past assignments, and PDF readings.
 
 ## Architecture & Ecosystem
 
 The system is broken down into several asynchronous pipelines:
 
-1. **The Telegram Bot (`main.py`)**: The central hub that receives messages, handles OCR for images, and responds to queries by injecting the latest knowledge index into its system prompt.
+1. **The Telegram Bot (`main.py`)**: The central hub that receives messages, handles OCR, and responds to queries.
 2. **The Scrapers (`scrapers/`)**: 
-   - `google_scraper.py`: Fetches Drive documents, Gmail, and Classroom data.
-   - `canvas_scraper.py`: Fetches Canvas assignments and pages.
-   - `historical_export.py`: Performs massive one-time scrapes of historical data.
-3. **The Indexers (`scrapers/nightly_indexer.py` & `memory_consolidation.py`)**: Runs offline to chunk massive amounts of text, feed them into the local Llama model, and extract actionable insights into the `mega_index.md` and `curated_brain.md`.
-4. **Context Injection (`scrapers/compile_context.py`)**: Compresses the massive knowledge bases into a tight, optimized `bot_context.txt` that is fed into the Telegram bot's real-time prompt.
+   - `google_scraper.py` & `canvas_scraper.py`: Fetches documents, assignments, and announcements.
+   - `extract_notes.py`: The OCR pipeline for decoding handwritten math and theory.
+3. **The Nightly Brain (`nightly_processor.py` & `overnight_researcher.py`)**: Runs offline to chunk massive amounts of text, extract dynamic school topics you learned that day, and inject them into `curated_brain.md` and the SAT Master Guides.
+4. **Mega Study Builder (`mega_study_builder.py`)**: A sprawling 10-chapter Editor-in-Chief pipeline that builds 50-page textbooks dynamically by searching DuckDuckGo and YouTube transcripts.
 
 ## Setup Instructions
 
 1. **Requirements**:
    - Python 3.10+
-   - `ollama` running locally with `llama3.2` installed (`ollama run llama3.2`)
    - Tesseract OCR (`sudo apt install tesseract-ocr`)
+   - Syncthing configured to point to `/home/sanel/personal-assistant-bot/study_guides/`
 2. **Environment Variables (`.env`)**:
    ```env
    TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+   OPENROUTER_API_KEY=your_openrouter_token
    CANVAS_API_URL=https://canvas.instructure.com
    CANVAS_API_TOKEN=your_canvas_token
-   NOTION_TOKEN=your_notion_integration_token
-   NOTION_DATABASE_ID=your_notion_database_id
    ```
 3. **Google API Credentials**:
-   Place your `credentials.json` in the root directory. On first run, the bot will generate a `token.json` file for Google Drive, Classroom, and Gmail access.
+   Place your `credentials.json` in the root directory to generate a `token.json` file.
 4. **Running the Bot**:
    The bot is designed to run continuously as a systemd service (`bot.service`).
-   ```bash
-   python3 main.py
-   ```
 
 ## Background Jobs
 
-The bot natively schedules the following tasks:
-- `02:00 AM`: Runs memory consolidation, downloads new Classroom PDFs, and rebuilds the AI context.
-- `07:00 AM`: Generates and sends the Morning Digest.
-- `Every 30 Mins`: Runs the Watchdog to check for new Notion tasks and assignments.
+- `Midnight/2:00 AM`: Runs memory consolidation, downloads new Classroom PDFs, OCRs them, and executes the delta-append logic to upgrade the `study_guides/` folder.
+- `07:00 AM`: Generates and sends the Morning Digest to Telegram.
