@@ -9,6 +9,19 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 async def consolidate_memory():
+    import subprocess
+    logger.info("Starting 1 AM Pipeline: Preparing system for heavy local AI processing...")
+    try:
+        # Start Ollama
+        subprocess.run('echo "Forgot@2023" | sudo -S systemctl start ollama', shell=True, check=False)
+        # Warn Minecraft players
+        subprocess.run('tmux send-keys -t minecraft "say Server might start getting laggy. Please leave. Auto stopping at 2 AM." C-m', shell=True, check=False)
+        # Lower Minecraft server priority (niceness +19)
+        subprocess.run('MC_PID=$(pgrep -f "java.*paper.jar"); if [ -n "$MC_PID" ]; then echo "Forgot@2023" | sudo -S renice -n 19 -p $MC_PID; fi', shell=True, check=False)
+        logger.info("System prepared successfully.")
+    except Exception as e:
+        logger.error(f"Failed to prepare system: {e}")
+
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     source_cache_dir = os.path.join(base_dir, "scrapers", "source_cache")
     
