@@ -8250,3 +8250,135 @@ The difference between a good score and a great score is not intelligence—it i
 - [The College Panda S Sat Writing Advanced Guide and ... - Scribd](https://www.scribd.com/document/447209165/the-college-panda-s-sat-writing-advanced-guide-and-workbook-pdf)
 - [Punctuation at Grammar Book | TikTok](https://www.tiktok.com/discover/punctuation-at-grammar-book)
 - [Word Wizards 2: Mastering Punctuation | Small Online... | Outschool](https://outschool.com/classes/word-wizards-2-mastering-punctuation-6bYtymNC)
+
+---
+
+## 📅 Update: 2026-06-27 - New Concepts
+
+### 📚 PART 1: SAT WRITING & GRAMMAR — NEW CONCEPTS
+
+#### 🔹 1. Transition Mastery: The "Claim vs. Evidence" Framework
+Today's class focused on a critical framework for the SAT Writing section: identifying the relationship between sentences before selecting a transition.
+
+**The Core Relationship Categories:**
+1.  **Opposition/Contrast:** Presenting an opposing point of view or balancing an idea that is too positive/negative.
+    *   *Keywords:* However, On the other hand, Conversely, Whereas, While, In contrast, Yet, Nevertheless.
+2.  **Support/Evidence:** Giving emphasis by adding a specific piece of evidence to support a claim.
+    *   *Keywords:* Indeed, In fact, For example, For instance, To illustrate, Furthermore, Moreover, Additionally.
+3.  **Cause & Effect:** Showing that one event is the result of another.
+    *   *Keywords:* Consequently, As a result, Because, Hence, Therefore, Thus, Accordingly, So.
+4.  **Concession:** Admitting a prior claim is true to make space for a more important, opposing claim.
+    *   *Keywords:* Granted, Although, Even though, Despite, Regardless, Nonetheless.
+5.  **Sequencing:** Showing the order or sequence of events (forward or backward).
+    *   *Keywords:* Next, Then, Subsequently, Previously, Before, Eventually, Finally.
+6.  **Similarity:** Showing that two claims share a constant theme.
+    *   *Keywords:* Similarly, Likewise, In the same way, By the same token.
+7.  **Conclusion:** Providing a summary or restatement of an idea.
+    *   *Keywords:* In conclusion, In summary, To sum up, In other words.
+
+**The "ICC" Transition Process (Identify, Classify, Choose):**
+*   **Step 1:** Read the sentence before the transition and determine its function (Is it a claim? Background info?).
+*   **Step 2:** Read the sentence *including* the transition and identify its relationship to the prior sentence.
+*   **Step 3:** Classify the relationship (e.g., Is it providing an example? Use "Support/Evidence").
+*   **Step 4:** Choose the transition that matches that classification. **Do not force a transition** if the sentences don't logically support it.
+
+#### 🔹 2. Rhetorical Synthesis (The "Claim-Evidence" Bullet Method)
+This question type provides bulleted research notes and asks you to synthesize them to support a specific claim.
+
+**The 3-Step Method:**
+1.  **Identify the Goal:** Read the question header and highlight the specific claim you are trying to support.
+2.  **Classify the Bullets:** Go through each bullet point and label it as either:
+    *   **Background:** General context (often less useful for direct proof).
+    *   **Evidential:** Direct proof or data that supports the claim.
+3.  **Select and Order:** Choose the bullets that provide the strongest evidence. Ensure the selected information creates an orderly, efficient argument that directly supports the claim in the header.
+
+#### 🔹 3. Words in Context: The "Definition Hunt"
+For vocabulary questions, the definition is rarely about the word's most common meaning; it is found contextually in the text.
+
+**Strategy:**
+1.  **Highlight the Definition:** Look for a phrase in the surrounding sentences that defines the underlined word.
+2.  **The "Write-Above" Technique:** Once you find the contextual definition, write a simple word or phrase above the complex SAT word.
+3.  **Match:** Find the answer choice that most closely matches your simple definition.
+
+#### 🔹 4. Punctuation Deep Dive: Commas, Semicolons, and Dashes
+*   **The "Useless Clause" Strategy:** To find the subject of a sentence, cross out Relative Clauses (who, whom, whose, which, that), Prepositional Phrases, and Comma Clauses. What remains must be a complete sentence with a subject and verb.
+*   **Semicolons:** Used to join two independent clauses (full sentences) without a coordinating conjunction (FANBOYS). Also used to separate items in a list if those items already contain commas.
+*   **Colons:** Must be preceded by a full sentence. Used to introduce a list (without an introductory phrase like "such as") or to add clarifying information.
+*   **Dashes (Em-dashes):** Used to add shocking or emphatic information at the end of a sentence, or to set off a non-essential clause (similar to commas but more emphatic).
+
+---
+
+### 📐 PART 2: SAT MATH — NEW CONCEPTS
+
+#### 🔹 5. Advanced Factoring: The "a ≠ 1" Method
+When the leading coefficient ($a$) is not 1, use the **AC Method**:
+1.  Multiply $a \times c$.
+2.  Find two numbers that multiply to $ac$ and add to $b$.
+3.  Split the middle term ($bx$) into those two numbers.
+4.  Factor by grouping.
+
+#### 🔹 6. Trigonometry: The "SohCahToa" Labeling System
+**Core Ratios:**
+*   $\sin(A) = \frac{\text{Opposite}}{\text{Hypotenuse}}$
+*   $\cos(A) = \frac{\text{Adjacent}}{\text{Hypotenuse}}$
+*   $\tan(A) = \frac{\text{Opposite}}{\text{Adjacent}}$
+
+**The "Steps to Find a Missing Side/Angle":**
+1.  **Choose an acute angle.**
+2.  **Label all three sides** (Hypotenuse, Opposite, Adjacent) based on that angle.
+3.  **Choose a trig function** based on the sides you know and the side you are looking for.
+4.  **Set up the equation** and solve for $x$.
+
+**Key Identities:**
+*   $\sin(x) = \cos(90^\circ - x)$ (Cofunctions)
+*   $\tan(A) = \frac{1}{\cot(A)}$
+
+#### 🔹 7. Special Right Triangles (The "Ratio" Method)
+*   **30-60-90 Triangle:** Sides are in ratio $x : x\sqrt{3} : 2x$.
+    *   Short leg (opposite 30°) = $x$
+    *   Long leg (opposite 60°) = $x\sqrt{3}$
+    *   Hypotenuse = $2x$
+*   **45-45-90 Triangle:** Sides are in ratio $x : x : x\sqrt{2}$.
+    *   Legs = $x$
+    *   Hypotenuse = $x\sqrt{2}$
+
+#### 🔹 8. Similar vs. Congruent Triangles
+*   **Congruent ($\cong$):** Exact same size and shape. (SSS, SAS, ASA, AAS, HL).
+*   **Similar ($\sim$):** Same shape, different sizes. All corresponding angles are equal, and all corresponding sides are proportional.
+    *   **Rule:** If two angles of one triangle are congruent to two angles of another, the triangles are similar (AA Postulate).
+
+#### 🔹 9. Quadratics: The Three Forms
+1.  **Standard Form:** $y = ax^2 + bx + c$ (Best for finding y-intercept and using the Quadratic Formula).
+2.  **Vertex Form:** $y = a(x-h)^2 + k$ (Best for finding the vertex $(h, k)$ and axis of symmetry $x=h$).
+3.  **Intercept Form:** $y = a(x-p)(x-q)$ (Best for finding x-intercepts $p$ and $q$).
+
+**Conversion Toolbox:**
+*   *Standard to Vertex:* Complete the square.
+*   *Vertex to Intercept:* Set $y=0$ and use the square root method.
+*   *Intercept to Standard:* FOIL the factors and distribute $a$.
+
+#### 🔹 10. Systems of Equations: Classification & Solving
+*   **Consistent Independent:** Different slopes ($m_1 \neq m_2$). One solution (lines cross).
+*   **Consistent Dependent:** Same slope and same y-intercept ($m_1 = m_2$, $b_1 = b_2$). Infinite solutions (same line).
+*   **Inconsistent:** Same slope but different y-intercepts ($m_1 = m_2$, $b_1 \neq b_2$). No solution (parallel lines).
+
+**Solving Methods:**
+*   **Substitution:** Best when a variable has a coefficient of 1.
+*   **Elimination:** Best when variables have coefficients that are easy to multiply to cancel out.
+
+#### 🔹 11. Linear Functions: Modeling and Slope
+*   **Slope Formula:** $m = \frac{y_2 - y_1}{x_2 - x_1}$
+*   **Parallel Lines:** Have the same slope.
+*   **Perpendicular Lines:** Have slopes that are negative reciprocals ($m_1 \cdot m_2 = -1$).
+*   **Slope Interpretation:** In a linear model $y = mx + b$, the slope ($m$) represents the rate of change of the dependent variable for every one-unit increase in the independent variable.
+
+#### 🔹 12. Percent Change and the "Factor of Change"
+*   **Formula:** $\text{New Value} = \text{Old Value} \times (1 \pm \text{rate})$
+*   **Increase by 20%:** Multiply by $1.20$.
+*   **Decrease by 20%:** Multiply by $0.80$.
+*   **Successive Changes:** If a value increases by 20% and then decreases by 20%, the final multiplier is $1.20 \times 0.80 = 0.96$ (a 4% decrease overall).
+
+#### 🔹 13. Triangle Properties
+*   **Triangle Inequality Theorem:** The sum of any two sides must be greater than the third side.
+*   **Angle-Side Relationship:** The largest side is opposite the largest angle; the smallest side is opposite the smallest angle.
+*   **Exterior Angle Theorem:** An exterior angle is equal to the sum of the two remote interior angles.
