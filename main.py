@@ -1273,6 +1273,12 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
                 f.write(f"\n--- Photo Upload ---\n{extracted}\n")
             reply = f"✅ Important text found and saved for the next digest!\n\n_Filtered preview:_\n{extracted}"
+            import glob
+            history_files = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"chat_history_{chat_id}_*.txt"))
+            if history_files:
+                latest_file = max(history_files, key=os.path.getmtime)
+                with open(latest_file, "a") as f:
+                    f.write(f"User: [I just uploaded a photo. Here is the raw text extracted from it: {ocr_text}]\nModel: (Image received. I am ready for questions about it.)\n\n")
         else:
             # User specifically sent a photo, so it's important regardless of what the small model thinks.
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
@@ -1280,9 +1286,16 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply = "⚠️ Local AI couldn't parse specific assignments, but I saved the raw text for the cloud AI to review!"
     except Exception as e:
         reply = f"❌ Local LLM connection error: {e}"
-        # Save raw OCR on error too
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
             f.write(f"\n--- Photo Upload (Raw OCR) ---\n{ocr_text}\n")
+            
+        # Add to the most recently active chat history so the user can ask follow-up questions!
+        import glob
+        history_files = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"chat_history_{chat_id}_*.txt"))
+        if history_files:
+            latest_file = max(history_files, key=os.path.getmtime)
+            with open(latest_file, "a") as f:
+                f.write(f"User: [I just uploaded a photo. Here is the raw text extracted from it: {ocr_text}]\nModel: (Image received. I am ready for questions about it.)\n\n")
         
     try:
         await context.bot.edit_message_text(
