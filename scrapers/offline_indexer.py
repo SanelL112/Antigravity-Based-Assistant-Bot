@@ -31,26 +31,33 @@ async def process_chunk(chunk, chunk_index, source_name, max_retries=3):
     for attempt in range(max_retries):
         try:
             import httpx
-            # Upgraded the indexer to use the exact same 1-Hour massive timeout as the builder
+            import os
+            api_key = os.getenv("OPENROUTER_API_KEY")
+            if not api_key:
+                from dotenv import load_dotenv
+                load_dotenv("/home/sanel/personal-assistant-bot/.env")
+                api_key = os.getenv("OPENROUTER_API_KEY")
+                
             async with httpx.AsyncClient(timeout=3600.0) as client:
                 response = await client.post(
-                    "http://localhost:11434/api/generate",
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "HTTP-Referer": "https://github.com/SanelL112/Antigravity-Based-Assistant-Bot",
+                        "X-Title": "Antigravity-Based-Assistant-Bot"
+                    },
                     json={
-                        "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
-                        "prompt": prompt,
-                        "stream": False,
-                        "options": {
-                            "num_ctx": 4096
-                        }
+                        "models": ["openrouter/owl-alpha:free", "openrouter/owl-alpha"],
+                        "messages": [{"role": "user", "content": prompt}]
                     }
                 )
                 if response.status_code == 200:
-                    return response.json().get("response", "")
+                    return response.json()["choices"][0]["message"]["content"]
                 else:
-                    logger.warning(f"Ollama returned {response.status_code}. Retrying...")
+                    logger.warning(f"OpenRouter returned {response.status_code}. Retrying...")
                     await asyncio.sleep(5)
         except Exception as e:
-            logger.error(f"Error communicating with Ollama: {e}")
+            logger.error(f"Error communicating with OpenRouter: {e}")
             await asyncio.sleep(5)
     return None
 
