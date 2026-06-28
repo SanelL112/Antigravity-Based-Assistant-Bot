@@ -58,7 +58,7 @@ async def consolidate_memory():
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "hf.co/unsloth/Meta-Llama-3.1-8B-Instruct-GGUF:latest",
+                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
                     "prompt": prompt,
                     "stream": False,
                     "options": {
@@ -74,7 +74,7 @@ async def consolidate_memory():
             raise Exception(f"Ollama returned {response.status_code}")
             
     except Exception as e:
-        logger.warning(f"Local Llama 3.1 failed to consolidate memory ({e}). Falling back to secure local G1 Flash to protect PII...")
+        logger.warning(f"Local Llama 3.2 failed to consolidate memory ({e}). Falling back to secure local G1 Flash to protect PII...")
         from ai_processor import call_agy
         brain = call_agy(prompt, timeout=180, model="flash")
 
@@ -96,13 +96,13 @@ async def consolidate_memory():
             merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
             try:
                 async with httpx.AsyncClient() as client:
-                    resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "llama3.1", "prompt": merge_prompt, "stream": False}, timeout=7200.0)
+                    resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": merge_prompt, "stream": False}, timeout=7200.0)
                     if resp2.status_code == 200:
                         final_brain = resp2.json().get("response", "").strip()
                     else:
                         raise Exception("Ollama merge failed")
             except Exception as e:
-                logger.warning(f"Local Llama 3.1 failed to merge brain ({e}). Falling back to secure local G1 Flash...")
+                logger.warning(f"Local Llama 3.2 failed to merge brain ({e}). Falling back to secure local G1 Flash...")
                 from ai_processor import call_agy
                 merged = call_agy(merge_prompt, timeout=180, model="flash")
                 if merged: final_brain = merged
