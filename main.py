@@ -1065,18 +1065,34 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     announcements = get_classroom_announcements() or "No Announcements"
     docs = get_recent_google_docs() or "No Docs"
     
-    ai_result = await asyncio.to_thread(process_all_sources, canvas, classroom, gmail, groupme, announcements, docs)
-    
+    try:
+        ai_result = await asyncio.to_thread(process_all_sources, canvas, classroom, gmail, groupme, announcements, docs)
+    except Exception as e:
+        logger.error(f"Error during AI digest generation: {e}")
+        await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"❌ The AI timed out or crashed while generating your digest: {e}")
+        return
+        
     # Ask user before pushing tasks to Notion
+    import difflib
     state = load_state()
     new_tasks = []
+    seen_titles = state.setdefault("seen_tasks", [])
+    
     for task in ai_result.get("tasks", []):
         task_title = task.get("title", "").strip().lower()
-        task_source = task.get("source", "").strip().lower()
-        thash = get_hash(task_title + "_" + task_source)
-        if thash not in state.setdefault("seen_tasks", []):
+        if not task_title: continue
+        
+        is_duplicate = False
+        for seen in seen_titles:
+            if difflib.SequenceMatcher(None, task_title, seen).ratio() > 0.8:
+                is_duplicate = True
+                break
+                
+        if not is_duplicate:
             new_tasks.append(task)
-            state["seen_tasks"].append(thash)
+            seen_titles.append(task_title)
+            
+    state["seen_tasks"] = seen_titles
     save_state(state)
     
     digest = ai_result.get("digest", "Nothing to report right now!")
