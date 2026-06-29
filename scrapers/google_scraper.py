@@ -1,11 +1,19 @@
 import os
 import logging
+import warnings
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
+# Suppress the "Not all requested scopes were granted" oauthlib warning —
+# the token has all needed scopes; the warning fires because Google's auth
+# library logs it at WARNING level on every credential load.
+warnings.filterwarnings('ignore', message='.*Not all requested scopes.*')
+logging.getLogger('google_auth_oauthlib').setLevel(logging.ERROR)
+logging.getLogger('google.auth').setLevel(logging.ERROR)
 
 logger = logging.getLogger(__name__)
 

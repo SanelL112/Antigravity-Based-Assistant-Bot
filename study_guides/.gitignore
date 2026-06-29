@@ -1,12 +1,25 @@
-venv/
+# Secrets — NEVER allow these in study_guides/ (Syncthing syncs to Obsidian!)
 .env
-credentials.json
-token.json
-state.json
-__pycache__/
-*.pyc
+.env.*
+*.env
 
-*.txt
-*.json
+# Syncthing marker
+.stfolder/
+
+# macOS junk
+.DS_Store
+.localized
+
+# Obsidian (should NOT be inside study_guides/)
+.obsidian/
+
+# Temp/cache files — source_cache/ is at a different path but just in case
+*.log
+*.tmp
+*.pyc
+__pycache__/
 source_cache/
-scratch/
+
+# OS junk
+Thumbs.db
+

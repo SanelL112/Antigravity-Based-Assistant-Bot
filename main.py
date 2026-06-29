@@ -870,10 +870,14 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
                 f.write(digest)
         except Exception:
             pass
-        try:
-            await context.bot.send_message(chat_id=chat_id, text=f"📊 **Periodic Digest**\n\n{digest}", parse_mode="Markdown")
-        except Exception:
-            await context.bot.send_message(chat_id=chat_id, text=f"📊 **Periodic Digest**\n\n{digest}")
+        digest_msg = f"� **Periodic Digest**\n\n{digest}"
+        max_len = 4096
+        for i in range(0, len(digest_msg), max_len):
+            chunk = digest_msg[i:i+max_len]
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=chunk, parse_mode="Markdown")
+            except Exception:
+                await context.bot.send_message(chat_id=chat_id, text=chunk)
             
     # 3. Ask to Compile Mega Study Guides
     topics = ai_result.get("topics", [])

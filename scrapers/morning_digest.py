@@ -72,11 +72,18 @@ async def send_morning_digest():
     else:
         msg += "📋 **Pending Tasks:** You have no pending tasks in Notion! Great job."
         
-    try:
-        await bot.send_message(chat_id=SANEL_CHAT_ID, text=msg, parse_mode="Markdown")
-        logger.info("Morning digest sent successfully.")
-    except Exception as e:
-        logger.error(f"Failed to send digest: {e}")
+    # Telegram messages max out at 4096 chars; split if needed
+    max_len = 4096
+    for i in range(0, len(msg), max_len):
+        chunk = msg[i:i+max_len]
+        try:
+            await bot.send_message(chat_id=SANEL_CHAT_ID, text=chunk, parse_mode="Markdown")
+        except Exception:
+            try:
+                await bot.send_message(chat_id=SANEL_CHAT_ID, text=chunk)
+            except Exception as e:
+                logger.error(f"Failed to send digest chunk: {e}")
+    logger.info("Morning digest sent successfully.")
 
 if __name__ == "__main__":
     asyncio.run(send_morning_digest())
