@@ -8726,3 +8726,44 @@ These are skills, and like all skills, they can be developed through deliberate,
 - [Complete ACT Math Concept List: Topics Ranked by Frequency ...](https://worldclasstutoring.com/act-math-concept-list/)
 - [Tackling the Hardest ACT® Math Questions - OnToCollege](https://www.ontocollege.com/hardest-act-math-questions/)
 - [ACT Math: Everything You Need to Know - PrepMaven](https://prepmaven.com/blog/test-prep/act-math/)
+
+---
+
+## 📅 Update: 2026-06-29 - New Concepts
+
+### 📐 Mathematics: Advanced Trigonometry & Triangle Geometry
+Today's session focused heavily on the relationships between angles and sides in various triangle types, specifically moving beyond basic right triangles into special triangles and trigonometry.
+
+*   **Trigonometric Ratios (SOH CAH TOA):**
+    *   **Core 3:** $\sin(A) = \frac{\text{Opposite}}{\text{Hypotenuse}}$, $\cos(A) = \frac{\frac{\text{Adjacent}}{\text{Hypotenuse}}}$, $\tan(A) = \frac{\text{Opposite}}{\text{Adjacent}}$.
+    *   **Reciprocal 3:** $\csc(A) = \frac{1}{\sin(A)}$, $\sec(A) = \frac{1}{\cos(A)}$, $\cot(A) = \frac{1}{\tan(A)}$.
+    *   **Cofunctions:** Sine and cosine are "cofunctions," meaning they produce equivalent ratios when evaluated at complementary angles. $\sin(x^\circ) = \cos(90^\circ - x^\circ)$.
+*   **Special Right Triangles:**
+    *   **Isosceles Right Triangle (45-45-90):** The hypotenuse is $\sqrt{2}$ times the length of a leg.
+    *   **30-60-90 Triangle:** The side opposite the $30^\circ$ angle is half the hypotenuse ($x$). The side opposite the $60^\circ$ angle is $x\sqrt{3}$.
+*   **Equilateral Triangles:** All sides are congruent, and all angles measure $60^\circ$.
+*   **Area of Triangles:**
+    *   General: $A = \frac{1}{2}bh$.
+    *   Equilateral: $A = \frac{s^2\sqrt{3}}{4}$.
+    *   Heron's Formula: $A = \sqrt{s(s-a)(s-b)(s-c)}$, where $s$ is the semi-perimeter.
+*   **Similar Triangles:** Two triangles are similar if all three corresponding angles are congruent and all three corresponding sides are proportional. You can prove similarity using the **Angle-Angle (AA)** postulate.
+
+### 📝 English: Verb Tenses and Consistency
+The English notes from today emphasize the critical importance of maintaining logical time sequences through correct verb tense usage.
+
+*   **Tense Hierarchy & Usage:**
+    *   **Simple Present:** Actions occurring right now or general truths.
+    *   **Simple Past:** Single, completed actions in the past.
+    *   **Present Perfect:** Actions that started in the past and continue into the present (Keywords: *for, since*).
+    *   **Past Perfect:** An action that was completed before another action in the past (Keywords: *before, by the time*).
+*   **Consistency:** Avoid shifting tenses unnecessarily. If a passage begins in the past tense, it should generally remain in the past tense unless the timeline logically shifts.
+*   **Helping Verbs:** Pay attention to "intermediate" helping verbs like *will, would, could, has, have, had* to determine the correct temporal context.
+
+### 📖 Reading: Annotation and Foreshadowing
+To improve comprehension and speed, the class introduced a structured annotation method for Reading passages.
+
+*   **The Annotation Protocol:**
+    1.  **Identify Transitions:** Highlight or circle all transitional words/phrases (e.g., *but, however, furthermore, for example*) and transitional punctuation (e.g., colons, semicolons, dashes).
+    2.  **Foreshadow:** Focus on the text *immediately following* a transition. Write down a brief prediction of what will happen next based on that shift.
+    3.  **Confirm or Deny:** As you continue reading, check if your foreshadowing was correct. If denied, stop and re-read to understand why the text shifted direction.
+*   **Purpose:** This prevents "zoning out" and helps track the author's line of reasoning, which is vital for "Inference" and "Central Idea" questions.
