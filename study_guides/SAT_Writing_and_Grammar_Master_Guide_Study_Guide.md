@@ -10076,3 +10076,69 @@ You are ready.
 - [The Ultimate Guide to SAT Writing & Grammar - SAT RADAR Blog](https://sat-radar.com/blog/the-ultimate-guide/)
 - [Advanced SAT Writing Techniques for Perfect Scores](https://www.apguru.com/blog/advanced-sat-writing-techniques-for-perfect-scores)
 - [SAT Writing and Language Practice Strategies That Work](https://galvanizetestprep.com/blogs/sat-writing-and-language-practice-that-boosts-digital-sat-scores/)
+
+---
+
+## 📅 Update: 2026-06-29 - New Concepts
+
+This update synthesizes advanced mathematical factoring techniques, the properties of special right triangles, and core ACT English grammatical conventions into the master study guide.
+
+---
+
+### 🔢 Math: Factoring Quadratics ($a \neq 1$)
+
+When factoring quadratics where the leading coefficient is not 1, use methods like grouping or the "slide and divide" technique.
+
+**Key Strategies:**
+*   **Grouping Method:** Find two numbers that multiply to $a \times c$ and add to $b$. Split the middle term and factor by grouping.
+*   **$a \neq 1$ Examples from Practice:**
+    *   $4x^2 - 8x + 3 \rightarrow (2x - 1)(2x - 3)$
+    *   $10x^2 + 17x + 3 \rightarrow (5x + 1)(2x + 3)$
+    *   $9x^2 - 39x + 40 \rightarrow (3x - 5)(3x - 8)$
+    *   $12x^2 - 25x + 12 \rightarrow (4x - 3)(3x - 4)$
+*   **Special Patterns (from previous notes):**
+    *   *Difference of Squares:* $x^2 - 9 \rightarrow (x - 3)(x + 3)$
+    *   *Perfect Square Trinomials:* $x^2 - 10x + 24 \rightarrow (x - 4)(x - 6)$
+
+---
+
+### 📐 Geometry: Special Right Triangles
+
+You must memorize the side ratios for the two special right triangles tested on the SAT/ACT.
+
+**1. Isosceles Right Triangle ($45^\circ-45^\circ-90^\circ$)**
+*   **Ratio:** $x : x : x\sqrt{2}$
+*   **Properties:** The legs are congruent. The hypotenuse is $\sqrt{2}$ times the length of a leg.
+
+**2. $30^\circ-60^\circ-90^\circ$ Triangle**
+*   **Ratio:** $x : x\sqrt{3} : 2x$
+*   **Properties:**
+    *   The side opposite the $30^\circ$ angle is the shortest ($x$).
+    *   The side opposite the $60^\circ$ angle is $x\sqrt{3}$.
+    *   The hypotenuse (opposite $90^\circ$) is $2x$.
+
+**Area of an Equilateral Triangle:**
+If the side length is $s$, the area is $\frac{s^2\sqrt{3}}{4}$.
+
+---
+
+### 📝 ACT English: Usage and Mechanics
+
+**Tense Consistency (Historical vs. Present):**
+*   Use **Past Tense** for historical events that are finished (e.g., "In 1942, the Navy *rejected* the idea").
+*   Use **Present Tense** for definitions, beliefs, or things that remain true (e.g., "They *are* finally given credit").
+*   Use **Past Perfect** (had + V3) to clarify the order of two past events (e.g., "They *submitted* the system... in 1941... Then in 1942, the Navy *had rejected* it").
+
+**Punctuation Rules Tested:**
+1.  **The Colon (:):** Must be preceded by a full independent clause. Used to introduce lists or explanations.
+2.  **The Dash (—):** Used to add emphasis or an explanatory phrase at the end of a sentence.
+3.  **The Apostrophe:** 
+    *   *Possession:* Add 's for singular (e.g., *friend's house*) and just an apostrophe for plural (e.g., *friends' houses*).
+    *   *Contractions:* Used to join words (e.g., *it's* = it is). Note its vs. it's carefully.
+4.  **Commas with "However":** When joining two independent clauses with the opposition word "however," use a semicolon before and a comma after (IC; however, IC). 
+
+**Rhetorical Synthesis (New SAT Strategy):**
+*   **Goal:** To logically organize provided research bullets to support a specific claim.
+*   **Step 1:** Categorize bullets as Background (B) or Evidence (E).
+*   **Step 2:** Identify the specific claim in the prompt.
+*   **Step 3:** Select the bullets that directly prove or support that specific claim.
