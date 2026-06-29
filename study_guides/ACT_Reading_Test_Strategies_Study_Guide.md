@@ -6981,3 +6981,64 @@ These principles, practiced to automaticity, are the foundation of elite ACT Rea
 - [How to Prepare Students for the New Enhanced ACT - MasteryPrep](https://www.masteryprep.com/prep-students-for-new-act/)
 - [ACT® Enhanced Reading Cheat Sheets | Albert Blog & Resources](https://www.albert.io/blog/act-enhanced-reading-cheat-sheets/)
 - [How can a student quickly complete the ACT reading passages and ...](https://www.facebook.com/groups/satacttutor/posts/2128104114233490/)
+
+---
+
+## 📅 Update: 2026-06-29 - New Concepts
+
+### 🧠 ACT Reading & Writing Strategy: Rhetorical Synthesis
+When asked to synthesize bulleted research to support a specific claim:
+1.  **Categorize Bullets:** Label each bullet as either **Background** (general context) or **Evidential** (specific data/studies).
+2.  **Identify the Claim:** Highlight the specific argument you need to support in the question header.
+3.  **Select & Order:** Choose the evidential bullets that directly prove the claim. Order them logically (e.g., general to specific, or chronological) for efficiency.
+
+### 🧠 ACT Reading Strategy: Words in Context
+To find the definition of a specific word in the passage:
+1.  **Locate:** Find the word in the text.
+2.  **Contextualize:** Read the sentence and the surrounding sentences to find a definition or explanation embedded in the text. Highlight this definition.
+3.  **Match:** Compare your highlighted definition to the answer choices and select the closest match.
+
+### 🧠 ACT English: Transitions & Relationships
+Master the logical relationship between two sentences to choose the correct transition:
+*   **Contrast (Opposing Point):** *However, but, yet, on the other hand, conversely, whereas, while, in contrast.*
+*   **Evidence (Support/Example):** *Indeed, in fact, for example, to illustrate, specifically, for instance.*
+*   **Addition (More Support):** *Furthermore, moreover, additionally, also, too, as well.*
+*   **Cause & Effect:** *Consequently, therefore, thus, as a result, hence, accordingly, so.*
+*   **Concession:** *Granted, nevertheless, although, regardless, despite, even if, even so, still.*
+*   **Sequencing:** *Subsequently, previously, eventually, next, then, before, finally.*
+*   **Similarity:** *Similarly, likewise, in the same way, by the same token.*
+
+### 🧠 ACT English: Punctuation Rules
+*   **Commas:**
+    *   Separate items in a list (Item 1, Item 2, and Item 3).
+    *   Join two independent clauses with a coordinating conjunction (FANBOYS: *for, and, nor, but, or, yet, so*).
+    *   Set off nonessential clauses (appositives) or introductory comma clauses.
+    *   **Trap:** Do not mix punctuation uses (e.g., do not use a comma and a semicolon for the same purpose).
+*   **Semicolons:** Join two independent clauses without a conjunction, or separate list items that already contain commas.
+*   **Colons:** Must be preceded by a full independent clause. Used to introduce a list or add clarifying information.
+*   **Dashes:** Used before and after a Middle Comma Clause (MCC) or to add shocking/emphasizing information at the end of a sentence.
+*   **Apostrophes:** Used for possession (if a word does not end in 's', add 's; if it does, add just the apostrophe) or contractions. Note possessive pronouns (*its, theirs, ours*) do not use apostrophes.
+
+### 🧠 ACT English: Subject-Verb Agreement & Modification
+*   **Subject-Verb Agreement (SVA):** A singular subject requires a singular verb (often ending in 's'); a plural subject requires a plural verb.
+    *   **Rule 1:** The subject is never found within a relative clause, prepositional phrase, or comma clause.
+    *   **Rule 2:** *Each* and *every* are always singular. *A number* is plural; *the number* is singular.
+*   **Subject Modification:** The subject of the main clause must logically perform the action of the introductory comma clause (ICC). If it doesn't, the sentence contains a dangling modifier.
+
+### 🧠 Math: Factoring Quadratics ($a \neq 1$)
+When factoring quadratics where the leading coefficient is not 1 (e.g., $4x^2 - 8x + 3$):
+1.  **Check for GCF:** Factor out any Greatest Common Factor first.
+2.  **AC Method:** Multiply $a$ and $c$. Find two numbers that multiply to $ac$ and add to $b$.
+3.  **Split & Group:** Split the middle term ($bx$) into two terms using those numbers, then factor by grouping.
+
+### 🧠 Math: Trigonometry & Triangles
+*   **Right Triangle Ratios (SOH CAH TOA):**
+    *   $\sin(A) = \frac{\text{Opposite}}{\text{Hypotenuse}}$
+    *   $\cos(A) = \frac{\text{Adjacent}}{\text{Hypotenuse}}$
+    *   $\tan(A) = \frac{\text{Opposite}}{\text{Adjacent}}$
+*   **Cofunctions:** $\sin(x) = \cos(90^\circ - x)$.
+*   **Special Triangles:**
+    *   **30-60-90:** Sides are $x, x\sqrt{3}, 2x$.
+    *   **45-45-90:** Sides are $x, x, x\sqrt{2}$.
+*   **Area of a Triangle:** $A = \frac{1}{2}bh$ or $A = \frac{1}{2}ab\sin(C)$.
+*   **Similar Triangles:** All corresponding angles are congruent, and all corresponding sides are proportional.
