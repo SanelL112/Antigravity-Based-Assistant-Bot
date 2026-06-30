@@ -8,6 +8,10 @@ from youtubesearchpython import VideosSearch
 from youtube_transcript_api import YouTubeTranscriptApi
 from ai_processor import call_agy
 
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import OR_FALLBACK_MODEL
+
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -183,10 +187,10 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     def _call_or(prompt_text):
         """Unified OpenRouter caller — delegates to llm_router."""
         return call_openrouter(
-            model="openrouter/owl-alpha",
+            model=OR_FALLBACK_MODEL,
             prompt=prompt_text,
             task="study-guide",
-            fallback_chain=["nvidia/nemotron-3-ultra-550b-a55b:free"],
+            fallback_chain=["meta-llama/llama-3.3-70b-instruct:free"],
             timeout=3600,
         )
 

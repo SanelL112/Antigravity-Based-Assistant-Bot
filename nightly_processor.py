@@ -31,7 +31,7 @@ Notes:
             "https://openrouter.ai/api/v1/chat/completions",
             headers={"Authorization": f"Bearer {api_key}"},
             json={
-                "models": ["openrouter/owl-alpha:free", "openrouter/owl-alpha"],
+                "models": ["meta-llama/llama-3.3-70b-instruct:free", "nvidia/nemotron-3-ultra-550b-a55b:free"],
                 "messages": [{"role": "user", "content": prompt}]
             },
             timeout=600
@@ -100,7 +100,7 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
                     "X-Title": "Antigravity-Based-Assistant-Bot"
                 },
                 json={
-                    "models": ["openrouter/owl-alpha:free", "openrouter/owl-alpha"],
+                    "models": ["meta-llama/llama-3.3-70b-instruct:free", "nvidia/nemotron-3-ultra-550b-a55b:free"],
                     "messages": [{"role": "user", "content": prompt}]
                 },
                 timeout=600

@@ -10,6 +10,11 @@ import re
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+# Import config for fallback models
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import OR_FALLBACK_MODEL
+
 async def pre_cache_web():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     brain_file = os.path.join(base_dir, "curated_brain.md")
@@ -46,12 +51,12 @@ async def pre_cache_web():
                 
         topic = await _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
         if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-            logger.warning("Nemotron failed in precacher, falling back to Owl Alpha...")
-            fallback = await _call_or("openrouter/owl-alpha", prompt)
+            logger.warning(f"Nemotron failed in precacher, falling back to {OR_FALLBACK_MODEL}...")
+            fallback = await _call_or(OR_FALLBACK_MODEL, prompt)
             if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
                 topic = fallback
             else:
-                logger.warning("Owl Alpha failed, falling back to local G1 Flash...")
+                logger.warning("Fallback failed, falling back to local G1 Flash...")
                 from ai_processor import call_agy
                 topic = call_agy(prompt, timeout=120, model="flash")
             
@@ -92,12 +97,12 @@ async def pre_cache_web():
                 sum_prompt = f"Summarize the following educational text about {topic}. Extract key formulas, facts, and examples.\n\nTEXT:\n{text[:10000]}"
                 summary = await _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", sum_prompt)
                 if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-                    logger.warning("Nemotron failed summarization, falling back to Owl Alpha...")
-                    fallback = await _call_or("openrouter/owl-alpha", sum_prompt)
+                    logger.warning(f"Nemotron failed summarization, falling back to {OR_FALLBACK_MODEL}...")
+                    fallback = await _call_or(OR_FALLBACK_MODEL, sum_prompt)
                     if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
                         summary = fallback
                     else:
-                        logger.warning("Owl Alpha failed summarization, falling back to local G1 Flash...")
+                        logger.warning("Fallback failed summarization, falling back to local G1 Flash...")
                         from ai_processor import call_agy
                         summary = call_agy(sum_prompt, timeout=120, model="flash")
                 if not summary: summary = "Summary unavailable."

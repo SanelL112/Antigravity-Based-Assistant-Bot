@@ -43,12 +43,15 @@ OLLAMA_URL = "http://localhost:11434"
 # ── OpenRouter Models ─────────────────────────────────────────────────────────
 OR_FREE_MODELS = [
     "nvidia/nemotron-3-ultra-550b-a55b:free",
-    "openrouter/owl-alpha:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "openai/gpt-oss-120b:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "nvidia/nemotron-3-nano-30b-a3b:free",
 ]
 OR_PAID_MODELS = [
-    "openrouter/owl-alpha",
+    "openrouter/auto",
 ]
-OR_DEFAULT_MODEL = "openrouter/owl-alpha"
+OR_DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 OR_FALLBACK_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
 
 # ── File Paths ────────────────────────────────────────────────────────────────

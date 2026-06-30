@@ -8,6 +8,7 @@ except:
     pass
 
 from activity_log import log_event, log_llm_call, log_scrape, log_system, log_nightly, get_recent_events, format_events
+from utils import scrub_pii
 import time
 import asyncio
 import subprocess
@@ -285,8 +286,9 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                 logger.info("Auto-routing to NEMOTRON (Long/Complex query)")
                 model = "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"
             else:
-                logger.info("Auto-routing to OWL ALPHA (Short/Academic query)")
-                model = "openrouter:openrouter/owl-alpha"
+                from config import OR_FALLBACK_MODEL
+                logger.info(f"Auto-routing to fallback model ({OR_FALLBACK_MODEL}) (Short/Academic query)")
+                model = f"openrouter:{OR_FALLBACK_MODEL}"
     
     out = ""
     actual_model_used = model
@@ -304,6 +306,11 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             in_thought = False
             last_edit_time = 0
             
+            # SECURITY: Scrub PII from all cloud-bound data
+            scrubbed_system = scrub_pii(system, aggressive=True)
+            scrubbed_chat_history = scrub_pii(chat_history, aggressive=True)
+            scrubbed_user_message = scrub_pii(user_message, aggressive=True)
+            
             try:
                 async with httpx.AsyncClient() as client:
                     async with client.stream(
@@ -318,8 +325,8 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                             "model": m_name,
                             "stream": True,
                             "messages": [
-                                {"role": "system", "content": system + "\n\nCRITICAL: Before answering, you MUST think step-by-step and wrap your internal thought process in <thought>...</thought> tags."},
-                                {"role": "user", "content": f"--- {topic.upper()} CONVERSATION HISTORY ---\n{chat_history}\n--- END HISTORY ---\n\nUser: {user_message}"}
+                                {"role": "system", "content": scrubbed_system + "\n\nCRITICAL: Before answering, you MUST think step-by-step and wrap your internal thought process in <thought>...</thought> tags."},
+                                {"role": "user", "content": f"--- {topic.upper()} CONVERSATION HISTORY ---\n{scrubbed_chat_history}\n--- END HISTORY ---\n\nUser: {scrubbed_user_message}"}
                             ]
                         },
                         timeout=180.0
@@ -378,13 +385,14 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             fail_phrases = ["i cannot", "i'm sorry", "i don't know", "as an ai", "unable to", "i apologize"]
             if not out or (isinstance(out, str) and any(p in out.lower()[:50] for p in fail_phrases)):
                 if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                    logger.warning("Nemotron failed or refused. Falling back to Owl Alpha 2.4T...")
-                    fallback_out = await _call_or("openrouter/owl-alpha")
+                    from config import OR_FALLBACK_MODEL
+                    logger.warning(f"Nemotron failed or refused. Falling back to {OR_FALLBACK_MODEL}...")
+                    fallback_out = await _call_or(OR_FALLBACK_MODEL)
                     if fallback_out and not any(p in fallback_out.lower()[:50] for p in fail_phrases):
                         out = fallback_out
-                        actual_model_used = "openrouter/owl-alpha"
+                        actual_model_used = OR_FALLBACK_MODEL
                     else:
-                        logger.warning("Owl Alpha failed or refused. Falling back to local G1 Flash...")
+                        logger.warning("Fallback failed or refused. Falling back to local G1 Flash...")
                         result = await asyncio.wait_for(
                             asyncio.get_event_loop().run_in_executor(
                                 None,
@@ -394,13 +402,14 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                         actual_model_used = "flash (local fallback)"
         except Exception as e:
             if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                logger.warning(f"Nemotron exception ({e}). Falling back to Owl Alpha 2.4T...")
+                from config import OR_FALLBACK_MODEL
+                logger.warning(f"Nemotron exception ({e}). Falling back to {OR_FALLBACK_MODEL}...")
                 try:
-                    out = await _call_or("openrouter/owl-alpha")
-                    actual_model_used = "openrouter/owl-alpha"
-                    if not out: raise Exception("Owl Alpha empty")
+                    out = await _call_or(OR_FALLBACK_MODEL)
+                    actual_model_used = OR_FALLBACK_MODEL
+                    if not out: raise Exception(f"{OR_FALLBACK_MODEL} empty")
                 except Exception as e2:
-                    logger.warning(f"Owl Alpha exception ({e2}). Falling back to local G1 Flash...")
+                    logger.warning(f"{OR_FALLBACK_MODEL} exception ({e2}). Falling back to local G1 Flash...")
                     try:
                         result = await asyncio.wait_for(
                             asyncio.get_event_loop().run_in_executor(
@@ -542,12 +551,13 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         )
         async def _run_verification_bg(prompt_text, chat_id_to_notify):
             try:
-                # Use Owl Alpha as requested, taking as much time as needed (up to 300s)
+                # Use default fallback model as requested, taking as much time as needed (up to 300s)
+                from config import OR_FALLBACK_MODEL
                 res = await asyncio.wait_for(
                     asyncio.get_event_loop().run_in_executor(
                         None,
                         lambda: subprocess.run(
-                            [AGENTAPI_BIN, "--model", "openrouter:openrouter/owl-alpha", "--dangerously-skip-permissions", "--print", prompt_text],
+                            [AGENTAPI_BIN, "--model", f"openrouter:{OR_FALLBACK_MODEL}", "--dangerously-skip-permissions", "--print", prompt_text],
                             capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL
                         )
                     ),
@@ -555,7 +565,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                 )
                 summary_text = res.stdout.strip()
                 if summary_text:
-                    await context.bot.send_message(chat_id=chat_id_to_notify, text=f"🤖 **Verification (Owl Alpha):**\n{summary_text}", parse_mode="Markdown")
+                    await context.bot.send_message(chat_id=chat_id_to_notify, text=f"🤖 **Verification ({OR_FALLBACK_MODEL}):**\n{summary_text}", parse_mode="Markdown")
             except Exception as e:
                 logger.error(f"Verification Agent timeout or error: {e}")
 
@@ -565,7 +575,8 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         else:
             # Fallback for CLI standalone mode
             try:
-                summary_result = subprocess.run([AGENTAPI_BIN, "--model", "openrouter:openrouter/owl-alpha", "--dangerously-skip-permissions", "--print", summary_prompt], capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL)
+                from config import OR_FALLBACK_MODEL
+                summary_result = subprocess.run([AGENTAPI_BIN, "--model", f"openrouter:{OR_FALLBACK_MODEL}", "--dangerously-skip-permissions", "--print", summary_prompt], capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL)
                 summary_text = summary_result.stdout.strip()
                 if summary_text:
                     out += f"\n\n🤖 **Verification:**\n{summary_text}"
@@ -731,15 +742,16 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id, text=f"🛏️ Queued {len(nightly_queue)} new practice materials for processing offline tonight.")
     
     prompt = (
-        "You are an urgent alert watchdog. Read the following recent school and email notifications.\n"
-        "Look ONLY for critical anomalies or urgent updates (e.g., a sudden deadline extension, a direct message from a teacher, or an emergency alert).\n"
-        "If you find something genuinely urgent, write a short 1-sentence warning about it.\n"
-        "If there is nothing urgent, you MUST reply with exactly the word: NO_ALERT\n\n"
-        f"DATA:\n{raw_data}"
-    )
+            "You are an urgent alert watchdog. Read the following recent school and email notifications.\n"
+            "Look ONLY for critical anomalies or urgent updates (e.g., a sudden deadline extension, a direct message from a teacher, or an emergency alert).\n"
+            "If you find something genuinely urgent, write a short 1-sentence warning about it.\n"
+            "If there is nothing urgent, you MUST reply with exactly the word: NO_ALERT\n\n"
+            f"DATA:\n{raw_data}"
+        )
     try:
         from llm_router import call_openrouter
-    
+        from config import OR_FALLBACK_MODEL
+        
         result = call_openrouter(
             model="nvidia/nemotron-3-ultra-550b-a55b:free",
             prompt=f"Read the following recent school and email notifications. "
@@ -747,10 +759,10 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
                   f"If there is nothing urgent, reply exactly: NO_ALERT\n\n"
                   f"DATA:\n{raw_data}",
             task="watchdog",
-            fallback_chain=["openrouter/owl-alpha"],
+            fallback_chain=[OR_FALLBACK_MODEL],
             timeout=45,
         )
-                
+
         # Send alert regardless of which model produced the result
         if result and "NO_ALERT" not in result and len(result) > 10:
             logger.info(f"Watchdog triggered: {result}")
@@ -762,7 +774,7 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
         else:
             logger.info("Watchdog check clear (no alerts).")
     except Exception as e:
-        logger.error(f"Watchdog Ollama error: {e}")
+            logger.error(f"Watchdog Ollama error: {e}")
 
 async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     # Prevent overlapping executions if previous run takes >4 hours
@@ -1033,7 +1045,6 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "nemotron-omni": "openrouter:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
         "nemotron-vl": "openrouter:nvidia/nemotron-nano-12b-v2-vl:free",
         "nemotron-9b": "openrouter:nvidia/nemotron-nano-9b-v2:free",
-        "owl": "openrouter:openrouter/owl-alpha",
         "nex": "openrouter:nex-agi/nex-n2-pro:free",
         "laguna": "openrouter:poolside/laguna-m.1:free",
         "laguna-xs": "openrouter:poolside/laguna-xs.2:free",
