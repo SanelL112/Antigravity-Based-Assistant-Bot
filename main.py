@@ -1185,6 +1185,56 @@ async def priority_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=chat_id, text="❌ Failed to update Notion.")
 
+async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Download voice message, transcribe locally, route through AI."""
+    chat_id = update.effective_chat.id
+    if chat_id != config.SANEL_CHAT_ID:
+        await update.message.reply_text("")
+        return
+
+    msg = await update.message.reply_text("🎤 Transcribing voice message...")
+
+    try:
+        voice_file = await update.message.voice.get_file()
+        with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
+            await voice_file.download_to_drive(tmp.name)
+            tmp_path = tmp.name
+
+        transcription = transcribe_voice(tmp_path)
+        os.unlink(tmp_path)
+
+        if transcription.startswith("❌"):
+            await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=transcription)
+            return
+
+        await context.bot.edit_message_text(
+            chat_id=chat_id, message_id=msg.message_id,
+            text=f"� Transcribed: \"{transcription[:200]}{'...' if len(transcription) > 200 else ''}\"\n\nThinking..."
+        )
+
+        # Route transcription through the AI
+        async with message_lock:
+            reply = await send_to_antigravity_and_wait(transcription, chat_id, context, msg)
+
+        try:
+            await context.bot.delete_message(chat_id=chat_id, message_id=msg.message_id)
+        except Exception:
+            pass
+
+        for i in range(0, len(reply), 4096):
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=reply[i:i+4096], parse_mode="Markdown")
+            except Exception:
+                await context.bot.send_message(chat_id=chat_id, text=reply[i:i+4096])
+
+    except Exception as e:
+        logger.error(f"Error handling voice: {e}")
+        try:
+            await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"❌ Error: {e}")
+        except Exception:
+            pass
+
+
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Downloads a photo sent to the bot, saves it, and asks the AI to process it."""
     chat_id = update.effective_chat.id
@@ -1514,6 +1564,7 @@ from inline_keyboards import (
     get_study_guide_keyboard, get_photo_response_keyboard,
     get_quick_actions_keyboard,
 )
+from voice_handler import transcribe_voice
 
 # Track bot start time for /ping
 BOT_START_TIME = time.time()
@@ -1591,6 +1642,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("backup", backup_command))
     app.add_handler(CommandHandler("restore", restore_command))
     app.add_handler(CommandHandler("correlations", correlations_command))
+    app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 

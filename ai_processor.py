@@ -249,14 +249,16 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
             pass  # utils not available, skip caching
 
     if skip_llm_filter:
-        logger.info(f"Bypassing LOCAL Qwen2 0.5B for high-signal source {name} — passing full raw data ({len(data)} chars).")
+        logger.info(f"Bypassing classification for high-signal source {name} — passing full raw data ({len(data)} chars).")
         summary = data
     else:
-        # Cap the data sent to Qwen at 4000 chars for classification only.
-        # The full raw data is still passed to agy if marked IMPORTANT.
-        classification_data = data[:4000] + ("\n[...trimmed for classification...]" if len(data) > 4000 else "")
-        prompt = SOURCE_PROMPTS[name].format(data=classification_data)
-        
+        # Lightweight classification via agy flash (replaces old Qwen2 0.5B → Llama → agy 3-step chain)
+        prompt = (
+            f"Read the following {name} data. If it contains ANY useful info, summarize it concisely. "
+            f"If it's empty/useless, reply exactly: NO_IMPORTANT_UPDATES\n\n"
+            f"DATA:\n{data[:8000]}"
+        )
+
         # Inject user's dynamic learning rules
         rules_file = os.path.join(BOT_DIR, "learning_rules.txt")
         if os.path.exists(rules_file):
@@ -267,24 +269,18 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
                     prompt += f"\n\nUSER'S CUSTOM RULES (MUST FOLLOW):\n{rules}\n"
             except Exception:
                 pass
-                
-        # Inject the fallback and learning triggers
-        prompt += "\n\nCRITICAL RULE 1: If you are unsure if there is anything important, or you cannot understand the text, you MUST reply exactly with the word: UNSURE"
-        prompt += "\nCRITICAL RULE 2: If you see a completely new type of message, sender, or topic that you are not sure is important (and it's not in the custom rules), you MUST reply exactly in this format: [ASK_USER] Brief description of the new item."
-        
-        logger.info(f"Calling LOCAL Qwen2 0.5B for {name} ({len(prompt)} chars)...")
 
-        response = call_local_llm(prompt)
-        if not response or "UNSURE" in response.upper():
-            logger.info(f"Qwen2 returned empty or UNSURE for {name} — passing full raw data ({len(data)} chars) to agy.")
-            summary = data # Fallback to passing raw data to agy
-        elif "NO_IMPORTANT_UPDATES" in response.upper():
+        prompt += "\n\nIf you see a completely new type of item you're unsure about, reply: [ASK_USER] description"
+
+        logger.info(f"Calling agy flash for {name} classification ({len(prompt)} chars)...")
+        response = call_agy(prompt, timeout=60, model="flash")
+
+        if not response or "NO_IMPORTANT_UPDATES" in response.upper():
             summary = f"No urgent {name} updates."
-        elif "[ASK_USER]" in response.upper():
+        elif "[ASK_USER]" in response:
             summary = f"{response}\n\nRAW DATA:\n{data}"
         else:
-            # It is IMPORTANT! Pass raw data to agy.
-            summary = data
+            summary = response
 
     with open(cache_file, "w") as f:
         f.write(summary)
