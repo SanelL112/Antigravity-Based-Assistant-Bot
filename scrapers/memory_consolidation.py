@@ -4,6 +4,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 import asyncio
 import httpx
+from activity_log import log_nightly
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -138,9 +139,31 @@ async def consolidate_memory():
     except Exception as e:
         logger.error(f"Nightly indexer failed: {e}")
             
+    # Phase 5: Embedding Index Rebuild (while Ollama is still awake)
+    logger.info("Running embedding index rebuild via Ollama nomic-embed-text...")
+    try:
+        from scrapers.embedding_indexer import build_index
+        log_nightly("embedding_indexer", "started")
+        success = await build_index()
+        if success:
+            logger.info("Embedding index rebuilt successfully.")
+            log_nightly("embedding_indexer", "completed")
+            # Invalidate the semantic retrieval cache so next query picks up new index
+            try:
+                from scrapers.semantic_retrieval import invalidate_cache
+                invalidate_cache()
+            except Exception:
+                pass
+        else:
+            logger.warning("Embedding index rebuild failed (non-critical).")
+            log_nightly("embedding_indexer", "failed")
+    except Exception as e:
+        logger.warning(f"Embedding index rebuild failed (non-critical): {e}")
+        log_nightly("embedding_indexer", "error", {"message": str(e)[:80]})
+            
     logger.info("Daily pipeline complete.")
 
-    # Phase 5: Trim raw logs (respect rotation limits, don't fully wipe)
+    # Phase 6: Trim raw logs (respect rotation limits, don't fully wipe)
     try:
         # Trim combined_summaries instead of full delete
         if os.path.exists(summaries_file):

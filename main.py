@@ -7,6 +7,8 @@ try:
 except:
     pass
 
+from activity_log import log_event, log_llm_call, log_scrape, log_system, log_nightly, get_recent_events, format_events
+import time
 import asyncio
 import subprocess
 import sys
@@ -195,21 +197,36 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         f"[BASH]your command here[/BASH] (Note: Use angle brackets <> instead of square brackets [])\n"
         f"The system's python wrapper will automatically parse these tags and run that command as root, then show you the output in the next turn. "
         f"You can chain multiple commands. Always include the angle-bracket BASH tags when action is needed.\n\n"
-        f"OTHER CAPABILITIES:\n"
-        f"- Every 4 hours: auto-digest from Canvas, Classroom, Gmail, GroupMe\n"
-        f"- Notion: assignments auto-pushed to Tasks Tracker\n"
-        f"- Natural Language Notion Pushes: When the background job alerts Sanel about a NEW task and asks him for priority/status, you MUST push it to Notion using the add_task_to_notion python script when he replies! Example:\n"
-        f"[BASH]python3 -c 'from notion_client import add_task_to_notion; add_task_to_notion(title=\"Math Homework\", priority=\"high\", status=\"Not started\", start_value=0, end_value=100)'[/BASH]\n"
-        f"- DYNAMIC LEARNING: If Sanel is answering a question about whether a certain type of message, email, or topic is important to track or ignore, you MUST save this rule to the local memory so the local filter AI can use it in the future. To do this, use a bash command:\n"
-        f"[BASH]echo 'Ignore all emails from XYZ' >> /home/sanel/personal-assistant-bot/learning_rules.txt[/BASH]\n"
-        f"- STUDY COMPANION: If Sanel asks you to build a study guide, find a YouTube video for a topic, or research something to study, you MUST use the mega study builder script via bash:\n"
-        f"[BASH]python3 -c 'from mega_study_builder import generate_mega_guide; print(generate_mega_guide(\"Topic Name Here\"))'[/BASH]\n"
-        f"- DEEP-DIVE KNOWLEDGE BASE: An offline researcher runs every night to compile massive study sheets on your current topics. If Sanel asks a question about an academic topic, check if a guide exists by using bash to list and read files in `/home/sanel/personal-assistant-bot/knowledge_base/` before answering, so you can interact and research much faster!\n"
-        f"- KNOWLEDGE GAP TRACKING: If you are grading an answer or helping Sanel with a problem and you notice a weakness (e.g. \"struggles with polynomial factoring\"), you MUST log this to a text file using bash: `echo 'Struggles with factoring when a > 1' >> /home/sanel/personal-assistant-bot/knowledge_gaps/math.txt` so the offline researcher can heavily target his weak points tonight.\n"
-        f"- VERIFICATION CUSTOMIZATION: If Sanel gives you custom instructions on how the Verification Agent should behave (e.g. telling it to auto-fix errors instead of summarizing them), you MUST save his instructions using bash: `echo 'Auto-fix syntax errors' >> /home/sanel/personal-assistant-bot/verification_rules.txt`.\n"
-        f"- CALENDAR SCHEDULING: If Sanel asks you to schedule a study session, block off time, or add something to his calendar, you MUST use the calendar manager via bash. Calculate the start time in ISO format based on his request and current time:\n"
-        f"[BASH]python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'[/BASH] (Remember: Use angle brackets <> instead of [])\n"
-        f"- /summary: manual digest trigger | /bash <cmd>: run commands directly\n\n"
+    )
+
+    capabilities_str = (
+        "OTHER CAPABILITIES:\n"
+        "--- SERVER MANAGEMENT ---\n"
+        "- Server Status: Check system resources via bash [BASH]free -h && uptime && ps aux | head -n 10[/BASH]\n"
+        "- Embedding Progress: Check the offline indexer via bash [BASH]tail -n 20 /tmp/embed_build4.log[/BASH]\n"
+        "- Minecraft Server: Check MC via bash [BASH]ps aux | grep paper.jar | grep -v grep || echo 'MC stopped'[/BASH], start [BASH]bash /home/sanel/mc_server/start_mc.sh[/BASH], stop [BASH]tmux send-keys -t minecraft 'stop' C-m[/BASH]\n"
+        "- Activity Log: Check recent bot events via bash [BASH]python3 -c 'from activity_log import get_recent_events, format_events; print(format_events(get_recent_events(10)))'[/BASH]\n\n"
+        "--- ACADEMIC & STUDY ---\n"
+        "- STUDY COMPANION: If Sanel asks you to build a study guide, find a YouTube video for a topic, or research something to study, you MUST use the mega study builder script via bash:\n"
+        "[BASH]python3 -c 'from mega_study_builder import generate_mega_guide; print(generate_mega_guide(\"Topic Name Here\"))'[/BASH]\n"
+        "- DEEP-DIVE KNOWLEDGE BASE: An offline researcher runs every night to compile massive study sheets on your current topics. If Sanel asks a question about an academic topic, check if a guide exists by using bash to list and read files in `/home/sanel/personal-assistant-bot/knowledge_base/` before answering, so you can interact and research much faster!\n"
+        "- KNOWLEDGE GAP TRACKING: If you are grading an answer or helping Sanel with a problem and you notice a weakness (e.g. \"struggles with polynomial factoring\"), you MUST log this to a text file using bash: `echo 'Struggles with factoring when a > 1' >> /home/sanel/personal-assistant-bot/knowledge_gaps/math.txt` so the offline researcher can heavily target his weak points tonight.\n\n"
+        "--- LIFE MANAGEMENT ---\n"
+        "- Every 4 hours: auto-digest from Canvas, Classroom, Gmail, GroupMe\n"
+        "- Notion: assignments auto-pushed to Tasks Tracker\n"
+        "- Natural Language Notion Pushes: When the background job alerts Sanel about a NEW task and asks him for priority/status, you MUST push it to Notion using the add_task_to_notion python script when he replies! Example:\n"
+        "[BASH]python3 -c 'from notion_client import add_task_to_notion; add_task_to_notion(title=\"Math Homework\", priority=\"high\", status=\"Not started\", start_value=0, end_value=100)'[/BASH]\n"
+        "- CALENDAR SCHEDULING: If Sanel asks you to schedule a study session, block off time, or add something to his calendar, you MUST use the calendar manager via bash. Calculate the start time in ISO format based on his request and current time:\n"
+        "[BASH]python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'[/BASH] (Remember: Use angle brackets <> instead of [])\n"
+        "- DYNAMIC LEARNING: If Sanel is answering a question about whether a certain type of message, email, or topic is important to track or ignore, you MUST save this rule to the local memory so the local filter AI can use it in the future. To do this, use a bash command:\n"
+        "[BASH]echo 'Ignore all emails from XYZ' >> /home/sanel/personal-assistant-bot/learning_rules.txt[/BASH]\n"
+        "- VERIFICATION CUSTOMIZATION: If Sanel gives you custom instructions on how the Verification Agent should behave (e.g. telling it to auto-fix errors instead of summarizing them), you MUST save his instructions using bash: `echo 'Auto-fix syntax errors' >> /home/sanel/personal-assistant-bot/verification_rules.txt`.\n\n"
+        "--- BE PROACTIVE ---\n"
+        "- Do not wait for permission. If the user asks about the server, check it! If the user asks about Minecraft, check its status and offer to start it! Take initiative.\n\n"
+        "- /summary: manual digest trigger | /server: server dashboard | /bash <cmd>: run commands directly\n\n"
+    )
+
+    system = system + capabilities_str + (
         f"Here is the core context of your life and active classes (from your compressed Memory Index):\n\n{brain_context}\n\n"
         f"Here is the latest live data digest:\n\n{digest_context}\n\n"
         f"Be direct and take action immediately when asked. Never ask for permission."
@@ -276,6 +293,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
     if model.startswith("openrouter:"):
         or_model_name = model.split("openrouter:", 1)[1]
         logger.info(f"OpenRouter model={or_model_name}: {user_message[:60]}")
+        log_llm_call(or_model_name, "chat", 0, is_local=False)
         import httpx
         
         async def _call_or(m_name):
@@ -403,6 +421,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using local {model}...")
             except Exception: pass
         logger.info(f"agy --print model={model}: {user_message[:60]}")
+        log_llm_call(f"agy/{model}", "chat", 0, is_local=True)
         try:
             result = await asyncio.wait_for(
                 asyncio.get_event_loop().run_in_executor(
@@ -932,6 +951,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     chat_id   = update.effective_chat.id
 
+    if user_text.strip().lower() in ("help", "commands", "what can you do", "cmds", "/help", "/"):
+        await help_command(update, context)
+        return
+
     if user_text.strip().lower() == "models":
         context.args = []
         await model_command(update, context)
@@ -950,6 +973,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         async with message_lock:
             reply = await send_to_antigravity_and_wait(user_text, chat_id, context, thinking_msg)
+            
+        log_event("message", {"preview": user_text[:50], "routed_to": "unknown"}, notify=False)
 
         # Delete the thinking message
         try:
@@ -973,6 +998,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
     except Exception as e:
         logger.error(f"Error handling message: {e}")
+        log_event("error", {"message": str(e)[:80], "source": "handle_message"})
         try:
             await context.bot.edit_message_text(
                 chat_id=chat_id,
@@ -1258,7 +1284,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ocr_text = pytesseract.image_to_string(Image.open(download_path))
         if not ocr_text.strip():
             ocr_text = "(No text found in image)"
+        log_event("photo", {"ocr_chars": len(ocr_text), "has_question": bool(caption.strip())}, notify=False)
     except Exception as e:
+        log_event("error", {"message": str(e)[:80], "source": "ocr"})
         await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"❌ OCR Error: {e}")
         return
 
@@ -1551,6 +1579,144 @@ async def correlations_command(update: Update, context: ContextTypes.DEFAULT_TYP
     """Show cross-source correlation stats."""
     await update.message.reply_text(get_correlation_summary(), parse_mode="Markdown")
 
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show all available commands organized by category."""
+    help_text = (
+        "🤖 **Antigravity Bot Commands**\n\n"
+        "**Core & Assistant**\n"
+        "• `/help` - Show this menu\n"
+        "• `/summary` - Manual data digest trigger\n"
+        "• `/models` - List & switch AI models\n"
+        "• `/bash <cmd>` - Run bash commands directly\n"
+        "• `/p <num>` - Adjust bot priority queue\n\n"
+        "**Server Management**\n"
+        "• `/server` - Interactive Server Dashboard\n"
+        "• `/ping` - Health check & uptime stats\n"
+        "• `/stats` - Token & LLM cost usage dashboard\n\n"
+        "**Data & Memory**\n"
+        "• `/backup` - Create an immediate brain backup\n"
+        "• `/restore` - List & restore backups\n"
+        "• `/correlations` - Cross-source data correlation stats"
+    )
+    await update.message.reply_text(help_text, parse_mode="Markdown")
+
+async def _get_server_overview():
+    try:
+        import subprocess
+        res = subprocess.check_output("uptime", shell=True, text=True).strip()
+        return f"🖥️ **Server Overview**\n`{res}`"
+    except Exception as e: return str(e)
+
+async def _get_mc_status():
+    try:
+        import subprocess
+        res = subprocess.check_output("systemctl is-active minecraft || echo 'inactive'", shell=True, text=True).strip()
+        return f"⛏️ **Minecraft Server**\nStatus: `{res}`"
+    except Exception as e: return str(e)
+
+async def _get_embed_status():
+    try:
+        import subprocess
+        res = subprocess.check_output("tail -n 10 /tmp/embed_build4.log || echo 'No log found'", shell=True, text=True).strip()
+        return f"🧠 **Embedding Progress**\n```\n{res}\n```"
+    except Exception as e: return str(e)
+
+async def _get_bot_status():
+    try:
+        import subprocess
+        res = subprocess.check_output("systemctl status antigravity-bot | head -n 5", shell=True, text=True).strip()
+        return f"🤖 **Bot Service**\n```\n{res}\n```"
+    except Exception as e: return str(e)
+
+async def _get_mc_log():
+    try:
+        import subprocess
+        res = subprocess.check_output("journalctl -u minecraft -n 10 --no-pager", shell=True, text=True).strip()
+        return f"📜 **MC Logs**\n```\n{res}\n```"
+    except Exception as e: return str(e)
+
+async def _get_ram_status():
+    try:
+        import subprocess
+        res = subprocess.check_output("free -h", shell=True, text=True).strip()
+        return f"💾 **RAM Usage**\n```\n{res}\n```"
+    except Exception as e: return str(e)
+
+async def _get_services_status():
+    try:
+        import subprocess
+        res = subprocess.check_output("systemctl list-units --type=service --state=running | head -n 10", shell=True, text=True).strip()
+        return f"⚙️ **Services**\n```\n{res}\n```"
+    except Exception as e: return str(e)
+
+async def _get_activity_feed():
+    from activity_log import get_recent_events, format_events
+    events = get_recent_events(10)
+    return f"📈 **Activity Feed**\n{format_events(events)}"
+
+async def _get_bot_log():
+    try:
+        import subprocess
+        res = subprocess.check_output("journalctl -u antigravity-bot -n 10 --no-pager", shell=True, text=True).strip()
+        return f"🤖 **Bot Logs**\n```\n{res}\n```"
+    except Exception as e: return str(e)
+
+async def _mc_start():
+    try:
+        import subprocess
+        subprocess.check_output("sudo systemctl start minecraft", shell=True)
+        return "✅ Minecraft server starting..."
+    except Exception as e: return str(e)
+
+async def _mc_stop():
+    try:
+        import subprocess
+        subprocess.check_output("sudo systemctl stop minecraft", shell=True)
+        return "🛑 Minecraft server stopping..."
+    except Exception as e: return str(e)
+
+async def server_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    args = context.args
+    if not args:
+        help_txt = (
+            "🎛️ **Server Dashboard**\n"
+            "Usage: `/server <module>`\n\n"
+            "Modules:\n"
+            "• `overview` - Uptime & load\n"
+            "• `ram` - Memory usage\n"
+            "• `mc` - Minecraft status\n"
+            "• `mcstart` / `mcstop` - Start/Stop MC\n"
+            "• `mclog` - Minecraft latest logs\n"
+            "• `bot` - Bot service status\n"
+            "• `botlog` - Bot latest logs\n"
+            "• `embed` - Embedding job status\n"
+            "• `services` - Top running services\n"
+            "• `activity` - Recent bot activity feed"
+        )
+        await update.message.reply_text(help_txt, parse_mode="Markdown")
+        return
+        
+    cmd = args[0].lower()
+    mapping = {
+        "overview": _get_server_overview,
+        "mc": _get_mc_status,
+        "embed": _get_embed_status,
+        "bot": _get_bot_status,
+        "mclog": _get_mc_log,
+        "ram": _get_ram_status,
+        "services": _get_services_status,
+        "activity": _get_activity_feed,
+        "botlog": _get_bot_log,
+        "mcstart": _mc_start,
+        "mcstop": _mc_stop
+    }
+    
+    if cmd in mapping:
+        result = await mapping[cmd]()
+        await update.message.reply_text(result, parse_mode="Markdown")
+    else:
+        await update.message.reply_text(f"❌ Unknown module: {cmd}")
+
 # ── NEW: Import unified modules ───────────────────────────────────────────────
 import config
 from llm_router import call_openrouter, get_cost_summary, is_valid_response, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL
@@ -1642,6 +1808,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("backup", backup_command))
     app.add_handler(CommandHandler("restore", restore_command))
     app.add_handler(CommandHandler("correlations", correlations_command))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("server", server_command))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

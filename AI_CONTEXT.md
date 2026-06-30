@@ -25,8 +25,14 @@ This is where all data ingestion occurs.
 
 ### 3. Knowledge Files (The Brain)
 - `mega_index.md`: A summarized catalog of the user's data.
-- `study_guides/curated_brain.md`: An exhaustive, append-only timeline of everything the bot sees or does. Saved in `study_guides/` so it syncs to Obsidian.
+- `curated_brain.md`: An exhaustive, append-only timeline of everything the bot sees or does.
 - `bot_context.txt`: A tightly compressed text file injected into the bot's real-time prompt to give it memory.
+
+### 4. Semantic Retrieval System (NEW)
+- `scrapers/embedding_indexer.py`: Builds a vector index from all knowledge sources using Ollama's `nomic-embed-text` model. Runs as Phase 5 of the nightly pipeline (1 AM). Produces `embedding_data/embedding_index.npz` with numpy vectors + chunk text + source paths.
+- `scrapers/semantic_retrieval.py`: At query time, embeds the user's message via Ollama and finds the top-K most relevant chunks by cosine similarity. Falls back to old tail-truncation if the index doesn't exist or Ollama is down.
+- `main.py` `send_to_antigravity_and_wait()`: Now calls `semantic_retrieval.get_context_for_prompt()` first. If semantic retrieval returns results, it replaces the old `brain_context` + `digest_context` tail-read. Otherwise falls back to `get_fallback_context()`.
+- The index is incremental: only re-embeds sources whose MD5 has changed. Full rebuild takes ~35 minutes on the i5 CPU.
 
 ## Common Pitfalls & Rules for Editing
 - **Server Environment**: The user runs this on a Debian server. `bot.service` manages the daemon.

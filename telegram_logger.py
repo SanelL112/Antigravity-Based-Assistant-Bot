@@ -40,7 +40,7 @@ def setup_telegram_logging():
         return
         
     handler = TelegramHandler()
-    handler.setLevel(logging.WARNING)  # Only send WARNING+ to Telegram (not INFO spam)
+    handler.setLevel(logging.WARNING)  # Send WARNING+ to Telegram as muted notifications
     formatter = logging.Formatter('%(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)

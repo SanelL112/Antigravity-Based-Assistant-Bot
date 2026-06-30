@@ -34,7 +34,7 @@ async def process_chunk(chunk, chunk_index, source_name):
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
-                    "model": "llama3.2",
+                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
                     "prompt": prompt,
                     "stream": False
                 }
