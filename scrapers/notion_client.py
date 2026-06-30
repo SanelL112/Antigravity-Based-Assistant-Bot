@@ -1,13 +1,44 @@
 import os
 import requests
 import logging
-from dotenv import load_dotenv
+import time as _time
+import threading
+import config
 
-load_dotenv()
 logger = logging.getLogger(__name__)
 
-NOTION_API_KEY = os.getenv("NOTION_API_KEY")
-DATABASE_ID = "38309c49-e758-8004-8005-c5440093e2cb"  # Tracker database
+NOTION_API_KEY = config.NOTION_API_KEY
+DATABASE_ID = config.NOTION_DATABASE_ID  # Tracker database
+
+# ── Rate Limiter (Notion: 3 req/s) ──────────────────────────────────────────
+class _RateLimiter:
+    def __init__(self, min_interval=0.35):
+        self.min_interval = min_interval
+        self.last_call = 0
+        self.lock = threading.Lock()
+
+    def wait(self):
+        with self.lock:
+            elapsed = _time.time() - self.last_call
+            if elapsed < self.min_interval:
+                _time.sleep(self.min_interval - elapsed)
+            self.last_call = _time.time()
+
+_notion_limiter = _RateLimiter()
+
+
+def _rate_limited_request(method, url, **kwargs):
+    """Make a rate-limited HTTP request."""
+    _notion_limiter.wait()
+    resp = requests.request(method, url, **kwargs)
+    # Retry on 429
+    if resp.status_code == 429:
+        retry_after = float(resp.headers.get("Retry-After", 1.0))
+        logger.warning(f"Notion rate limited, waiting {retry_after}s")
+        _time.sleep(retry_after)
+        _notion_limiter.wait()
+        resp = requests.request(method, url, **kwargs)
+    return resp
 OWNER_ID = "2f9d872b-594c-8115-84a6-00028eb47924"     # Sanel Lathiya
 
 # Schema reference (read-only formula fields, do NOT set these):
@@ -30,7 +61,7 @@ def task_exists(title: str, headers: dict) -> bool:
         }
     }
     try:
-        res = requests.post(query_url, headers=headers, json=payload, timeout=10)
+        res = _rate_limited_request("POST", query_url, headers=headers, json=payload, timeout=10)
         res.raise_for_status()
         results = res.json().get("results", [])
         return len(results) > 0
@@ -136,7 +167,8 @@ def add_task_to_notion(
         data["children"] = children
 
     try:
-        res = requests.post(
+        res = _rate_limited_request(
+            "POST",
             "https://api.notion.com/v1/pages",
             headers=headers,
             json=data,
@@ -185,7 +217,7 @@ def update_notion_task(page_id: str, priority: str = None, status: str = None, s
     data = {"properties": properties}
     
     try:
-        res = requests.patch(
+        res = _rate_limited_request("PATCH",
             f"https://api.notion.com/v1/pages/{page_id}",
             headers=headers,
             json=data,

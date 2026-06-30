@@ -1,0 +1,550 @@
+"""
+utils.py — Shared utilities for rotation, backup, correlation, and safety.
+"""
+import os
+import json
+import time
+import random
+import shutil
+import hashlib
+import logging
+import functools
+import subprocess
+import tempfile
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Optional
+
+from config import (
+    BASE_DIR, CACHE_DIR, ARCHIVE_DIR, BACKUP_DIR, BACKUP_DIR,
+    STATE_FILE, CURATED_BRAIN_FILE, MEGA_INDEX_FILE,
+    COMBINED_SUMMARIES_FILE, CORRELATION_GRAPH_FILE,
+    MAX_COMBINED_SUMMARIES_CHARS, MAX_MEGA_INDEX_CHARS,
+    MAX_CURATED_BRAIN_CHARS, MAX_SEEN_TASKS, MAX_CHAT_HISTORY_KB,
+    BACKUP_FILES, BACKUP_RETENTION_DAYS, SANEL_CHAT_ID,
+)
+
+logger = logging.getLogger(__name__)
+
+
+# ── Memory Bloat Fixes ───────────────────────────────────────────────────────
+def rotate_file_if_needed(filepath: Path, max_chars: int, keep_chars: int = None):
+    """Rotate a file if it exceeds max_chars. Keeps the last keep_chars."""
+    if not filepath.exists():
+        return
+    try:
+        content = filepath.read_text(encoding="utf-8")
+        if len(content) <= max_chars:
+            return
+        keep = keep_chars or int(max_chars * 0.7)
+        # Add rotation marker
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        archived = content[:-keep]
+        rotated_path = ARCHIVE_DIR / f"{filepath.stem}_{date_str}{filepath.suffix}"
+        rotated_path.write_text(archived, encoding="utf-8")
+        # Keep only the recent portion
+        new_content = f"[rotated older content to {rotated_path.name}]\n" + content[-keep:]
+        filepath.write_text(new_content, encoding="utf-8")
+        logger.info(f"Rotated {filepath.name}: {len(content)} -> {len(new_content)} chars")
+    except Exception as e:
+        logger.error(f"Rotation failed for {filepath}: {e}")
+
+
+def enforce_all_rotations():
+    """Call this periodically to keep files from growing unbounded."""
+    rotate_file_if_needed(COMBINED_SUMMARIES_FILE, MAX_COMBINED_SUMMARIES_CHARS)
+    rotate_file_if_needed(MEGA_INDEX_FILE, MAX_MEGA_INDEX_CHARS)
+    rotate_file_if_needed(CURATED_BRAIN_FILE, MAX_CURATED_BRAIN_CHARS)
+
+    # Rotate chat history files (per-topic)
+    for f in BASE_DIR.glob("chat_history_*.txt"):
+        rotate_file_if_needed(f, MAX_CHAT_HISTORY_KB * 1024)
+
+    # Cap state.json seen_tasks
+    try:
+        state = json.loads(STATE_FILE.read_text())
+        if len(state.get("seen_tasks", [])) > MAX_SEEN_TASKS:
+            state["seen_tasks"] = state["seen_tasks"][-MAX_SEEN_TASKS:]
+            STATE_FILE.write_text(json.dumps(state))
+            logger.info("Capped seen_tasks in state.json")
+    except Exception as e:
+        logger.error(f"Failed to cap seen_tasks: {e}")
+
+
+# ── BASH Safety (Fix #7) ─────────────────────────────────────────────────────
+BLOCKED_PATTERNS = [
+    'rm -rf /', 'mkfs', 'dd if=', ':(){', 'fork bomb',
+    '> /dev/sda', 'chmod -R 777 /', 'shutdown', 'reboot',
+    'init 0', 'poweroff', 'halt', 'curl.*[|].*bash', 'wget.*[|].*sh',
+]
+
+_audit_log_path = BASE_DIR / "command_audit.log"
+_rate_limit = {}  # chat_id -> [timestamps]
+
+
+def run_bash_safely(cmd: str, chat_id: int = 0, timeout: int = 60) -> str:
+    """
+    Run a shell command with safety checks and audit logging.
+    Returns stdout+stderr or error message.
+    """
+    import shlex
+
+    # Rate limit: max 10 commands per minute per chat
+    now = time.time()
+    recent = [t for t in _rate_limit.get(chat_id, []) if now - t < 60]
+    if len(recent) >= 10:
+        return "⛔ Rate limit exceeded (10 commands/min). Wait a bit."
+    _rate_limit[chat_id] = recent + [now]
+
+    # Safety check
+    cmd_lower = cmd.lower()
+    for blocked in BLOCKED_PATTERNS:
+        if blocked in cmd_lower:
+            _audit_log(cmd, chat_id, "BLOCKED")
+            return f"⛔ BLOCKED: Command matched safety filter ({blocked})"
+
+    # Log the command
+    _audit_log(cmd, chat_id, "EXECUTED")
+
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=True,  # Some commands need shell (pipes, etc.) but we've sanitized
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        output = (result.stdout + result.stderr).strip()
+        output = "\n".join(l for l in output.splitlines() if not l.startswith("[sudo]"))
+        return output[:2000] if output else "(no output)"
+    except subprocess.TimeoutExpired:
+        return f"� Command timed out after {timeout}s"
+    except Exception as e:
+        return f"Error: {e}"
+
+
+def _audit_log(cmd: str, chat_id: int, status: str):
+    """Write to audit log for accountability."""
+    try:
+        import pytz
+        et = pytz.timezone("US/Eastern")
+        ts = datetime.now(et).strftime("%Y-%m-%d %H:%M:%S %Z")
+    except:
+        ts = datetime.now().isoformat()
+
+    with open(_audit_log_path, "a") as f:
+        f.write(f"[{ts}] chat={chat_id} status={status} cmd={cmd[:200]}\n")
+
+
+# ── PII Scrubber (Security) ──────────────────────────────────────────────────
+# Patterns that MUST NOT leave the server. Applied before any OpenRouter call.
+import re as _re
+
+# Email addresses
+_EMAIL_RE = _re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+# Phone numbers (US format)
+_PHONE_RE = _re.compile(r'\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b')
+# SSN
+_SSN_RE = _re.compile(r'\b\d{3}-\d{2}-\d{4}\b')
+# Credit card numbers (basic)
+_CC_RE = _re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b')
+# Dates of birth patterns
+_DOB_RE = _re.compile(r'\b(?:0[1-9]|1[0-2])[/-](?:0[1-9]|[12]\d|3[01])[/-](?:19|20)\d{2}\b')
+# Student ID patterns
+_STUDENT_ID_RE = _re.compile(r'\b(?:student\s*id|sid|id\s*#?)\s*:?\s*\d{4,10}\b', _re.IGNORECASE)
+
+# Known PII-safe replacement markers
+_PII_REPLACEMENTS = {
+    'email': '[EMAIL]',
+    'phone': '[PHONE]',
+    'ssn': '[SSN]',
+    'cc': '[CARD]',
+    'dob': '[DATE]',
+    'student_id': '[ID]',
+}
+
+
+def scrub_pii(text: str, aggressive: bool = False) -> str:
+    """
+    Remove PII from text before sending to external (cloud) LLM APIs.
+
+    Args:
+        text: Input text that may contain PII
+        aggressive: If True, also scrub names and other identifiers
+
+    Returns:
+        Scrubbed text safe for cloud processing
+    """
+    if not text:
+        return text
+
+    text = _EMAIL_RE.sub(_PII_REPLACEMENTS['email'], text)
+    text = _PHONE_RE.sub(_PII_REPLACEMENTS['phone'], text)
+    text = _SSN_RE.sub(_PII_REPLACEMENTS['ssn'], text)
+    text = _CC_RE.sub(_PII_REPLACEMENTS['cc'], text)
+    text = _DOB_RE.sub(_PII_REPLACEMENTS['dob'], text)
+    text = _STUDENT_ID_RE.sub(_PII_REPLACEMENTS['student_id'], text)
+
+    if aggressive:
+        # Also scrub proper names (simple heuristic: capitalized words not at sentence start)
+        # This is lossy but safe for cloud processing
+        text = _re.sub(
+            r'(?<!^)(?<!\\. )(?<!\\n)\b([A-Z][a-z]+ [A-Z][a-z]+)\b',
+            '[NAME]', text
+        )
+
+    return text
+
+
+def check_pii(text: str) -> tuple:
+    """
+    Check if text is safe to send to cloud.
+    Returns (is_safe, scrubbed_text, found_pii_types).
+    """
+    found_types = []
+    if _EMAIL_RE.search(text):
+        found_types.append('email')
+    if _PHONE_RE.search(text):
+        found_types.append('phone')
+    if _SSN_RE.search(text):
+        found_types.append('ssn')
+    if _CC_RE.search(text):
+        found_types.append('credit_card')
+    if _DOB_RE.search(text):
+        found_types.append('dob')
+    if _STUDENT_ID_RE.search(text):
+        found_types.append('student_id')
+
+    scrubbed = scrub_pii(text)
+    return (len(found_types) == 0, scrubbed, found_types)
+
+
+# ── Backup System (Feature 8) ────────────────────────────────────────────────
+def create_backup() -> Optional[str]:
+    """
+    Create a timestamped backup of all critical state files.
+    Returns the backup path or None on failure.
+    """
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    backup_name = f"backup_{date_str}.tar.gz"
+    backup_path = BACKUP_DIR / backup_name
+
+    # Collect files that exist
+    files_to_backup = []
+    for fname in BACKUP_FILES:
+        fpath = BASE_DIR / fname
+        if fpath.exists():
+            files_to_backup.append(str(fpath))
+
+    # Also backup chat history
+    for fpath in BASE_DIR.glob("chat_history_*.txt"):
+        files_to_backup.append(str(fpath))
+
+    # Also backup source_cache summaries
+    for fpath in CACHE_DIR.glob("*.txt"):
+        files_to_backup.append(str(fpath))
+
+    if not files_to_backup:
+        logger.warning("No files to backup")
+        return None
+
+    try:
+        # Create tar.gz with relative paths
+        sh_cmd = f"tar -czf {backup_path} -C {BASE_DIR} " + " ".join(
+            os.path.relpath(f, BASE_DIR) for f in files_to_backup
+        )
+        subprocess.run(sh_cmd, shell=True, check=True, timeout=30)
+        logger.info(f"Backup created: {backup_path}")
+        # Clean old backups
+        cleanup_old_backups()
+        return str(backup_path)
+    except Exception as e:
+        logger.error(f"Backup failed: {e}")
+        return None
+
+
+def cleanup_old_backups():
+    """Remove backups older than BACKUP_RETENTION_DAYS."""
+    if not BACKUP_DIR.exists():
+        return
+    cutoff = time.time() - (BACKUP_RETENTION_DAYS * 86400)
+    for f in BACKUP_DIR.glob("backup_*.tar.gz"):
+        if f.stat().st_mtime < cutoff:
+            f.unlink()
+            logger.info(f"Removed old backup: {f.name}")
+
+
+def list_backups() -> list:
+    """Return list of available backups, sorted newest first."""
+    if not BACKUP_DIR.exists():
+        return []
+    backups = sorted(BACKUP_DIR.glob("backup_*.tar.gz"), reverse=True)
+    result = []
+    for b in backups:
+        size_mb = b.stat().st_size / (1024 * 1024)
+        date = b.stem.replace("backup_", "")
+        result.append({"path": str(b), "date": date, "size_mb": round(size_mb, 1)})
+    return result
+
+
+def restore_backup(backup_path: str, dry_run: bool = True) -> str:
+    """
+    Restore from a backup. If dry_run, just list what would be restored.
+    """
+    p = Path(backup_path)
+    if not p.exists():
+        return f"❌ Backup not found: {backup_path}"
+
+    if dry_run:
+        result = subprocess.run(
+            f"tar -tzf {p}", shell=True, capture_output=True, text=True
+        )
+        files = result.stdout.strip().split("\n")[:30]
+        return f"📦 **Backup contents** ({len(files)}+ files):\n" + "\n".join(f"  {f}" for f in files)
+
+    # Actual restore
+    try:
+        subprocess.run(
+            f"tar -xzf {p} -C {BASE_DIR}", shell=True, check=True, timeout=30
+        )
+        return f"✅ Restored from {p.name}"
+    except Exception as e:
+        return f"❌ Restore failed: {e}"
+
+
+# ── Cross-Source Correlation Engine (Feature 6) ──────────────────────────────
+def load_correlation_graph() -> dict:
+    """Load the correlation graph (JSON)."""
+    try:
+        return json.loads(CORRELATION_GRAPH_FILE.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"nodes": {}, "edges": []}
+
+
+def save_correlation_graph(graph: dict):
+    """Persist the correlation graph."""
+    CORRELATION_GRAPH_FILE.write_text(json.dumps(graph, indent=2))
+
+
+def correlate_items(items: list) -> dict:
+    """
+    Build correlations across scraped items.
+
+    items: list of {"source": "canvas", "title": "...", "": "...", "type": "assignment|announcement|email|message"}
+
+    Returns updated graph.
+    """
+    graph = load_correlation_graph()
+
+    # Extract key terms (simple: words > 3 chars, non-common)
+    STOP_WORDS = {"assignment", "homework", "about", "this", "that", "with", "from",
+                  "your", "have", "will", "please", "the", "and", "for", "you", "not",
+                  "was", "are", "but", "can", "all", "had", "one", "our", "out",
+                  "day", "get", "has", "him", "his", "how", "its", "may", "new", "now",
+                  "old", "see", "way", "who", "did", "oil", "sit", "use", "than"}
+
+    def extract_terms(text: str) -> set:
+        words = text.lower().split()
+        return {w.strip(".,!?():;[]'\"") for w in words if len(w) > 4 and w not in STOP_WORDS}
+
+    # Add/update nodes
+    for item in items:
+        node_id = hashlib.md5(f"{item['source']}:{item['title']}".encode()).hexdigest()[:12]
+        terms = extract_terms(item["title"] + " " + item.get("text", ""))
+
+        if node_id not in graph["nodes"]:
+            graph["nodes"][node_id] = {
+                "source": item["source"],
+                "title": item["title"],
+                "terms": list(terms),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "type": item.get("type", "unknown"),
+            }
+        else:
+            # Merge new terms
+            existing = set(graph["nodes"][node_id]["terms"])
+            graph["nodes"][node_id]["terms"] = list(existing | terms)
+
+    # Build edges: nodes sharing 2+ terms are correlated
+    nodes = graph["nodes"]
+    graph["edges"] = []
+    node_ids = list(nodes.keys())
+
+    for i, nid_a in enumerate(node_ids):
+        terms_a = set(nodes[nid_a]["terms"])
+        for nid_b in node_ids[i+1:]:
+            terms_b = set(nodes[nid_b]["terms"])
+            shared = terms_a & terms_b
+            if len(shared) >= 2:
+                graph["edges"].append({
+                    "source": nid_a,
+                    "target": nid_b,
+                    "shared_terms": list(shared),
+                    "strength": len(shared),
+                })
+
+    save_correlation_graph(graph)
+    return graph
+
+
+def get_related_items(query: str, max_results: int = 5) -> list:
+    """Find items correlated with a search query."""
+    graph = load_correlation_graph()
+    query_terms = set(w.lower() for w in query.split() if len(w) > 3)
+
+    scored = []
+    for node_id, node in graph.get("nodes", {}).items():
+        node_terms = set(node.get("terms", []))
+        shared = query_terms & node_terms
+        if shared:
+            scored.append((len(shared), node))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [node for _, node in scored[:max_results]]
+
+
+def get_correlation_summary() -> str:
+    """Format correlation stats for Telegram."""
+    graph = load_correlation_graph()
+    nodes = len(graph.get("nodes", {}))
+    edges = len(graph.get("edges", {}))
+
+    # Group by source
+    sources = {}
+    for node in graph.get("nodes", {}).values():
+        s = node["source"]
+        sources[s] = sources.get(s, 0) + 1
+
+    lines = [
+        f"� **Correlation Engine**",
+        f"Nodes: {nodes} | Correlations: {edges}",
+        "",
+        "**By Source:**",
+    ]
+    for src, count in sorted(sources.items(), key=lambda x: -x[1]):
+        lines.append(f"  {src}: {count} items")
+    return "\n".join(lines)
+
+
+# ── Health Telemetry (Fix #6: /ping command) ────────────────────────────────
+def get_health_status() -> str:
+    """Generate health status report for /ping command."""
+    import shutil as _shutil
+
+    # Bot uptime from systemd
+    uptime_str = "unknown"
+    try:
+        result = subprocess.run(
+            ["systemctl", "show", "bot.service", "--property=ActiveEnterTimestamp", "--value"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.stdout.strip():
+            uptime_str = result.stdout.strip()
+    except:
+        pass
+
+    # Disk usage
+    disk = _shutil.disk_usage("/")
+    disk_pct = round(disk.used / disk.total * 100, 1)
+
+    # Last digest time
+    last_digest = "never"
+    try:
+        mtime = os.path.getmtime(BASE_DIR / "latest_digest.txt")
+        age_min = int((time.time() - mtime) / 60)
+        if age_min < 60:
+            last_digest = f"{age_min}m ago"
+        else:
+            last_digest = f"{age_min // 60}h ago"
+    except:
+        pass
+
+    # Nightly queue size
+    queue_size = 0
+    try:
+        qf = BASE_DIR / "nightly_queue.json"
+        if qf.exists():
+            queue_size = len(json.loads(qf.read_text()))
+    except:
+        pass
+
+    # Rotating file sizes
+    def file_size_str(path: Path) -> str:
+        if not path.exists():
+            return "missing"
+        s = path.stat().st_size
+        if s > 1024*1024:
+            return f"{s/(1024*1024):.1f}MB"
+        return f"{s/1024:.0f}KB"
+
+    lines = [
+        "🏥 **Bot Health**",
+        f"Uptime: {uptime_str}",
+        f"Disk: {disk_pct}% used ({disk.free/(1024**3):.1f}GB free)",
+        f"Last digest: {last_digest}",
+        f"Nightly queue: {queue_size} files",
+        "**File Sizes:**",
+        f"  State: {file_size_str(STATE_FILE)}",
+        f"  Combined summaries: {file_size_str(COMBINED_SUMMARIES_FILE)}",
+        f"  Mega index: {file_size_str(MEGA_INDEX_FILE)}",
+        f"  Curated brain: {file_size_str(CURATED_BRAIN_FILE)}",
+    ]
+    return "\n".join(lines)
+
+
+# ── Content-Hash Caching ─────────────────────────────────────────────────────
+import hashlib as _hashlib
+
+_PROCESSED_CACHE_PATH = CACHE_DIR / "processed_hashes.json"
+
+def load_processed_cache() -> dict:
+    """Load the cache of {source_hash: processed_at} entries."""
+    try:
+        return json.loads(_PROCESSED_CACHE_PATH.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def save_processed_cache(cache: dict):
+    """Persist the cache of {source_name: latest_hash} mapping."""
+    _PROCESSED_CACHE_PATH.write_text(json.dumps(cache, indent=2))
+
+
+def content_hash(data: str) -> str:
+    return _hashlib.md5(data.encode()).hexdigest()[:16]
+
+
+def has_changed(source_name: str, data: str) -> bool:
+    """Check if source data changed since last successful processing. Returns True if should reprocess."""
+    cache = load_processed_cache()
+    h = content_hash(data)
+    if cache.get(source_name) == h:
+        return False  # unchanged
+    cache[source_name] = h
+    # Keep only last 100 entries to prevent bloat
+    if len(cache) > 100:
+        cache = dict(list(cache.items())[-100:])
+    save_processed_cache(cache)
+    return True
+
+
+# ── Retry Decorator ──────────────────────────────────────────────────────────
+def retry(max_retries=3, base_delay=1.0, exceptions=(Exception,)):
+    """Decorator for API calls with exponential backoff + jitter."""
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            last_exc = None
+            for attempt in range(max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    last_exc = e
+                    if attempt < max_retries:
+                        delay = base_delay * (2 ** attempt) + random.uniform(0, 0.5)
+                        logger.warning(f"{func.__name__} attempt {attempt+1} failed: {e}. Retry in {delay:.1f}s")
+                        time.sleep(delay)
+            return func(*args, **kwargs)  # last attempt, let it raise
+        return wrapper
+    return decorator

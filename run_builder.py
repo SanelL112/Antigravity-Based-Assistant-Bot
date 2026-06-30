@@ -41,13 +41,18 @@ async def main():
             subprocess.run(["pandoc", output_md, "-o", output_docx], check=True)
             print(f"Successfully created Word document at {output_docx}")
             
-            # Automatically push the massive generated documents to GitHub
+            # Automatically push the generated study guides to GitHub
             print("Pushing generated study guides to GitHub...")
             os.chdir("/home/sanel/personal-assistant-bot")
             subprocess.run(["git", "add", output_md, output_docx], check=True)
-            subprocess.run(["git", "commit", "-m", f"docs: Auto-update {filename_base} study guide"], check=True)
-            subprocess.run(["git", "push"], check=True)
-            print("Successfully synced to GitHub!")
+            # Check if there are actually changes before committing
+            status = subprocess.run(["git", "diff", "--cached", "--quiet"], capture_output=True)
+            if status.returncode != 0:  # there are staged changes
+                subprocess.run(["git", "commit", "-m", f"docs: Auto-update {filename_base} study guide"], check=True)
+                subprocess.run(["git", "push"], check=True)
+                print("Successfully synced to GitHub!")
+            else:
+                print("No changes to commit — study guide is up to date.")
         except Exception as e:
             print(f"Post-processing pipeline failed: {e}")
     else:

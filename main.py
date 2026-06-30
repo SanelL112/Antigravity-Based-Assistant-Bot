@@ -483,47 +483,12 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
     # Auto-execute any <BASH>...</BASH> blocks in the response
     import re as _re
     
-    # Safety: block obviously destructive commands
-    BLOCKED_PATTERNS = ['rm -rf /', 'mkfs', 'dd if=', ':(){', 'fork bomb', '> /dev/sda', 'chmod -R 777 /', 'shutdown', 'reboot', 'init 0']
-    
-    def _run_bash(cmd):
-        # Safety check
-        for blocked in BLOCKED_PATTERNS:
-            if blocked in cmd.lower():
-                logger.warning(f"BLOCKED dangerous command: {cmd[:80]}")
-                return f"⛔ BLOCKED: Command matched safety filter ({blocked})"
-        try:
-            import tempfile
-            import os
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.sh') as tf:
-                tf.write(cmd.strip())
-                temp_script = tf.name
-
-            sudo_pw = SUDO_PASSWORD or os.getenv('SUDO_PASSWORD', '')
-            if sudo_pw:
-                full_cmd = f"echo '{sudo_pw}' | sudo -S bash {temp_script}"
-            else:
-                full_cmd = f"bash {temp_script}"
-            
-            r = subprocess.run(
-                full_cmd,
-                shell=True, capture_output=True, text=True, timeout=60
-            )
-            
-            try:
-                os.remove(temp_script)
-            except Exception:
-                pass
-            result_text = (r.stdout + r.stderr).strip()
-            result_text = "\n".join(l for l in result_text.splitlines() if not l.startswith("[sudo]"))
-            return result_text[:2000] if result_text else "(no output)"
-        except Exception as ex:
-            return f"Error: {ex}"
+    # BASH execution now uses run_bash_safely from utils (with audit log + rate limit)
 
     def _replace_bash(m):
         cmd = m.group(1).strip()
         logger.info(f"Auto-executing: {cmd[:80]}")
-        output = _run_bash(cmd)
+        output = run_bash_safely(cmd, chat_id=chat_id)
         return f"\n💻 `{cmd}`\n```\n{output}\n```"
 
     original_out = out
@@ -630,10 +595,30 @@ def load_state():
     return {"seen_tasks": [], "seen_alerts": [], "pending_priorities": {}}
 
 def save_state(state):
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f)
+    """Atomic write: write to temp file then rename (prevents corruption on crash)."""
+    import tempfile
+    try:
+        fd, tmp_path = tempfile.mkstemp(dir=STATE_FILE.parent, suffix='.tmp')
+        with os.fdopen(fd, 'w') as f:
+            json.dump(state, f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, STATE_FILE)
+    except Exception as e:
+        logger.error(f"Failed to save state: {e}")
+        # Fallback to direct write (better than nothing)
+        with open(STATE_FILE, "w") as f:
+            json.dump(state, f)
 
 async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
+    if watchdog_lock.locked():
+        logger.warning("watchdog already running, skipping")
+        return
+    async with watchdog_lock:
+        await _watchdog_impl(context)
+
+
+async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
     """Runs every 30 mins to check for urgent anomalies using tiny local model Qwen2 0.5B."""
     if is_sleep_window(): return
     chat_id = context.job.chat_id
@@ -726,40 +711,18 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
         f"DATA:\n{raw_data}"
     )
     try:
-        import httpx
-        from dotenv import load_dotenv
-        load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        
-        result = ""
-        if api_key:
-            try:
-                async with httpx.AsyncClient() as client:
-                    response = await client.post(
-                        "https://openrouter.ai/api/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {api_key}",
-                            "HTTP-Referer": "https://github.com/sanellathiya",
-                            "X-Title": "Personal Assistant Bot"
-                        },
-                        json={
-                            "models": ["nvidia/nemotron-3-ultra-550b-a55b:free", "openrouter/owl-alpha:free"],
-                            "messages": [{"role": "user", "content": prompt}],
-                            "temperature": 0.0
-                        },
-                        timeout=45.0
-                    )
-                if response.status_code == 200:
-                    result = response.json()["choices"][0]["message"]["content"].strip()
-                else:
-                    logger.warning(f"OpenRouter failed with {response.status_code}: {response.text}")
-            except Exception as e:
-                logger.warning(f"OpenRouter connection error: {e}")
-                
-        if not result:
-            logger.info("Falling back to G1 Flash for watchdog alert...")
-            from ai_processor import call_agy
-            result = await asyncio.to_thread(call_agy, prompt, 3600, "flash")
+        from llm_router import call_openrouter
+    
+        result = call_openrouter(
+            model="nvidia/nemotron-3-ultra-550b-a55b:free",
+            prompt=f"Read the following recent school and email notifications. "
+                  f"Look ONLY for critical anomalies or urgent updates. "
+                  f"If there is nothing urgent, reply exactly: NO_ALERT\n\n"
+                  f"DATA:\n{raw_data}",
+            task="watchdog",
+            fallback_chain=["openrouter/owl-alpha"],
+            timeout=45,
+        )
                 
         # Send alert regardless of which model produced the result
         if result and "NO_ALERT" not in result and len(result) > 10:
@@ -775,11 +738,20 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Watchdog Ollama error: {e}")
 
 async def check_updates(context: ContextTypes.DEFAULT_TYPE):
+    # Prevent overlapping executions if previous run takes >4 hours
+    if digest_lock.locked():
+        logger.warning("check_updates already running, skipping this tick")
+        return
+
+    async with digest_lock:
+        await _check_updates_impl(context)
+
+
+async def _check_updates_impl(context: ContextTypes.DEFAULT_TYPE):
     if is_sleep_window(): return
     chat_id = context.job.chat_id
     state = load_state()
     
-    # sys.path already set at module level
     from scrapers.canvas_scraper import get_all_canvas_data
     from scrapers.groupme_scraper import get_latest_messages
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
@@ -788,17 +760,31 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
     
     logger.info("Background job: Scraping sources...")
     
-    def _run_digest():
-        c = get_all_canvas_data()
-        cl = get_classroom_assignments()
-        cla = get_classroom_announcements()
-        gm = get_unread_emails()
-        grp = get_latest_messages("102851186")
-        gd = get_recent_google_docs()
-        logger.info("Background job: Processing with AI...")
-        return process_all_sources(c, cl, gm, grp, cla, gd)
+    # ── Per-source error recovery: each scraper runs independently ─────────
+    async def _safe_scrape(name, func, *args):
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(func, *args),
+                timeout=60
+            )
+        except Exception as e:
+            logger.error(f"Scraper {name} failed: {e}")
+            return f"Error fetching {name}: {e}"
 
-    ai_result = await asyncio.to_thread(_run_digest)
+    c = await _safe_scrape("canvas", get_all_canvas_data)
+    cl = await _safe_scrape("classroom", get_classroom_assignments)
+    cla = await _safe_scrape("classroom_ann", get_classroom_announcements)
+    gm = await _safe_scrape("gmail", get_unread_emails)
+    grp = await _safe_scrape("groupme", get_latest_messages, "102851186")
+    gd = await _safe_scrape("gdocs", get_recent_google_docs)
+
+    logger.info("Background job: Processing with AI...")
+    try:
+        ai_result = await asyncio.to_thread(process_all_sources, c, cl, gm, grp, cla, gd)
+    except Exception as e:
+        logger.error(f"AI processing failed: {e}")
+        await context.bot.send_message(chat_id=chat_id, text=f"⚠️ Digest processing failed: {e}")
+        return
     
     # 1. Notion Tasks
     import difflib
@@ -879,21 +865,34 @@ async def check_updates(context: ContextTypes.DEFAULT_TYPE):
             except Exception:
                 await context.bot.send_message(chat_id=chat_id, text=chunk)
             
-    # 3. Ask to Compile Mega Study Guides
+    # 3. Ask to Compile Mega Study Guides (with inline keyboard)
     topics = ai_result.get("topics", [])
     if topics:
         topics_str = "\n".join([f"- {t}" for t in topics])
         msg = (
             f"🧠 **I detected you have upcoming assignments/tests for the following topics:**\n"
             f"{topics_str}\n\n"
-            f"Would you like me to compile a Mega Study Guide for any of these? (Just reply 'Build a guide for...') 📚"
+            f"Would you like me to compile a Mega Study Guide for any of these? 📚"
         )
+        keyboard = get_digest_topic_keyboard(topics)
         try:
-            await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode="Markdown")
+            await context.bot.send_message(chat_id=chat_id, text=msg, parse_mode="Markdown", reply_markup=keyboard)
         except Exception:
             await context.bot.send_message(chat_id=chat_id, text=msg)
-            
-    state["seen_tasks"] = state.get("seen_tasks", [])[-50:]
+
+    # 4. Track correlations across sources
+    try:
+        correlate_items([
+            {"source": "canvas", "title": t, "type": "assignment"}
+            for t in ai_result.get("topics", [])
+        ] + [
+            {"source": "gmail", "title": e.get("title", ""), "type": "email"}
+            for e in ai_result.get("tasks", [])
+        ])
+    except Exception as e:
+        logger.warning(f"Correlation tracking failed: {e}")
+
+    state["seen_tasks"] = state.get("seen_tasks", [])[-config.MAX_SEEN_TASKS:]
     save_state(state)
     logger.info("Background job: Complete.")
 
@@ -917,7 +916,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# ── Concurrency Locks ─────────────────────────────────────────────────────────
 message_lock = asyncio.Lock()
+digest_lock = asyncio.Lock()  # prevents overlapping check_updates
+watchdog_lock = asyncio.Lock()  # prevents overlapping watchdog
+
+
+# ── Telegram handlers ──────────────────────────────────────────────────────────
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_sleep_window():
@@ -1136,7 +1141,7 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    if chat_id != 8534649457:
+    if chat_id != config.SANEL_CHAT_ID:
         await context.bot.send_message(chat_id=chat_id, text="❌ Unauthorized.")
         return
 
@@ -1146,34 +1151,12 @@ async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     msg = await context.bot.send_message(chat_id=chat_id, text=f"💻 Running: `{cmd}`...", parse_mode="Markdown")
+    output = run_bash_safely(cmd, chat_id=chat_id)
+    reply = "💻 **`" + cmd[:100] + "`**\n\n```\n" + output[:3800] + "\n```"
     try:
-        # Run with root access via sudo
-        sudo_pw = SUDO_PASSWORD or os.getenv('SUDO_PASSWORD', '')
-        if sudo_pw:
-            full_cmd = f"echo '{sudo_pw}' | sudo -S bash -c " + repr(cmd)
-        else:
-            full_cmd = "bash -c " + repr(cmd)
-        result = subprocess.run(full_cmd, shell=True, capture_output=True, text=True, timeout=60)
-        output = result.stdout + result.stderr
-        # Strip the sudo password prompt line
-        output = "\n".join(line for line in output.splitlines() if not line.startswith("[sudo]"))
-        if not output.strip():
-            output = "(No output)"
-        if len(output) > 3800:
-            output = output[:3800] + "\n... (truncated)"
-        reply = "💻 **`" + cmd + "`**\n\n```\n" + output + "\n```"
-        try:
-            await context.bot.edit_message_text(
-                chat_id=chat_id, message_id=msg.message_id, text=reply, parse_mode="Markdown"
-            )
-        except Exception:
-            await context.bot.edit_message_text(
-                chat_id=chat_id, message_id=msg.message_id, text=reply
-            )
-    except Exception as e:
-        await context.bot.edit_message_text(
-            chat_id=chat_id, message_id=msg.message_id, text="❌ Error: " + str(e)
-        )
+        await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=reply, parse_mode="Markdown")
+    except Exception:
+        await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=reply)
 
 async def priority_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -1265,45 +1248,22 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Caption: {caption}\nPhoto OCR Text:\n{ocr_text}"
     )
     
-    import httpx
+    from llm_router import call_openrouter
+    from config import OR_FREE_MODELS
     
-    async def _call_openrouter() -> str:
-        try:
-            import os
-            from dotenv import load_dotenv
-            load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-            api_key = os.getenv("OPENROUTER_API_KEY")
-            if not api_key: return ""
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "HTTP-Referer": "https://github.com/sanellathiya",
-                        "X-Title": "Personal Assistant Bot"
-                    },
-                    json={
-                        "models": ["nvidia/nemotron-3-ultra-550b-a55b:free", "openrouter/owl-alpha:free"],
-                        "messages": [{"role": "user", "content": prompt}],
-                        "temperature": 0.0
-                    },
-                    timeout=3600.0
-                )
-            if response.status_code == 200:
-                return response.json()["choices"][0]["message"]["content"].strip()
-            else:
-                logger.warning(f"OpenRouter returned {response.status_code}: {response.text}")
-        except Exception as e:
-            logger.warning(f"OpenRouter connection error: {e}")
-        return ""
-
     try:
-        extracted = await _call_openrouter()
-        if not extracted:
-            logger.info("Falling back to G1 Flash for photo extraction...")
-            from ai_processor import call_agy
-            import asyncio
-            extracted = await asyncio.to_thread(call_agy, prompt, 3600, "flash")
+        extracted = call_openrouter(
+            model="nvidia/nemotron-3-ultra-550b-a55b:free",
+            prompt=prompt,
+            task="photo-extract",
+            fallback_chain=["openrouter/owl-alpha"],
+            timeout=120,
+        )
+    except Exception:
+        logger.info("Falling back to G1 Flash for photo extraction...")
+        from ai_processor import call_agy
+        import asyncio
+        extracted = await asyncio.to_thread(call_agy, prompt, 3600, "flash")
 
         if extracted and "NO_ALERT" not in extracted.upper() and "UNSURE" not in extracted.upper():
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
@@ -1346,30 +1306,97 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     data = query.data
-    
-    if data.startswith("build_guide_"):
-        file_id = data.split("build_guide_")[1]
-        chat_id = query.message.chat_id
-        
-        await context.bot.edit_message_text(
-            chat_id=chat_id,
-            message_id=query.message.message_id,
-            text="⏳ Downloading PDF, reading handwriting via Gemini Vision, and building Mega Study Guide... This will take a minute!"
+    chat_id = query.message.chat_id
+
+    # ── Quick action commands ────────────────────────────────────────────
+    if data == "cmd:summary":
+        context.args = []
+        await summary_command(update, context)
+        return
+    elif data == "cmd:ping":
+        await query.edit_message_text(get_health_status(), parse_mode="Markdown")
+        return
+    elif data == "cmd:stats":
+        await query.edit_message_text(get_cost_summary(), parse_mode="Markdown")
+        return
+    elif data == "cmd:backup":
+        path = create_backup()
+        await query.edit_message_text(
+            f"✅ Backup created: `{os.path.basename(path)}`" if path else "❌ Backup failed"
         )
-        
-        # Run it synchronously since we are just blocking this callback (or ideally async, but this is fine for now)
-        loop = asyncio.get_event_loop()
-        
+        return
+    elif data == "cmd:correlations":
+        await query.edit_message_text(get_correlation_summary(), parse_mode="Markdown")
+        return
+
+    # ── Digest topic guide builder ───────────────────────────────────────
+    if data.startswith("build_guide:"):
+        topic = data.split("build_guide:", 1)[1]
+        await context.bot.edit_message_text(
+            chat_id=chat_id, message_id=query.message.message_id,
+            text=f"� Building Mega Study Guide for: **{topic}**... This will take a minute!"
+        )
         try:
-            from scrapers.mega_study_builder import build_guide_for_drive_file
-            
-            result = await loop.run_in_executor(None, build_guide_for_drive_file, file_id, "XA_MWF Notes")
-            
+            from scrapers.mega_study_builder import generate_mega_guide
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, generate_mega_guide, topic)
             try:
                 await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
             except Exception:
                 await context.bot.send_message(chat_id=chat_id, text=result)
-                
+        except Exception as e:
+            await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
+        return
+    elif data == "digest_dismiss":
+        await query.edit_message_text("� Okay, I won't build a guide right now. Ask me anytime!")
+        return
+
+    # ── Task priority buttons ────────────────────────────────────────────
+    if data.startswith("task_prio:"):
+        parts = data.split(":")
+        if len(parts) == 3:
+            tid, prio = parts[1], parts[2]
+            try:
+                from notion_client import update_notion_task
+                state = load_state()
+                page_id = state.get("pending_priorities", {}).get(tid)
+                if page_id and update_notion_task(page_id, priority=prio):
+                    await query.edit_message_text(f"✅ Task `{tid}` priority set to **{prio}**")
+                else:
+                    await query.edit_message_text(f"❌ Could not update `{tid}`")
+            except Exception as e:
+                await query.edit_message_text(f"❌ Error: {e}")
+        return
+    elif data == "task_ignore_all":
+        await query.edit_message_text("✅ All tasks ignored.")
+        return
+
+    # ── Photo response buttons ───────────────────────────────────────────
+    if data == "photo:grade":
+        await query.edit_message_text("� To grade a practice test, send a photo of your completed problems with the topic as a caption (e.g. 'SAT Math')")
+        return
+    elif data == "photo:save":
+        await query.edit_message_text("✅ Got it — I'll save any photo text I see to your extracts.")
+        return
+    elif data == "photo:ask":
+        await query.edit_message_text("💬 Ask me anything! Just reply to the photo text with your question.")
+        return
+
+    # ── Legacy: build_guide_ (drive file) ────────────────────────────────
+    if data.startswith("build_guide_"):
+        file_id = data.split("build_guide_")[1]
+        await context.bot.edit_message_text(
+            chat_id=chat_id, message_id=query.message.message_id,
+            text="⏳ Downloading PDF, reading handwriting via Gemini Vision, and building Mega Study Guide... This will take a minute!"
+        )
+        loop = asyncio.get_event_loop()
+        try:
+            from scrapers.mega_study_builder import build_guide_for_drive_file
+            result = await loop.run_in_executor(None, build_guide_for_drive_file, file_id, "XA_MWF Notes")
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
+            except Exception:
+                await context.bot.send_message(chat_id=chat_id, text=result)
         except Exception as e:
             await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
 
@@ -1428,8 +1455,70 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Nightly sleep cycle error: {e}")
 
-# ── Entry point ────────────────────────────────────────────────────────────────
+# ── NEW COMMAND HANDLERS ──────────────────────────────────────────────────────
 
+async def ping_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Health check: uptime, disk, last digest, queue size, file sizes."""
+    await update.message.reply_text(get_health_status(), parse_mode="Markdown")
+
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Cost dashboard: LLM usage, tokens, estimated cost."""
+    await update.message.reply_text(get_cost_summary(), parse_mode="Markdown")
+
+async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Create a backup now or list available backups."""
+    msg = await update.message.reply_text("� Creating backup...")
+    path = create_backup()
+    if path:
+        await context.bot.edit_message_text(
+            chat_id=update.effective_chat.id, message_id=msg.message_id,
+            text=f"✅ Backup created: `{os.path.basename(path)}`"
+        )
+    else:
+        await context.bot.edit_message_text(
+            chat_id=update.effective_chat.id, message_id=msg.message_id,
+            text="❌ Backup failed. Check logs."
+        )
+
+async def restore_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """List or restore from backups. Usage: /restore [list|dry-run <path>]"""
+    args = context.args
+    if not args or args[0] == "list":
+        backups = list_backups()
+        if not backups:
+            await update.message.reply_text("No backups found.")
+            return
+        lines = ["📦 **Available backups:**"]
+        for b in backups:
+            lines.append(f"  `{b['date']}` — {b['size_mb']}MB")
+        lines.append("\nUse `/restore dry-run <path>` to preview restore.")
+        await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
+    elif args[0] == "dry-run" and len(args) > 1:
+        result = restore_backup(args[1], dry_run=True)
+        await update.message.reply_text(result, parse_mode="Markdown")
+
+async def correlations_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show cross-source correlation stats."""
+    await update.message.reply_text(get_correlation_summary(), parse_mode="Markdown")
+
+# ── NEW: Import unified modules ───────────────────────────────────────────────
+import config
+from llm_router import call_openrouter, get_cost_summary, is_valid_response, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL
+from utils import (
+    run_bash_safely, enforce_all_rotations, create_backup,
+    get_health_status, get_correlation_summary, correlate_items,
+    restore_backup, list_backups,
+)
+from inline_keyboards import (
+    get_new_tasks_keyboard, get_digest_topic_keyboard,
+    get_study_guide_keyboard, get_photo_response_keyboard,
+    get_quick_actions_keyboard,
+)
+
+# Track bot start time for /ping
+BOT_START_TIME = time.time()
+
+# ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "your_telegram_bot_token_here":
         print("Please set TELEGRAM_BOT_TOKEN in .env")
@@ -1438,37 +1527,56 @@ if __name__ == "__main__":
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
     
     # Auto-start the background 4-hour digest task for the user on boot
-    SANEL_CHAT_ID = 8534649457
+    SANEL_CHAT_ID = config.SANEL_CHAT_ID
     job_queue = app.job_queue
     
-    import time
+    # Enforce rotations and compile context before first run
     try:
-        last_mtime = os.path.getmtime(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"))
-        elapsed = time.time() - last_mtime
-        time_until_next = max(5, int(14400 - elapsed))
+        enforce_all_rotations()
+    except Exception as e:
+        logger.warning(f"Initial rotation enforcement failed: {e}")
+
+    try:
+        from scrapers.compile_context import compile_bot_context
+        asyncio.get_event_loop().run_until_complete(compile_bot_context())
+    except Exception as e:
+        logger.warning(f"Initial context compile failed: {e}")
+    
+    import time as _time
+    try:
+        last_mtime = os.path.getmtime(config.LATEST_DIGEST_FILE)
+        elapsed = _time.time() - last_mtime
+        time_until_next = max(5, int(config.DIGEST_INTERVAL_SECONDS - elapsed))
     except Exception:
         time_until_next = 5
         
-    job_queue.run_repeating(check_updates, interval=14400, first=time_until_next, chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_digest")
+    job_queue.run_repeating(check_updates, interval=config.DIGEST_INTERVAL_SECONDS, first=time_until_next, chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_digest")
+    
+    # Run rotation enforcement every 6 hours
+    job_queue.run_repeating(lambda ctx: enforce_all_rotations(), interval=21600, first=21600, chat_id=SANEL_CHAT_ID, name="rotation_enforcement")
+
+    # Daily backup at 3 AM ET
+    job_queue.run_daily(
+        lambda ctx: create_backup(),
+        time=datetime.time(hour=3, minute=0, tzinfo=pytz.timezone('US/Eastern')),
+        chat_id=SANEL_CHAT_ID, name="daily_backup"
+    )
     
     async def morning_wrapper(context: ContextTypes.DEFAULT_TYPE):
         try:
             import subprocess
-            await asyncio.to_thread(subprocess.run, ["python3", os.path.join(os.path.dirname(os.path.abspath(__file__)), "scrapers", "morning_digest.py")], timeout=60)
+            await asyncio.to_thread(subprocess.run, ["python3"], timeout=60)
         except Exception as e:
             logger.error(f"Morning digest error: {e}")
             
     # Auto-start the 30-minute watchdog
-    job_queue.run_repeating(watchdog_check, interval=1800, first=1800, chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_watchdog")
+    job_queue.run_repeating(watchdog_check, interval=config.WATCHDOG_INTERVAL_SECONDS, first=1800, chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_watchdog")
     
-    # Run the offline Llama PDF processor every night at 2:00 AM UTC
-    import datetime
-    import pytz
-    et_tz = pytz.timezone('US/Eastern')
-    job_queue.run_daily(nightly_wrapper, time=datetime.time(hour=1, minute=0, tzinfo=et_tz), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_nightly")
+    # Run the offline Llama PDF processor every night at 2:00 AM ET
+    job_queue.run_daily(nightly_wrapper, time=datetime.time(hour=1, minute=0, tzinfo=pytz.timezone('US/Eastern')), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_nightly")
     
     # Run the Morning Digest every morning at 7:00 AM ET
-    job_queue.run_daily(morning_wrapper, time=datetime.time(hour=7, minute=0, tzinfo=et_tz), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_morning")
+    job_queue.run_daily(morning_wrapper, time=datetime.time(hour=7, minute=0, tzinfo=pytz.timezone('US/Eastern')), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_morning")
     
     from telegram.ext import CallbackQueryHandler
     app.add_handler(CommandHandler("start", start))
@@ -1478,6 +1586,11 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("summary", summary_command))
     app.add_handler(CommandHandler("bash", bash_command))
     app.add_handler(CommandHandler("p", priority_command))
+    app.add_handler(CommandHandler("ping", ping_command))
+    app.add_handler(CommandHandler("stats", stats_command))
+    app.add_handler(CommandHandler("backup", backup_command))
+    app.add_handler(CommandHandler("restore", restore_command))
+    app.add_handler(CommandHandler("correlations", correlations_command))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 

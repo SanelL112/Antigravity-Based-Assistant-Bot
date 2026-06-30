@@ -13,7 +13,7 @@ async def consolidate_memory():
     logger.info("Starting 1 AM Pipeline: Preparing system for heavy local AI processing...")
     try:
         # Start Ollama
-        subprocess.run('echo "Forgot@2023" | sudo -S systemctl start ollama', shell=True, check=False)
+        subprocess.run(['sudo', '-n', 'systemctl', 'start', 'ollama'], check=False, timeout=10)
         logger.info("System prepared successfully.")
     except Exception as e:
         logger.error(f"Failed to prepare system: {e}")
@@ -49,7 +49,7 @@ async def consolidate_memory():
         "- **Current Study Topics** (What is the user currently learning based on their notes? Be specific.)\n"
         "- **Key Insights** (Important things to remember, group drama, or overarching themes).\n\n"
         "Discard all redundant greetings, boilerplate text, and irrelevant chatter. Be concise.\n\n"
-        f"RAW DATA:\n{raw_text[:20000]}"
+        f"RAW DATA:\n{raw_text[:40000]}"
     )
     
     try:
@@ -117,17 +117,19 @@ async def consolidate_memory():
     try:
         import subprocess
         subprocess.run(["python3", os.path.join(base_dir, "overnight_researcher.py")], timeout=1800)
+    except subprocess.TimeoutExpired:
+        logger.warning("Overnight researcher timed out — continuing")
     except Exception as e:
-        logger.error(f"Overnight researcher failed: {e}")
-            
+        logger.warning(f"Overnight researcher failed (non-critical): {e}")
+
     # Phase 3: Massive Historical Indexing
     logger.info("Running massive historical data export...")
     try:
         from scrapers.historical_export import run_all_exports
         run_all_exports()
     except Exception as e:
-        logger.error(f"Historical export failed: {e}")
-            
+        logger.warning(f"Historical export failed (non-critical): {e}")
+
     # Phase 4: Nightly Indexer
     logger.info("Running nightly massive indexer via OpenRouter...")
     try:
@@ -138,15 +140,23 @@ async def consolidate_memory():
             
     logger.info("Daily pipeline complete.")
 
-    # Phase 5: Wipe raw logs (always attempt, even if earlier phases failed)
+    # Phase 5: Trim raw logs (respect rotation limits, don't fully wipe)
     try:
+        # Trim combined_summaries instead of full delete
         if os.path.exists(summaries_file):
-            os.remove(summaries_file)
-        for cf in chat_files:
-            os.remove(cf)
-        logger.info("Memory consolidation complete! Raw logs wiped.")
+            size = os.path.getsize(summaries_file)
+            if size > 90000:  # keep last ~50%, written by rotation
+                with open(summaries_file, "r", encoding="utf-8", errors="replace") as f:
+                    content = f.read()
+                # Keep only last half
+                mid = len(content) // 2
+                with open(summaries_file, "w", encoding="utf-8") as f:
+                    f.write("[older entries trimmed]\n" + content[mid:])
+                logger.info(f"Trimmed combined_summaries from {size} to ~{size//2} bytes")
+        # Don't delete chat files — they have conversation history the user might reference
+        logger.info("Memory consolidation complete!")
     except Exception as e:
-        logger.error(f"Failed to wipe raw logs: {e}")
+        logger.error(f"Failed to trim raw logs: {e}")
 
 if __name__ == "__main__":
     asyncio.run(consolidate_memory())

@@ -174,45 +174,21 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not internal_notes:
         internal_notes = "None"
 
-    from dotenv import load_dotenv
-    load_dotenv()
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    if not api_key:
+    from llm_router import call_openrouter
+    from config import OPENROUTER_API_KEY
+    
+    if not OPENROUTER_API_KEY:
         return "❌ Missing OPENROUTER_API_KEY in .env"
-        
+
     def _call_or(prompt_text):
-        import time
-        import requests
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                resp = requests.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "HTTP-Referer": "https://github.com/SanelL112/Antigravity-Based-Assistant-Bot",
-                        "X-Title": "Antigravity-Based-Assistant-Bot"
-                    },
-                    json={
-                        "models": ["openrouter/owl-alpha"],
-                        "messages": [{"role": "user", "content": prompt_text}]
-                    },
-                    timeout=3600.0
-                )
-                if resp.status_code == 200:
-                    return resp.json()["choices"][0]["message"]["content"].strip()
-                else:
-                    logger.warning(f"OpenRouter returned status {resp.status_code}: {resp.text}. Attempt {attempt + 1}/{max_retries}")
-            except Exception as e:
-                logger.warning(f"OpenRouter chunk failure: {e}. Attempt {attempt + 1}/{max_retries}")
-            
-            if attempt < max_retries - 1:
-                sleep_time = 15 * (attempt + 1)
-                logger.info(f"Retrying OpenRouter in {sleep_time} seconds...")
-                time.sleep(sleep_time)
-                
-        logger.error("OpenRouter completely failed after 3 attempts.")
-        return None
+        """Unified OpenRouter caller — delegates to llm_router."""
+        return call_openrouter(
+            model="openrouter/owl-alpha",
+            prompt=prompt_text,
+            task="study-guide",
+            fallback_chain=["nvidia/nemotron-3-ultra-550b-a55b:free"],
+            timeout=3600,
+        )
 
     logger.info("Assembling and cleaning context payload...")
     

@@ -1,20 +1,25 @@
 """
 ai_processor.py - Runs one agy prompt per source, saves results to text files,
 then assembles the final digest and task list from those files.
+
+REFACTORED: Uses llm_router for unified OpenRouter calls and llm_cost_log for tracking.
+Local agy/Ollama calls remain for PII-safe processing.
 """
 
 import json
 import subprocess
 import os
 import logging
+from pathlib import Path
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 logger = logging.getLogger(__name__)
 
-AGENTAPI_BIN = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
-BOT_DIR = os.path.dirname(os.path.abspath(__file__))
-CACHE_DIR = os.path.join(BOT_DIR, "source_cache")
-os.makedirs(CACHE_DIR, exist_ok=True)
+# Use unified config
+from config import AGENTAPI_BIN, BASE_DIR, CACHE_DIR as CONFIG_CACHE_DIR
+BOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+CACHE_DIR = Path(CONFIG_CACHE_DIR)
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Per-source prompts ────────────────────────────────────────────────────────
 
@@ -78,7 +83,22 @@ DIGEST_ASSEMBLY_PROMPT = (
 # ── agy helper ────────────────────────────────────────────────────────────────
 
 def call_agy(prompt: str, timeout: int = 180, model: str = "flash") -> str:
-    """Call agy --print using a PTY. Attempts 'flash' first, then falls back to 'pro'."""
+    """
+    Call agy --print using a PTY. Attempts 'flash' first, then falls back to 'pro'.
+
+    DELEGATES to llm_router.call_agy_local() — the unified implementation.
+    This wrapper preserves the original function signature for backward compatibility.
+    """
+    try:
+        from llm_router import call_agy_local
+        return call_agy_local(prompt=prompt, model=model, timeout=timeout)
+    except ImportError:
+        # Fallback: PTY implementation if llm_router not available
+        return _call_agy_inline(prompt, timeout, model)
+
+
+def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> str:
+    """Original inline PTY implementation (kept as fallback)."""
     import pty, select, time, os as _os
     
     def _run_model(target_model: str) -> str:
@@ -130,7 +150,6 @@ def call_agy(prompt: str, timeout: int = 180, model: str = "flash") -> str:
             clean = clean.replace('\r\n', '\n').replace('\r', '\n').strip()
             
             if proc.poll() is None:
-                # Process timed out
                 logger.error(f"agy {target_model} timed out after {timeout}s")
                 try:
                     proc.kill()
@@ -144,13 +163,11 @@ def call_agy(prompt: str, timeout: int = 180, model: str = "flash") -> str:
             logger.error(f"agy pty error ({target_model}): {e}")
             return ""
         finally:
-            # Always close master FD to prevent file descriptor leak
             if master >= 0:
                 try:
                     _os.close(master)
                 except OSError:
                     pass
-            # Ensure process is cleaned up
             if proc and proc.poll() is None:
                 try:
                     proc.kill()
@@ -166,44 +183,46 @@ def call_agy(prompt: str, timeout: int = 180, model: str = "flash") -> str:
     return result
 
 def call_local_llm(prompt: str) -> str:
-    """Calls Qwen2 0.5B via Ollama. Falls back to Llama 3.2 3B if unsure."""
+    """
+    Calls Qwen2 0.5B via Ollama. Falls back to Llama 3.2 3B if unsure.
+    Delegates to llm_router for unified Ollama calls.
+    """
+    try:
+        from llm_router import call_ollama
+        response = call_ollama(prompt, model="hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest")
+        if "UNSURE" in response.upper():
+            logger.info("Qwen2:0.5b was UNSURE. Falling back to Llama 3.2 3B GGUF...")
+            response = call_ollama(prompt, model="hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest")
+        return response if response else "Could not summarize locally."
+    except ImportError:
+        pass
+
+    # Fallback: inline implementation
     import requests
-    import json
-    
     def _call(model_name: str) -> str:
         try:
             res = requests.post(
                 "http://localhost:11434/api/generate",
-                json={
-                    "model": model_name,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {"temperature": 0.0}
-                },
+                json={"model": model_name, "prompt": prompt, "stream": False, "options": {"temperature": 0.0}},
                 timeout=60
             )
             if res.status_code == 200:
                 return res.json().get("response", "").strip()
-            else:
-                logger.error(f"Ollama returned {res.status_code} for {model_name}")
-                return ""
+            return ""
         except Exception as e:
-            logger.error(f"Ollama connection error for {model_name}: {e}")
+            logger.error(f"Ollama error for {model_name}: {e}")
             return ""
 
     response = _call("hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest")
-    
     if "UNSURE" in response.upper():
-        logger.info("Qwen2:0.5b was UNSURE. Falling back to Llama 3.2 3B GGUF...")
         response = _call("hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest")
-        
     return response if response else "Could not summarize locally."
 
 
 
 # ── Per-source processing ─────────────────────────────────────────────────────
 
-def process_source(name: str, data: str, skip_llm_filter: bool = False) -> str:
+def process_source(name: str, data: str, skip_llm_filter: bool = False, force_reprocess: bool = False) -> str:
     """Run agy for a single source. Saves result to cache file. Returns summary text."""
     cache_file = os.path.join(CACHE_DIR, f"{name}_summary.txt")
 
@@ -212,6 +231,22 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False) -> str:
         with open(cache_file, "w") as f:
             f.write(summary)
         return summary
+
+    # Content-hash caching: skip LLM processing if source unchanged
+    if not force_reprocess:
+        try:
+            from utils import has_changed
+            if not has_changed(name, data[:1000]):
+                try:
+                    with open(cache_file, "r", encoding="utf-8") as f:
+                        cached = f.read()
+                    if cached and cached != f"No {name} data available.":
+                        logger.info(f"Source {name} unchanged — using cached summary ({len(cached)} chars)")
+                        return cached
+                except Exception:
+                    pass  # cache miss, process normally
+        except ImportError:
+            pass  # utils not available, skip caching
 
     if skip_llm_filter:
         logger.info(f"Bypassing LOCAL Qwen2 0.5B for high-signal source {name} — passing full raw data ({len(data)} chars).")
@@ -312,38 +347,45 @@ def assemble_digest(summaries: dict) -> dict:
             pass
         digest = digest.replace('STUDY_TOPICS_JSON:' + topics_match.group(1).split('\n')[0], '').strip()
 
-    # ── Deduplication: compare with previous digest via agy Flash ────────────
-    previous_digest_path = os.path.join(BOT_DIR, "latest_digest.txt")
+    # ── Deduplication: bullet-level string comparison (fast, no LLM) ─────────
+    previous_digest_path = config.LATEST_DIGEST_FILE
     previous_digest = ""
     try:
-        with open(previous_digest_path, "r") as f:
+        with open(previous_digest_path, "r", encoding="utf-8") as f:
             previous_digest = f.read().strip()
     except Exception:
         pass
 
     if previous_digest:
-        dedup_prompt = (
-            "You are a digest deduplication assistant.\n"
-            "Below is a PREVIOUS digest and a NEW digest.\n"
-            "Your job is to return the NEW digest with any bullet points, items, or sections "
-            "that are IDENTICAL or essentially the same as the previous digest REMOVED.\n"
-            "Keep everything that is genuinely new, changed, or updated.\n"
-            "If everything is new, return the full new digest unchanged.\n"
-            "If nothing is new, return exactly: NO_NEW_UPDATES\n"
-            "Return ONLY the final cleaned digest text, no explanation.\n\n"
-            f"--- PREVIOUS DIGEST ---\n{previous_digest}\n\n"
-            f"--- NEW DIGEST ---\n{digest}"
-        )
-        logger.info("Deduplicating digest via agy Flash...")
-        deduped = call_agy(dedup_prompt, timeout=60, model="flash")
-        if deduped and deduped.strip() != "NO_NEW_UPDATES" and len(deduped.strip()) > 20:
-            digest = deduped.strip()
-            logger.info("Deduplication complete — new content only.")
-        elif deduped.strip() == "NO_NEW_UPDATES":
+        import re as _re
+
+        # Extract normalized bullet lines from previous digest
+        prev_bullets = set()
+        for line in previous_digest.split("\n"):
+            line = line.strip()
+            if line.startswith(("•", "-", "✅", "📎", "▶️")):
+                normalized = _re.sub(r'[^\w\s]', '', line).strip().lower()
+                prev_bullets.add(normalized)
+
+        kept = []
+        new_bullet_count = 0
+        for line in digest.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith(("•", "-", "✅", "�", "▶️")):
+                normalized = _re.sub(r'[^\w\s]', '', stripped).strip().lower()
+                if normalized not in prev_bullets:
+                    kept.append(line)
+                    new_bullet_count += 1
+                # else: duplicate bullet, skip
+            else:
+                kept.append(line)  # keep headers, blank lines, etc.
+
+        if new_bullet_count == 0:
             digest = "✅ Nothing new since the last digest — all caught up!"
-            logger.info("Deduplication: no new updates found.")
+            logger.info("Deduplication: no new updates found (bullet-level).")
         else:
-            logger.warning("Deduplication failed or returned empty — using full digest.")
+            digest = "\n".join(kept)
+            logger.info(f"Deduplication: kept {new_bullet_count} new bullets, removed duplicates.")
 
     # Save final digest to file
     with open(previous_digest_path, "w") as f:
@@ -355,35 +397,37 @@ def assemble_digest(summaries: dict) -> dict:
 # ── Main entry point ──────────────────────────────────────────────────────────
 
 def process_all_sources(canvas_data: str, classroom_data: str, gmail_data: str, groupme_data: str, classroom_ann_data: str = "No recent announcements.", gdocs_data: str = "No recent docs.") -> dict:
-    """Passes all raw data through the AI pipeline."""
-    
-    # 1. Summarize each source (could run in parallel, but sequential is fine for now)
-    logger.info("Summarizing Canvas...")
-    canvas_summary = process_source("canvas", canvas_data, skip_llm_filter=True)
-    
-    logger.info("Summarizing Google Classroom Assignments...")
-    classroom_summary = process_source("classroom", classroom_data, skip_llm_filter=True)
-    
-    logger.info("Summarizing Google Classroom Announcements...")
-    classroom_ann_summary = process_source("classroom_announcements", classroom_ann_data, skip_llm_filter=True)
-    
-    logger.info("Summarizing Gmail...")
-    gmail_summary = process_source("gmail", gmail_data, skip_llm_filter=False)
-    
-    logger.info("Summarizing GroupMe...")
-    groupme_summary = process_source("groupme", groupme_data, skip_llm_filter=False)
-    
-    logger.info("Summarizing Google Docs...")
-    gdocs_summary = process_source("gdocs", gdocs_data, skip_llm_filter=True)
-    
+    """Passes all raw data through the AI pipeline. Runs sources in parallel."""
+
+    # 1. Summarize all 6 sources in parallel (independent I/O-bound work)
+    import concurrent.futures
+    sources = [
+        ("canvas", canvas_data, True, False),
+        ("classroom", classroom_data, True, False),
+        ("classroom_announcements", classroom_ann_data, True, False),
+        ("gmail", gmail_data, False, False),
+        ("groupme", groupme_data, False, False),
+        ("gdocs", gdocs_data, True, False),
+    ]
+
+    def _process_one(args):
+        name, data, skip, force = args
+        logger.info(f"Summarizing {name}...")
+        return name, process_source(name, data, skip_llm_filter=skip, force_reprocess=force)
+
+    results = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+        for name, summary in pool.map(_process_one, sources):
+            results[name] = summary
+
     # 2. Combine all summaries into one assembly block
     summaries = {
-        "canvas": canvas_summary,
-        "classroom": classroom_summary,
-        "classroom_announcements": classroom_ann_summary,
-        "gmail": gmail_summary,
-        "groupme": groupme_summary,
-        "gdocs": gdocs_summary,
+        "canvas": results["canvas"],
+        "classroom": results["classroom"],
+        "classroom_announcements": results["classroom_announcements"],
+        "gmail": results["gmail"],
+        "groupme": results["groupme"],
+        "gdocs": results["gdocs"],
     }
-    
+
     return assemble_digest(summaries)

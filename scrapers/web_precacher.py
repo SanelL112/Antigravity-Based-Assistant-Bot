@@ -37,16 +37,11 @@ async def pre_cache_web():
             logger.warning("No OPENROUTER_API_KEY found, aborting web precache.")
             return
 
-        async def _call_or(m_name, prompt_text):
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {api_key}", "HTTP-Referer": "https://github.com/SanelL112/Antigravity-Based-Assistant-Bot", "X-Title": "Antigravity-Based-Assistant-Bot"},
-                    json={"model": m_name, "messages": [{"role": "user", "content": prompt_text}]},
-                    timeout=120.0
-                )
-                if resp.status_code == 200:
-                    return resp.json()["choices"][0]["message"]["content"].strip()
+        from llm_router import call_openrouter
+        def _call_or(m_name, prompt_text):
+            try:
+                return call_openrouter(model=m_name, prompt=prompt_text, task="web-precache", timeout=120)
+            except Exception:
                 return None
                 
         topic = await _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
