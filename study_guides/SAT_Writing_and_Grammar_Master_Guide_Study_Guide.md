@@ -7884,4 +7884,179 @@ Your cognitive performance is profoundly affected by physical factors:
 - [12 SAT Grammar Rules for a Perfect Score - PrepMaven](https://prepmaven.com/blog/test-prep/sat-grammar-rules/)
 - [Digital SAT Grammar Rules! - YouTube](https://www.youtube.com/watch?v=yakLDhT3Wp0)
 - [Free AI Grammar Checker - Scribbr](https://www.scribbr.com/grammar-checker/)
-- [Coursera Online Course Catalog by Topic and Skill | Coursera](https://www.coursera.org/browse)
+- [Coursera Online Course Catalog by Topic and Skill | Coursera](https://www.coursera.org/browse)- [Tenses in SAT Writing - Khan Academy](https://www.khanacademy.org/test-prep/sat-reading-and-writing)
+- [Punctuation Rules - PrepScholar](https://blog.prepscholar.com/the-complete-guide-to-digital-sat-grammar-rules)
+- [Subject-Verb Agreement - Magoosh](https://magoosh.com/sat/subject-verb-agreement-sat-grammar)
+
+---
+
+## 📅 Update: 2026-06-30 — Tenses, Punctuation & Verb Tense Consistency (From Classroom Notes)
+
+> Tonight's classroom materials covered: The College Panda Chapter 15 (Tenses), Days 3-6 of MWF English (Punctuation, Transitions, Reading Grammar integration), and extensive multiple-choice practice on verb tense consistency.
+
+---
+
+### 🔑 PART 1: TENSES FRAMEWORK (The College Panda SAT Writing)
+
+#### The 6 Essential Tenses:
+
+| Tense | Form | Key Signal Words | When to Use |
+|-------|------|-----------------|-------------|
+| **Simple Present** | base verb (+s/es) | usually, every day, always, generally | Facts, habits, general truths |
+| **Simple Past** | verb + ed / irregular | yesterday, in 1492, last year, ago | Completed past action with no connection to present |
+| **Simple Future** | will + base verb | tomorrow, next week, soon | Future actions |
+| **Present Perfect** | has/have + past participle | since, for, already, yet, recently, ever | Started in past, CONTINUES to present |
+| **Past Perfect** | had + past participle | before, by the time, after (with sequencing) | An action BEFORE another past action |
+| **Present Perfect Progressive** | has/have + been + verb-ing | since, for (with duration emphasis) | Ongoing action from past to present (emphasis on duration) |
+
+---
+
+#### Critical Rules from College Panda:
+
+**RULE 1: "Since" → Present Perfect**
+- "Since" is the #1 keyword for present perfect
+- "Ghost sightings have continued **since** 1923" ✓ (not "continued")
+- "Amazon's expansion **has grown from** 1994 to today" ✓
+
+**RULE 2: "For" (indicating duration) → Present Perfect**
+- "Scientists **have been exploring** for decades" ✓
+- "James **has lived** there **for** five years" (he still lives there)
+
+**RULE 3: Past sequencing → Past Perfect**
+- "The doctor prescribed medication **before** he took Mark off them" → "The doctor **had prescribed**" ✓
+- "The waiters went home **before** we got a seat" → "The waiters **had gone** home" ✓
+
+**RULE 4: Parallelism with tenses**
+- All verbs in a compound predicate should share the same time period
+- "The visitor **gave** and **thanked**" is NOT parallel if one action happened before the other
+
+**RULE 5: "Called on" ≠ tense error**
+- "Called on" is a phrasal verb meaning "to demand that someone do something"
+
+---
+
+#### Tense Selection Process (from notes):
+1. Read the full sentence and surrounding context
+2. Identify the TIME FRAME (past, present, future)
+3. Determine the DURATION (one-time? ongoing? completed before another action?)
+4. Look for KEYWORDS (since, for, before, ago, already, by the time)
+5. Check PARALLELISM with nearby verbs
+6. Select the tense that matches all constraints
+
+---
+
+### 🔑 PART 2: PUNCTUATION MASTERY (Days 3-5 Notes)
+
+#### Comma Uses (6 official use cases + 1 SAT trap):
+
+| Use | Example | Rule |
+|-----|---------|------|
+| **1. List separator** | "Ashish eats waffles, pancakes, cereal, **and** fruit" | Between 3+ items (Oxford comma optional) |
+| **2. Join IC + CC + IC** | "Ashish bought a new car, **and** had it shipped" | Two independent clauses with coordinating conjunction |
+| **3. After dependent clause** | "**Although** it rained, **the** party continued" | Dependent clause before independent clause |
+| **4. Nonessential clause** | "Ashish, **who is brilliant**, scored 1600" | Middle commas (appositive/nonrestrictive) |
+| **5. Coordinate adjectives** | "Ashish wears a **big, red** shirt" | Adjectives that describe the same noun separately |
+| **6. Introductory phrase** | "**In conclusion**, the SAT is important" | After introductory adverb/phrase |
+| **⚠ SAT Trap: "however"** | "Tom dates Emily. **However**, he likes Julie" | "However" is NOT a coordinating conjunction — semicolon or new sentence needed |
+
+#### Semicolon Rules:
+1. **Join two independent clauses** without a coordinating conjunction
+   - "Ashish studied eight years. He scored 1600." OR "Ashish studied eight years; he scored 1600."
+2. **Separate list items with internal commas**
+   - "Ruhi wants Title 1, which has description A; Title 2, which has description B; and Title 3, which has description C."
+
+#### Colon Rules:
+1. **MUST have a full sentence before the colon**
+2. **Can introduce a list** (without introductory phrase like "such as" or "including" — those don't need a colon!)
+   - ✓ "Ashish eats: waffles, pancakes, cereal" (full sentence before)
+   - ✓ "Ashish eats waffles, pancakes, and fruit" (no colon, no intro phrase needed)
+   - ✗ "Ashish eats such as: waffles, pancakes" (WRONG — don't combine "such as" with colon)
+3. **Add information about the preceding sentence**
+ - "Ashish studied eight years: he scored a 1600."
+
+#### Dash Rules:
+1. **Two dashes = nonessential information** (similar to comma pairs)
+   - "Ashish—who studied eight years—scored 1600"
+2. **End of sentence emphasis or afterthought**
+   - "Ashish studied for the SAT for eight years—he scored a 420" (humor/shock value)
+
+#### Apostrophe Rules:
+1. **Contractions**: joining two words → it's, don't, won't (SAT avoids contractions in formal writing)
+2. **Possession**:
+   - Singular noun not ending in s: **car → car's**, **James → James's** (or James')
+   - Singular noun ending in s: **Jesus → Jesus's** (acceptable) or **Jesus'**
+   - Plural ending in s: **waiters → waiters'**
+   - **Non-apostrophe possessives**: his, her, its, my, mine, our, ours, their, theirs, whose
+   - ⚠ "its" ≠ "it's" — the SAT tests this constantly!
+
+---
+
+### 🔑 PART 3: SUBJECT-VERB AGREEMENT (Tested Concepts)
+
+#### Core Rule:
+Singular subject → singular verb (with -s ending in present tense)
+Plural subject → plural verb (no -s ending in present tense)
+
+#### SAT Traps:
+
+**Trap 1: Prepositional phrases between subject and verb**
+- "The **species** of Byropsis algae **produces** toxins" (species = singular, not algae)
+- "A **tree** like this, **says** dendrochronologist Valerie Trouet" (tree = singular)
+
+**Trap 2: Indefinite pronouns**
+- Singular: each, either, neither, one, anyone, everybody, someone, nobody
+- Plural: both, few, several, many
+- Context-depending: all, any, more, most, none, some
+
+**Trap 3: Compound subjects with "and"**
+- "The **door was** decorated with ornate imprints of animals **and had** a stained glass window" — two verbs for one subject
+
+**Trap 4: Collective nouns**
+- Team, group, family, audience → usually SINGLE unit → singular verb
+
+**Trap 5: Inverted sentence structure**
+- "With over three millennia of climate data in its tree rings, a single tree like this, claims dendrochronologist Valerie Trouet, can tell the history of the world"
+- The interruption "claims dendrochronologist Valerie Trouet" doesn't change subject-verb agreement
+
+---
+
+### 🔑 PART 4: VERB TENSE CONSISTENCY (From Practice)
+
+#### General Flow from College Panda Exercises:
+- When an action **started in the past and continues to the present** → Present Perfect (have/has + past participle)
+- When an action **was completed before another past action** → Past Perfect (had + past participle)
+- When an action is **a general fact or habit** → Simple Present
+- When an action **occurred entirely in the past with no present relevance** → Simple Past
+
+#### Practice Answer Key (from tonight's material):
+Exercise 2: 1-B, 2-D, 3-D(past perfect), 4-B, 5-D, 6-C(present perfect), 7-C, 8-D/Perfect, 9-A, 10-A(present perfect), 11-A, 12-C(all present perfect), 13-D(present perfect progressive), 14-A, 15-B
+
+---
+
+### 📝 Mixed Practice Questions
+
+1. "Every Sunday, Jane **cleans** the house and **does** the laundry at the same time her dad **mows** the lawn." — Simple present for habitual action ✓
+
+2. "She bought her dress at Wal-Mart yet it impressed everyone at the party." — Both simple past, correct tense ✓
+
+3. "The last train leaving happened before Rick reached" → "The last train **had left** before Rick reached" — past perfect needed ✓
+
+4. "The oyster mushrooms release a toxin that is deadly to nematodes that **come** in contact with it" — plural "nematodes" needs plural verb ✓
+
+5. "Cut, bent, and welded from discarded metal, the sculptures of Sokari Douglas Camp **are meant** to challenge viewers" — parallel modifier opening, main verb agreement ✓
+
+---
+
+### 📌 Key Formulas and Rules Summary
+
+| Rule | Key Signal |
+|------|------------|
+| "Since" → Present Perfect | Action started in past, continues now |
+| "For + duration" → Present Perfect | Ongoing from past to now |
+| "Before/past sequence" → Past Perfect | One past action preceded another |
+| Comma + FANBOYS → join ICs | For, And, Nor, But, Or, Yet, So |
+| No comma splice | Two ICs must have CC or semicolon |
+| Colon needs full sentence before | Never after a fragment |
+| "Such as" ≠ with colon | They serve the same purpose |
+| Singular subject = singular verb | Even with interruptions |
+| "its" = possessive, "it's" = it is | The SAT tests this EVERY time |

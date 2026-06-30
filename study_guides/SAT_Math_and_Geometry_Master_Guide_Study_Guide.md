@@ -8567,4 +8567,162 @@ The SAT Math section is not an insurmountable obstacle. It is a **learnable, bea
 - [dtdnd.neocities.org/books/dm/DungeonMastersGuide.pdf](https://dtdnd.neocities.org/books/dm/DungeonMastersGuide.pdf)
 - [Free Practice Tests for the SAT Exam (Updated for 2026) | 27+ Exams...](https://uniontestprep.com/sat-exam/practice-test)
 - [SAT Question Bank | 2024 Practice Questions... | BestSATScore](https://www.bestsatscore.com/sat-question-bank)
-- [Khan Academy | Khan Academy](https://www.khanacademy.org/)
+- [Khan Academy | Khan Academy](https://www.khanacademy.org/)## 📅 Update: 2026-06-30 — Factoring Quadratics & Percents (New from Classroom Notes)
+
+> This update is sourced from 100 moderate factoring quadratics practice problems, SAT quadratics exercises, and classroom lessons on percents, ratios, and factor-of-change approach.
+
+---
+
+### 🔑 PART 1: FACTORING QUADRATICS (a ≠ 1)
+
+Factoring quadratics where the leading coefficient is not 1 is one of the most-tested SAT skills. When you see ax² + bx + c, you must find two binomials (mx + p)(nx + q) such that:
+- m × n = a (the leading coefficient)
+- p × q = c (the constant term)
+- mq + pn = b (the middle coefficient)
+
+#### Method 1: The "AC Method" (Split the Middle)
+
+**Steps:**
+1. Multiply a × c
+2. Find two numbers whose **product = a×c** and **sum = b**
+3. Split the middle term using those two numbers
+4. Factor by grouping
+
+**Example:** Factor 4x² - 8x + 3
+- a × c = 4 × 3 = 12
+- Find: product = 12, sum = -8 → the numbers are **-6** and **-2**
+- Split: 4x² - 6x - 2x + 3
+- Group: 2x(2x - 3) - 1(2x - 3) = **(2x - 1)(2x - 3)** ✓
+
+#### Method 2: Trial and Error (Guess & Check)
+
+When a and c have few factor pairs, test combinations:
+- List factor pairs of a: for 6 → (1,6) or (2,3)
+- List factor pairs of c: for -49 → (1,-49), (-1,49), (7,-7), etc.
+- Test until the middle term matches
+
+**Check your answer by multiplying back out (FOIL):**
+- First + Outer + Inner + Last should give you the original trinomial
+
+#### Common Factor Patterns from Practice Set:
+
+| Pattern | Example | Factors |
+|---------|---------|---------|
+| Difference of squares | 16x² - 49 | (4x - 7)(4x + 7) |
+| Perfect square trinomial | 4x² - 12x + 9 | (2x - 3)² |
+| Leading coef. decomposition needed | 6x² - 7x - 49 | (3x + 7)(2x - 7) |
+| Mixed signs | 10x² - 21x - 10 | (5x + 2)(2x - 5) |
+
+#### SAT-Specific Factoring Traps:
+1. **Always check for a GCF first** before factoring (e.g., 6x² - 12x - 16 → 2(3x² - 6x - 8))
+2. **Sign awareness**: if c is positive, both binomials have the same sign (matching b); if c is negative, opposite signs
+3. **"Prime" quadratics that seem unfactorable** often are — the SAT may give you these to force you toward the quadratic formula
+
+---
+
+### 🔑 PART 2: QUADRATIC FORMULA & THE DISCRIMINANT
+
+When factoring fails, use:
+$$x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+
+**The discriminant (b² - 4ac) tells you:**
+- Positive perfect square → 2 rational roots (factorable over integers)
+- Positive non-perfect-square → 2 irrational roots
+- Zero → 1 repeated root (the vertex sits on the x-axis)
+- Negative → no real roots (graph never crosses x-axis)
+
+**Sum and Product of Roots (for ax² + bx + c = 0):**
+- Sum of roots = **-b/a**
+- Product of roots = **c/a**
+
+These formulas are tested heavily. Example: if a quadratic has roots 3 and -7, then:
+- Sum = -4 = -b/a → b = 4a
+- Product = -21 = c/a → c = -21a
+- So the quadratic could be x² + 4x - 21 = 0
+
+---
+
+### 🔑 PART 3: PERCENTS (Deep Dive)
+
+#### The Three Versions of "Percent"
+
+| Version | Meaning | Factor | Example |
+|---------|---------|--------|---------|
+| **Percent OF** | Part/Whole | Divide by 100 | 20% of 80 = 0.20 × 80 = 16 |
+| **Percent MORE** | Increase | 1 + rate | 20% more → ×1.20 |
+| **Percent LESS** | Decrease | 1 - rate | 20% off → ×0.80 |
+
+#### Finding Percent Change:
+$$\text{Percent Change} = \frac{\text{New} - \text{Old}}{\text{Old}} \times 100\%$$
+
+**Critical distinction:**
+- "A is what percent **of** B?" → (A/B) × 100% (B is the standard)
+- "A is what percent **greater than** B?" → ((A-B)/B) × 100% (B is standard)
+- "B is what percent **less than** A?" → ((A-B)/A) × 100% (A is standard!)
+
+**Example:** Ashish is 42, Aashni is 16.
+- Aashni is what percent less than Ashish? → (42-16)/42 × 100% = 61.9%
+- Ashish is what percent older than Aashni? → (42-16)/16 × 100% = 162.5%
+
+⚠️ **Common mistake**: The "standard" or "reference" value is ALWAYS the one after "than."
+
+#### Sequential Percent Changes (Factor of Change):
+Instead of adding percentages, MULTIPLY factors:
+- 20% increase then 10% tax: ×(1.20)(1.10) = ×1.32 = 32% total increase
+- 20% increase then 20% decrease: ×(1.20)(0.80) = ×0.96 = 4% net decrease
+
+**Key insight**: A 20% increase followed by a 20% decrease does NOT return you to the starting value!
+
+#### Reverse Percent Problems:
+"If a store applies a 20% discount then 10% sales tax, and the final price is $88, what was the original price?"
+- Work backwards: $88 ÷ (0.80 × 1.10) = $88 ÷ 0.88 = **$100**
+
+---
+
+### 🔑 PART 4: FACTOR OF CHANGE APPROACH
+
+When a problem tells you how quantities change and asks how a dependent quantity changes:
+
+1. **Start with the formula** (e.g., Kinetic Energy = ½mv²)
+2. **Eliminate constants** (½ stays as-is)
+3. **Replace variables with their factors of change**
+4. **Multiply and simplify**
+
+**Example**: If an object's mass decreases by 20% and speed increases by 20%, by what percent does kinetic energy change?
+- KE = ½mv²
+- m → 0.80m, v → 1.20v
+- KE_new = ½(0.80m)(1.20v)² = ½mv² × 0.80 × 1.44 = KE_original × 1.152
+- Kinetic energy **increases by 15.2%**
+
+---
+
+### 📝 Practice Problems (from tonight's material)
+
+**Factoring (answers in PDF):**
+1. 10x² + 17x + 3 → (5x + 1)(2x + 3)
+2. 6x² + 7x - 49 → (3x + 7)(2x - 7)
+3. 25x² - 20x - 21 → (5x + 3)(5x - 7)
+4. 15x² - 29x + 12 → (3x - 4)(5x - 3)
+5. 10x² - 21x - 10 → (5x + 2)(2x - 5)
+
+**Percent/Ratio:**
+1. A bag has 25% red, 30% green, 10% orange, 15% purple, and 20% yellow. If there are 180 total, how many are NOT orange?
+2. If width:length = 5:2 and area = 200, find the perimeter.
+3. Average speed formula for equal distances: 2v₁v₂/(v₁ + v₂), not (v₁ + v₂)/2!
+
+---
+
+### 📌 Key Formulas Summary
+
+| Concept | Formula |
+|---------|---------|
+| Quadratic roots | x = (-b ± √(b²-4ac))/2a |
+| Sum of roots | -b/a |
+| Product of roots | c/a |
+| Vertex x-coordinate | -b/(2a) |
+| Percent as decimal | p/100 |
+| Increase factor | 1 + p/100 |
+| Decrease factor | 1 - p/100 |
+| Percent change | (New-Old)/Old × 100 |
+| Average speed | Total Distance / Total Time |
+| Mixture: acid₁ + acid₂ = total_acid | V₁c₁ + V₂c₂ = (V₁+V₂)c_final |

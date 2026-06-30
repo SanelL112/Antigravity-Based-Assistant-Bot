@@ -5040,3 +5040,167 @@ Commit to the process. Trust the system. Log every error. Review every pattern. 
 - [SAT Reading Comprehension Timing Tips – Kaplan Test Prep](https://www.kaptest.com/study/sat/pick-b-for-boris-sat-reading-comprehension-timing-tips/)
 - [How to Improve Reading Speed for SAT (Read This...) - Iris Reading](https://irisreading.com/how-to-improve-reading-speed-for-sat/)
 - [10 Best Books for SAT Reading | BrightLink Prep](https://brightlinkprep.com/10-best-books-for-sat-reading/)
+- [Transitions in SAT Reading - PrepScholar](https://blog.prepscholar.com/sat-reading-transitions)
+- [Craft and Structure - College Board](https://satsuite.collegeboard.org/sat/whats-on-the-test/reading-writing/craft-structure)
+- [Text Structure Strategies - Khan Academy](https://www.khanacademy.org/test-prep/sat-reading-and-writing)
+
+---
+
+## 📅 Update: 2026-06-30 — Transitions, Text Structure & Reading Strategies (From Classroom Notes)
+
+> Tonight's classroom materials covered: Transitions (Days 4, 6, 7), Reading methodology (transition annotation, foreshadowing), Cause and Effect relationships, Contrast vs Unanimous analysis, Cross-text analysis, Factor of Change, Ratios & Proportions.
+
+---
+
+### 🔑 PART 1: SAT TRANSITIONS — COMPLETE FRAMEWORK
+
+Transitions are among the most frequently tested questions on the Digital SAT Reading & Writing section. Mastering them is a quick way to pick up points.
+
+#### The 6 Transition Categories (from the classroom framework):
+
+**1. OPPOSITION/CONTRAST** (presents an opposing idea)
+- Common transitions: **however, on the other hand, conversely, whereas, while, in contrast, nevertheless, yet, on the contrary, unfortunately, although, even though, though**
+- Signal in text: The second idea contradicts or limits the first
+- Example: "Final Fantasy is considered the greatest RPG franchise. **However**, there are many who prefer Dragon Quest."
+
+**2. EVIDENCE/ILLUSTRATION** (gives specific support)
+- Common transitions: **indeed, as a matter of fact, to illustrate, for instance, for example, in fact**
+- Signal: A specific example or piece of evidence follows a general claim
+- Example: "Biology is an amazing subject. **Indeed**, its applications in forensics are fascinating."
+
+**3. ADDITION** (adds more supporting evidence)
+- Common transitions: **furthermore, in addition, moreover, also, too, as well, additionally, not to mention**
+- Signal: A second, equally important supporting point
+- Example: "Biology blends chemistry and physics. **Furthermore**, it incorporates data analysis."
+
+**4. CAUSE & EFFECT** (shows consequence)
+- Common transitions: **consequently, as a result, because, hence, therefore, thus, accordingly, so, for this reason**
+- Signal: What follows is the logical consequence of what came before
+- Example: "The movie has no logic. **Therefore**, it is horrible."
+
+**5. CONCESSION** (acknowledges then supersedes)
+- Common transitions: **granted, nevertheless, although, regardless, despite, even if, nonetheless, still, even so**
+- Signal: Admits a partial truth but pivots to a more important point
+- Example: "Matias has no desire to study. **Ashish made sure** he had no choice but to work." (*classroom style*)
+
+**6. SEQUENCING** (order of events)
+- Common transitions: **finally, subsequently, previously, at first, next, then, eventually, before**
+- Signal: Chronological or logical progression
+- Example: "Divyang skipped SAT class to play basketball. **Next**, he found his wardrobe had been stolen."
+
+**7. SIMILARITY** (shows parallel ideas)
+- Common transitions: **in the same way, similarly, likewise, by the same token**
+- Signal: The second idea mirrors the first in some constant theme
+- Example: "Goldfish are a great snack for boring lectures. **Likewise**, popcorn is best for movies."
+
+**8. SUMMARIZE/RESTATE** (conclusions and restatements)
+- Common transitions: **in conclusion, in summary, to sum up, in short, in other words**
+- Signal: The same idea is being restated more concisely or with a conclusion drawn
+
+---
+
+#### The ICC Transition Process (from classroom notes):
+
+When you see a transition question:
+1. **Read the sentence BEFORE the transition** — determine its function/claim
+2. **Read the sentence WITH the transition** — identify its relationship to the prior sentence
+3. **Classify the relationship**: Is it Contrast? Evidence? Addition? Cause/Effect? Sequencing? Similarity? Concession? Summary?
+4. **DO NOT FORCE** — pick the answer that naturally fits, even if you'd personally use different words
+
+#### The "Eltest" Rule (SAT Specific):
+- **E**vidence — Does choice B provide evidence for choice A cause?
+- **L**ocation — Where exactly does the transition sit in the passage text?
+- **T**ruth — Is the relationship being asserted actually supported by the text?
+- **E**limination — Eliminate 2 answers first, then choose between the remaining two
+- **S**implify — Explain the relationship in your own simple words before picking
+- **T**ransition — Now select the matching transition word
+
+---
+
+### 🔑 PART 2: READING METHODOLOGY (From Classroom)
+
+#### The Proper Reading Approach (NOT Focused Reading):
+The SAT does NOT want you to read every word individually. You must:
+
+**Step 1: ANNOTATE TRANSITIONS**
+- Highlight/circle ALL transitional words and phrases
+- **Transition words**: but, and (when acting IC coordination), furthermore, however, yet, moreover, although, even though, though, in short, nevertheless, including, still
+- **Transitional punctuation**: semicolons, colons, dashes
+
+**Step 2: Focus on what comes AFTER the transition**
+- Use that post-transition content to **foreshadow** what's coming
+- Write down your foreshadow prediction
+
+**Step 3: Confirm or Deny your foreshadow**
+- As you continue reading, check every single word
+- If confirmed → you understood the argument
+- If denied → stop, reassess, start over with new understanding
+
+#### Purpose of Annotation:
+- Shows you the author's argument structure (claims → evidence → contradictions → conclusions)
+- Prevents "zoning out" while reading
+- Makes transition questions trivially easy
+- Allows prediction of author's next moves (foreshadowing)
+
+---
+
+### 🔑 PART 3: CROSS-TEXT ANALYSIS & CONTRAST
+
+#### Contrast vs. Unanimous:
+- **Contrast**: Two authors/parts actively disagree or emphasize different factors → critical to understanding why a prior assumption was incomplete (must redo your analysis)
+- **Unanimous**: Both parts agree → strengthens a claim by convergence of evidence
+
+When comparing passages:
+1. Identify each passage's central claim
+2. Note where they agree (unanimous) vs. where they diverge (contrast)
+3. Determine what makes the contrast meaningful — what factor does one include that the other missed?
+
+#### Cross-Text Analysis Questions:
+- "How would the author of Passage 1 respond to Passage 2's claim?"
+- "On which point do the authors agree?"
+- "What assumption does one author make that the other challenges?"
+
+---
+
+### 🔑 PART 4: RHETORICAL SYNTHESIS STRATEGY
+
+For "Which choice completes the text most logically" questions:
+1. **Read for the logic of the argument** — what relationship is being signaled?
+2. **Identify claim vs. support structure** — is this adding evidence, showing contrast, concluding, etc.?
+3. **Eliminate "dummy" answers**: A dummy answer:
+   - Provides a viewpoint NOT discussed in the text
+   - Opposes the author's view
+   - Is too absolute (only, always, never)
+   - Is significantly different from what you expressed in step 1
+
+---
+
+### 📝 Practice Questions (from tonight's classroom notes)
+
+**Transition Type Identification:**
+1. "Theory of natural selection was obvious. ___ that Darwin and Wallace arrived independently." → **for example** (B) — the independence illustrates the point
+2. "Montaigne questions his perceptions. ___ his motto was 'What do I know?'" → **Fittingly** (C) — the motto fits the description
+3. "Hedgehog tenrecs share ___ true hedgehogs." → **similarities with** (D) — parallelism
+4. "Sumner identified folkways. ___ he identified mores." → **Moreover** (D) — adding a second category
+5. "Heat diffuses from hot to cold. ___ researchers found heat moves as a wave." → **However** (B) — contrast/challenge to assumption
+
+**Fact of Change:**
+- If radius increases by 25% and distance decreases by 10%, by what % does Area change?
+- Formula: A = πr² → new A = π(1.25r)² × (d adjustment depends on context)
+
+---
+
+### 📌 Key Terms Glossary
+
+| Term | Meaning |
+|------|---------|
+| Transition | A word or phrase showing logical relationship between ideas |
+| Foreshadowing | Predicting upcoming content based on transition signals |
+| Concession | Acknowledging a point to strengthen a different one |
+| ICC | Identify, Classify, Choose (3-step transition process) |
+| Dummy Answer | A trap choice that seems plausible but misrepresents the text |
+| Contrast | Two ideas/perspectives in active disagreement |
+| Unanimous | Two ideas/perspectives in agreement |
+| Cross-text | Comparing or connecting two separate passages |
+| Factor of Change | How a quantity scales when its variables change |
+| Annotate | Actively marking text structure while reading |
