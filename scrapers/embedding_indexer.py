@@ -136,6 +136,12 @@ def collect_sources() -> list[dict]:
     # Curated brain
     _add_file(os.path.join(BASE_DIR, "curated_brain.md"))
 
+    # Classroom PDFs (downloaded PDFs are saved as .txt after OCR)
+    classroom_dir = os.path.join(BASE_DIR, "classroom_pdfs")
+    if os.path.isdir(classroom_dir):
+        for f in sorted(glob.glob(os.path.join(classroom_dir, "*.txt"))):
+            _add_file(f)
+
     # Source cache summaries
     sc_dir = os.path.join(BASE_DIR, "scrapers", "source_cache")
     if os.path.isdir(sc_dir):

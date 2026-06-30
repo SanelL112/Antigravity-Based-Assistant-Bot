@@ -334,7 +334,7 @@ def download_drive_file(file_id: str, output_path: str) -> bool:
 
 
 def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
-    """Download all PDF attachments from recent Classroom assignments to a local folder."""
+    """Download all PDF attachments from recent Classroom assignments, OCR them, and save as text."""
     creds = get_google_credentials()
     if not creds:
         return "Google API credentials not configured."
@@ -392,15 +392,24 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
                             safe_name = "".join(c for c in file_title if c.isalnum() or c in (' ', '-', '_')).rstrip()
                             if not safe_name.lower().endswith('.pdf'):
                                 safe_name += '.pdf'
-                            output_path = os.path.join(output_dir, f"{course['name']}_{safe_name}")
+                            pdf_path = os.path.join(output_dir, f"{course['name']}_{safe_name}")
+                            txt_path = pdf_path.replace('.pdf', '.txt')
 
                             # Skip if already downloaded
-                            if os.path.exists(output_path):
+                            if os.path.exists(pdf_path):
                                 skipped += 1
                                 continue
 
-                            if download_drive_file(file_id, output_path):
-                                downloaded.append(f"  {course['name']}/{file_title}")
+                            # Download the PDF
+                            if download_drive_file(file_id, pdf_path):
+                                # OCR the PDF to text
+                                try:
+                                    import subprocess as _sp
+                                    _sp.run(['pdftotext', '-layout', pdf_path, txt_path], check=True, timeout=60)
+                                    downloaded.append(f"  {course['name']}/{file_title} (PDF + OCR)")
+                                except Exception:
+                                    # Keep the PDF even if OCR fails
+                                    downloaded.append(f"  {course['name']}/{file_title} (PDF only, OCR failed)")
                             else:
                                 downloaded.append(f"  FAILED: {course['name']}/{file_title}")
             except Exception as e:

@@ -133,6 +133,17 @@ async def consolidate_memory():
     except Exception as e:
         logger.warning(f"Historical export failed (non-critical): {e}")
 
+    # Phase 3.5: Download Classroom PDFs
+    logger.info("Downloading Classroom PDFs...")
+    try:
+        from scrapers.google_scraper import download_classroom_pdfs
+        pdf_result = download_classroom_pdfs("classroom_pdfs")
+        logger.info(f"Classroom PDF download: {pdf_result}")
+        log_nightly("classroom_pdfs", "completed", {"result": pdf_result[:100]})
+    except Exception as e:
+        logger.warning(f"Classroom PDF download failed (non-critical): {e}")
+        log_nightly("classroom_pdfs", "failed", {"message": str(e)[:80]})
+
     # Phase 4: Nightly Indexer
     logger.info("Running nightly massive indexer via OpenRouter...")
     try:
