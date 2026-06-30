@@ -1564,8 +1564,8 @@ if __name__ == "__main__":
     
     async def morning_wrapper(context: ContextTypes.DEFAULT_TYPE):
         try:
-            import subprocess
-            await asyncio.to_thread(subprocess.run, ["python3"], timeout=60)
+            from scrapers.morning_digest import send_morning_digest
+            await send_morning_digest()
         except Exception as e:
             logger.error(f"Morning digest error: {e}")
             
@@ -1594,5 +1594,24 @@ if __name__ == "__main__":
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+    # Graceful shutdown on SIGTERM (systemctl stop)
+    import signal as _signal
+    _shutdown_event = asyncio.Event()
+
+    def _shutdown_handler(signum, frame):
+        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+        _shutdown_event.set()
+
+    _signal.signal(_signal.SIGTERM, _shutdown_handler)
+    _signal.signal(_signal.SIGINT, _shutdown_handler)
+
     print("🤖 Antigravity Telegram bridge is running...")
-    app.run_polling()
+
+    # Run with graceful shutdown
+    try:
+        app.run_polling(drop_pending_updates=True)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        logger.info("Bot stopped. Rotating files before exit...")
+        enforce_all_rotations()

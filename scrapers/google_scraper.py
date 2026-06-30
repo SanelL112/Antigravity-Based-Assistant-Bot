@@ -1,13 +1,21 @@
 import os
 import logging
 import warnings
+import time as _time
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from config import TOKEN_PATH, CREDENTIALS_PATH
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
+
+# ── Cached credentials (avoid re-reading token.json on every call) ────────────
+_google_creds = None
+_google_creds_refreshed_at = 0
+
+CREDS = TOKEN_PATH  # alias for backward compatibility
 # Suppress the "Not all requested scopes were granted" oauthlib warning —
 # the token has all needed scopes; the warning fires because Google's auth
 # library logs it at WARNING level on every credential load.
@@ -32,25 +40,40 @@ CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), '..', 'credentials.js
 TOKEN_PATH = os.path.join(os.path.dirname(__file__), '..', 'token.json')
 
 def get_google_credentials():
+    """Get Google credentials with caching and retry on refresh."""
+    global _google_creds, _google_creds_refreshed_at
+
+    # Return cached creds if still valid (cache for 5 minutes)
+    if _google_creds and _google_creds.valid and (_time.time() - _google_creds_refreshed_at) < 300:
+        return _google_creds
+
     creds = None
     if os.path.exists(TOKEN_PATH):
         creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
-    
+
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            try:
-                creds.refresh(Request())
-            except Exception as e:
-                logger.error(f"Failed to refresh token: {e}")
-                creds = None
-                
+            # Retry refresh up to 3 times with backoff
+            for attempt in range(3):
+                try:
+                    creds.refresh(Request())
+                    break
+                except Exception as e:
+                    if attempt < 2:
+                        _time.sleep(2 ** attempt)
+                    else:
+                        logger.error(f"Failed to refresh token after 3 attempts: {e}")
+                        creds = None
+
         if not creds:
-            logger.error("Token is missing or failed to refresh. Please run authentication locally and upload a new token.json.")
+            logger.error("Token is missing or failed to refresh.")
             return None
-            
+
         with open(TOKEN_PATH, 'w') as token:
             token.write(creds.to_json())
-            
+
+    _google_creds = creds
+    _google_creds_refreshed_at = _time.time()
     return creds
 
 def get_unread_emails(limit=5):

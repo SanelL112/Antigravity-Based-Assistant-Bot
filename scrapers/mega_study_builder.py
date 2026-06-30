@@ -289,16 +289,27 @@ Example: ["Chapter 1: Introduction to Formulas", "Chapter 2: Advanced Mechanics"
             "Chapter 10: Master Practice Exam"
         ]
 
+    # PHASE 1.5: Condense source_context once to avoid repeating it per-chapter
+    condensed_context = source_context
+    if len(source_context) > 10000:
+        logger.info(f"Condensing source_context ({len(source_context)} chars) for per-chapter use...")
+        condensed_context = _call_or(
+            f"Condense the following educational source material into a dense, structured reference "
+            f"document (max 3000 chars) preserving all key facts, formulas, and concepts for "
+            f"the topic '{topic}'. Be comprehensive but concise.\n\nSOURCE MATERIAL:\n{source_context}",
+            timeout=120,
+        ) or source_context[:8000]  # fallback to truncated original
+
     # PHASE 2: Chunked Generation
     logger.info(f"PHASE 2: Generating {len(outline)} Chapters...")
     raw_chunks = {}
     full_guide_content = ""
-    
+
     for i, chapter in enumerate(outline):
         logger.info(f"Generating Chunk {i+1}/{len(outline)}: {chapter}")
         chunk_prompt = f"""You are an elite academic tutor writing a 50+ page massive study guide for "{topic}".
-Here are the sources you have available:
-{source_context}
+Here is your condensed reference material:
+{condensed_context}
 
 {visual_asset_library}
 
@@ -335,18 +346,21 @@ INSTRUCTIONS:
     polished_guide_content = ""
     for i, chapter in enumerate(outline):
         logger.info(f"Editor Reviewing Chunk {i+1}/{len(outline)}: {chapter}")
-        editor_prompt = f"""You are the elite Editor-in-Chief. Below is the raw, unpolished draft of a massive study guide on "{topic}".
+        # Only send the current chapter + brief guide structure, NOT the full guide
+        chapter_outline = "\n".join(f"- {c}" for c in outline)
+        editor_prompt = f"""You are the elite Editor-in-Chief. Below is a raw draft chapter from a study guide on "{topic}".
 
---- ENTIRE UNPOLISHED DRAFT ---
-{full_guide_content}
---- END DRAFT ---
+OUTLINE OF FULL GUIDE:
+{chapter_outline}
 
-Your job is to rigorously peer-review and flawlessly format ONLY the section corresponding to: **{chapter}**.
+CURRENT CHAPTER TO REVIEW:
+{raw_chunks.get(chapter, "")}
+
 INSTRUCTIONS:
 1. Fix all disorganized headers to ensure a clean, hierarchical flow.
 2. Verify math equations and fact-check concepts.
-3. CRITICAL: Format ALL math using standard `$ x $` for inline math and `$$ x $$` for block math. Do NOT use \\( or \\[.
-4. RUTHLESS PRUNING: Unless this specific chapter is explicitly titled "Practice Exam", you MUST delete all practice questions, quizzes, or multiple-choice problems. Replace them with deep-dive strategy and theory instead.
+3. CRITICAL: Format ALL math using standard `$ x $` for inline math and `$$ x $$` for block math. Do NOT use \\\\( or \\\\[.
+4. RUTHLESS PRUNING: Unless this specific chapter is explicitly titled "Practice Exam", you MUST delete all practice questions, multiple-choice problems. Replace them with deep-dive strategy and theory instead.
 5. PRESERVE IMAGES: Ensure any markdown images like `![alt](URL)` are perfectly preserved and not broken or removed.
 6. Wrap any internal scratchpad inside <thought>...</thought> tags.
 7. Output ONLY the perfectly polished, final version of {chapter}. Do NOT output other chapters.
