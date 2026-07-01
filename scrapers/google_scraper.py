@@ -304,21 +304,48 @@ def download_drive_file(file_id: str, output_path: str) -> bool:
         service = build('drive', 'v3', credentials=creds)
         
         # 1. Get file metadata to check mimeType (must support shared drives)
-        file_meta = service.files().get(fileId=file_id, fields="mimeType", supportsAllDrives=True).execute()
+        file_meta = service.files().get(fileId=file_id, fields="mimeType,name", supportsAllDrives=True).execute()
         mime_type = file_meta.get("mimeType", "")
+        file_name = file_meta.get("name", "")
         
-        # 2. Determine if it's a Google Workspace document that needs exporting
+        # Google Workspace types that MUST be exported (cannot be downloaded directly)
+        workspace_types = {
+            "application/vnd.google-apps.document": "application/pdf",
+            "application/vnd.google-apps.spreadsheet": "application/pdf",
+            "application/vnd.google-apps.presentation": "application/pdf",
+            "application/vnd.google-apps.drawing": "application/pdf",
+            "application/vnd.google-apps.script": "application/vnd.google-apps.script+json",
+            "application/vnd.google-apps.form": "application/pdf",
+            "application/vnd.google-apps.site": "application/pdf",
+            "application/vnd.google-apps.map": "application/pdf",
+            "application/vnd.google-apps.fusiontable": "application/pdf",
+            "application/vnd.google-apps.jam": "application/pdf",
+            "application/vnd.google-apps.photo": "image/jpeg",
+            "application/vnd.google-apps.shortcut": None,  # shortcuts need target resolution
+            "application/vnd.google-apps.audio": "audio/mpeg",
+            "application/vnd.google-apps.video": "video/mp4",
+        }
+        
         request = None
-        if mime_type == "application/vnd.google-apps.document":
-            request = service.files().export_media(fileId=file_id, mimeType="application/pdf")
-        elif mime_type == "application/vnd.google-apps.spreadsheet":
-            request = service.files().export_media(fileId=file_id, mimeType="application/pdf")
-        elif mime_type == "application/vnd.google-apps.presentation":
-            request = service.files().export_media(fileId=file_id, mimeType="application/pdf")
+        if mime_type in workspace_types:
+            export_mime = workspace_types[mime_type]
+            if export_mime is None:
+                logger.warning(f"File {file_id} ({mime_type}) is a shortcut, skipping")
+                return False
+            logger.info(f"Exporting {file_name} ({mime_type}) as {export_mime}")
+            request = service.files().export_media(fileId=file_id, mimeType=workspace_types[mime_type])
         else:
-            # Standard binary file (PDFs, images, etc.)
-            request = service.files().get_media(fileId=file_id, supportsAllDrives=True)
-            
+            # Try direct download for binary files (PDFs, images, etc.)
+            try:
+                request = service.files().get_media(fileId=file_id, supportsAllDrives=True)
+            except Exception as e:
+                logger.warning(f"Direct download failed for {file_id}, trying export as PDF: {e}")
+                try:
+                    request = service.files().export_media(fileId=file_id, mimeType="application/pdf")
+                except Exception as e2:
+                    logger.error(f"Export also failed for {file_id}: {e2}")
+                    return False
+        
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
         done = False
@@ -342,6 +369,7 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
     os.makedirs(output_dir, exist_ok=True)
     downloaded = []
     skipped = 0
+    failed_downloads = []
 
     try:
         service = build('classroom', 'v1', credentials=creds)
@@ -384,42 +412,108 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
                             df = mat['driveFile']['driveFile']
                             file_title = df.get('title', 'untitled')
                             file_id = df.get('id')
+                            mime_type = df.get('mimeType', '')
 
                             if not file_id:
                                 continue
 
-                            # Only download PDFs
+                            # Check if we can download/export this file
+                            try:
+                                drive_service = build('drive', 'v3', credentials=creds)
+                                file_meta = drive_service.files().get(
+                                    fileId=file_id, 
+                                    fields="mimeType,name,capabilities/canDownload", 
+                                    supportsAllDrives=True
+                                ).execute()
+                                mime_type = file_meta.get('mimeType', '')
+                                can_download = file_meta.get('capabilities', {}).get('canDownload', False)
+                            except Exception as e:
+                                logger.warning(f"Could not check file metadata for {file_title}: {e}")
+                                skipped += 1
+                                continue
+
+                            # Skip if already downloaded
                             safe_name = "".join(c for c in file_title if c.isalnum() or c in (' ', '-', '_')).rstrip()
                             if not safe_name.lower().endswith('.pdf'):
                                 safe_name += '.pdf'
-                            pdf_path = os.path.join(output_dir, f"{course['name']}_{safe_name}")
+                            # Sanitize course name for filesystem
+                            safe_course_name = "".join(c for c in course['name'] if c.isalnum() or c in (' ', '-', '_', '@')).rstrip()
+                            pdf_path = os.path.join(output_dir, f"{safe_course_name}_{safe_name}")
                             txt_path = pdf_path.replace('.pdf', '.txt')
-
-                            # Skip if already downloaded
+                            
+                            # Ensure output directory exists
+                            os.makedirs(output_dir, exist_ok=True)
+                            
                             if os.path.exists(pdf_path):
                                 skipped += 1
                                 continue
 
-                            # Download the PDF
-                            if download_drive_file(file_id, pdf_path):
-                                # OCR the PDF to text
-                                try:
-                                    import subprocess as _sp
-                                    _sp.run(['pdftotext', '-layout', pdf_path, txt_path], check=True, timeout=60)
-                                    downloaded.append(f"  {course['name']}/{file_title} (PDF + OCR)")
-                                except Exception:
-                                    # Keep the PDF even if OCR fails
-                                    downloaded.append(f"  {course['name']}/{file_title} (PDF only, OCR failed)")
+# Determine how to handle this file based on mime type
+                            is_workspace = mime_type.startswith('application/vnd.google-apps.')
+                            is_pdf = mime_type == 'application/pdf'
+
+                            downloaded_this = False
+
+                            if is_workspace:
+                                # Google Workspace files (Docs, Sheets, Slides) - always export as PDF
+                                logger.info(f"Exporting {file_title} ({mime_type}) as PDF")
+                                if download_drive_file(file_id, pdf_path):
+                                    try:
+                                        import subprocess as _sp
+                                        _sp.run(['pdftotext', '-layout', pdf_path, txt_path], check=True, timeout=60)
+                                        downloaded.append(f"  {course['name']}/{file_title} (Google Doc → PDF + OCR)")
+                                    except Exception as e:
+                                        logger.warning(f"OCR failed for {file_title}: {e}")
+                                        downloaded.append(f"  {course['name']}/{file_title} (Google Doc → PDF, OCR failed)")
+                                    downloaded_this = True
+                            elif mime_type == 'application/pdf':
+                                # PDF file - check if downloadable
+                                if can_download:
+                                    if download_drive_file(file_id, pdf_path):
+                                        try:
+                                            import subprocess as _sp
+                                            _sp.run(['pdftotext', '-layout', pdf_path, txt_path], check=True, timeout=60)
+                                            downloaded.append(f"  {course['name']}/{file_title} (PDF + OCR)")
+                                        except Exception as e:
+                                            logger.warning(f"OCR failed for {file_title}: {e}")
+                                            downloaded.append(f"  {course['name']}/{file_title} (PDF only, OCR failed)")
+                                        downloaded_this = True
+                                else:
+                                    skipped += 1
+                                    logger.info(f"Skipping {file_title} - cannot download (view-only)")
                             else:
-                                downloaded.append(f"  FAILED: {course['name']}/{file_title}")
+                                # Other file types - try to download if allowed
+                                if can_download:
+                                    if download_drive_file(file_id, pdf_path):
+                                        downloaded.append(f"  {course['name']}/{file_title}")
+                                        downloaded_this = True
+                                else:
+                                    skipped += 1
+                                    logger.info(f"Skipping {file_title} - cannot download (view-only)")
+
+                            if not downloaded_this:
+                                failed_downloads.append(f"{course['name']}/{file_title}")
+
             except Exception as e:
                 logger.warning(f"Error downloading from {course['name']}: {e}")
 
     except Exception as e:
         return f"Error: {e}"
 
-    if not downloaded:
-        return f"No new PDFs downloaded (skipped {skipped} already downloaded or non-PDF items)."
+    result_parts = []
+    if downloaded:
+        result_parts.append(f"Downloaded {len(downloaded)} Classroom PDFs to {output_dir}/:")
+        result_parts.extend(downloaded)
+    if skipped:
+        result_parts.append(f"\nSkipped {skipped} files (already downloaded or view-only)")
+    if failed_downloads:
+        result_parts.append(f"\nFailed to download {len(failed_downloads)} files (permission issues):")
+        result_parts.extend(failed_downloads[:20])  # Limit output
+
+    if not downloaded and not failed_downloads:
+        return f"No new PDFs downloaded (skipped {skipped} already downloaded or view-only)."
+
+    return "\n".join(result_parts)
 
     return f"Downloaded {len(downloaded)} Classroom PDFs to {output_dir}/:\n" + "\n".join(downloaded)
 
