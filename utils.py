@@ -716,7 +716,7 @@ def get_httpx_client() -> httpx.Client:
     with _cached_sessions_lock:
         if 'httpx' not in _cached_sessions:
             # httpx.Timeout requires all four parameters or a single default
-            timeout = httpx.Timeout(connect=10.0, read=120.0, write=30.0, pool=5.0)
+            timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)
             _cached_sessions['httpx'] = httpx.Client(
                 timeout=timeout,
                 limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),

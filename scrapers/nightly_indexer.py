@@ -30,7 +30,7 @@ async def process_chunk(chunk, chunk_index, source_name):
     )
     
     try:
-        async with httpx.AsyncClient(timeout=None) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=3600.0, write=10.0, pool=5.0)) as client:
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={

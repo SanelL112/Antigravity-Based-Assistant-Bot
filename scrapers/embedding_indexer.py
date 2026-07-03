@@ -166,7 +166,7 @@ def collect_sources() -> list[dict]:
 
 async def ensure_model():
     """Pull nomic-embed-text if not already present."""
-    async with httpx.AsyncClient(timeout=300.0) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
         resp = await client.get(f"{OLLAMA_URL}/api/tags")
         if resp.status_code == 200:
             models = [m["name"] for m in resp.json().get("models", [])]
@@ -174,7 +174,7 @@ async def ensure_model():
                 logger.info(f"Model {EMBED_MODEL} already present")
                 return
         logger.info(f"Pulling {EMBED_MODEL} (first run only, ~274 MB)...")
-        resp = await client.post(f"{OLLAMA_URL}/api/pull", json={"name": EMBED_MODEL}, timeout=600.0)
+        resp = await client.post(f"{OLLAMA_URL}/api/pull", json={"name": EMBED_MODEL}, timeout=httpx.Timeout(connect=10.0, read=600.0, write=10.0, pool=5.0))
         if resp.status_code != 200:
             raise RuntimeError(f"Failed to pull {EMBED_MODEL}: {resp.text}")
 
@@ -183,7 +183,7 @@ async def embed_texts(texts: list[str]) -> np.ndarray:
     """Embed a list of texts via Ollama. Returns float32 array of shape (len(texts), DIM)."""
     all_embeddings = []
     
-    async with httpx.AsyncClient(timeout=600.0) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
         for i in range(0, len(texts), BATCH_SIZE):
             batch = texts[i : i + BATCH_SIZE]
             
@@ -193,7 +193,7 @@ async def embed_texts(texts: list[str]) -> np.ndarray:
                     resp = await client.post(
                         f"{OLLAMA_URL}/api/embed",
                         json={"model": EMBED_MODEL, "input": batch},
-                        timeout=600.0,
+                        timeout=httpx.Timeout(connect=10.0, read=600.0, write=10.0, pool=5.0),
                     )
                     if resp.status_code != 200:
                         raise RuntimeError(f"Embedding failed: {resp.status_code} {resp.text[:200]}")
@@ -256,7 +256,7 @@ async def build_index(force_rebuild: bool = False):
 
     # Ensure Ollama is reachable
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
             resp = await client.get(f"{OLLAMA_URL}/api/tags")
             if resp.status_code != 200:
                 raise ConnectionError()

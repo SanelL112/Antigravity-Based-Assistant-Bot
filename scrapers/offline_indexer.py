@@ -31,7 +31,7 @@ async def process_chunk(chunk, chunk_index, source_name, max_retries=3):
     for attempt in range(max_retries):
         try:
             import httpx
-            async with httpx.AsyncClient(timeout=3600.0) as client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
                 response = await client.post(
                     "http://localhost:11434/api/generate",
                     json={

@@ -8725,4 +8725,267 @@ When a problem tells you how quantities change and asks how a dependent quantity
 | Decrease factor | 1 - p/100 |
 | Percent change | (New-Old)/Old × 100 |
 | Average speed | Total Distance / Total Time |
-| Mixture: acid₁ + acid₂ = total_acid | V₁c₁ + V₂c₂ = (V₁+V₂)c_final |
+|| Mixture: acid₁ + acid₂ = total_acid | V₁c₁ + V₂c₂ = (V₁+V₂)c_final |
+|| Circle area | πr² |
+|| Circle circumference | 2πr = πd |
+|| Arc length | (θ/360) × 2πr |
+|| Sector area | (θ/360) × πr² |
+|| Inscribed angle theorem | Inscribed angle = ½ × intercepted arc (central angle) |
+|| Statistics: mean | Sum of values / number of values |
+|| Statistics: median | Middle value when ordered (average of two middle if even count) |
+|| Statistics: mode | Most frequent value |
+|| Statistics: range | Maximum - Minimum |
+|| Statistics: standard deviation (conceptual) | Measure of spread from mean; larger SD = more spread |
+
+---
+## 📅 Update: 2026-07-03 - New Concepts from Summer SAT/ACT Class (Days 9-12)
+
+### 🔵 CIRCLES: Complete Coverage for SAT
+
+The SAT tests circle concepts frequently, especially in the Geometry and Trigonometry domain (~15% of Math questions). Master these formulas and relationships.
+
+#### Core Circle Formulas
+| Formula | Expression | When to Use |
+|---------|------------|-------------|
+| Area | A = πr² | Given radius/diameter, find area |
+| Circumference | C = 2πr = πd | Given radius/diameter, find perimeter |
+| Arc Length | L = (θ/360) × 2πr | Given central angle θ (degrees) |
+| Sector Area | A = (θ/360) × πr² | Given central angle θ (degrees) |
+| Equation of Circle | (x - h)² + (y - k)² = r² | Center (h,k), radius r |
+
+#### Key Circle Theorems
+1. **Central Angle = Intercepted Arc Measure** (in degrees)
+2. **Inscribed Angle = ½ × Intercepted Arc** = ½ × Central Angle
+3. **Tangent ⟂ Radius** at point of tangency
+4. **Chord perpendicular to radius bisects the chord**
+5. **Angles inscribed in a semicircle are right angles** (Thales' Theorem)
+6. **Opposite angles of cyclic quadrilateral sum to 180°**
+
+#### Circle Problems on the SAT
+**Type 1: Equation of a Circle**
+- Given: x² + y² - 6x + 8y = 0
+- Complete the square: (x² - 6x + 9) + (y² + 8y + 16) = 25
+- (x - 3)² + (y + 4)² = 5² → Center (3, -4), radius 5
+
+**Type 2: Arc Length & Sector Area**
+- Circle radius 10, central angle 72°
+- Arc length = (72/360) × 2π(10) = (1/5) × 20π = 4π
+- Sector area = (72/360) × π(10)² = (1/5) × 100π = 20π
+
+**Type 3: Inscribed Angles**
+- Inscribed angle intercepts arc of 120° → Inscribed angle = 60°
+- If inscribed angle is 35°, intercepted arc = 70°
+
+**Type 4: Circle + Right Triangle (very common)**
+- Right triangle inscribed in circle → hypotenuse is the DIAMETER
+- Use Pythagorean theorem + circle properties
+
+#### Practice Problems (from 19_Circles.pdf)
+1. A circle has equation x² + y² - 10x + 4y = 20. What is its radius?
+   - Complete square: (x-5)² + (y+2)² = 20 + 25 + 4 = 49 → r = 7
+
+2. In the figure, O is the center. If ∠AOB = 80°, what is ∠ACB?
+   - ∠ACB = ½ × 80° = 40° (inscribed angle theorem)
+
+3. A sector has area 18π and central angle 60°. What is the circle's radius?
+   - (60/360) × πr² = 18π → (1/6)πr² = 18π → r² = 108 → r = 6√3
+
+---
+
+### 📊 STATISTICS & DATA ANALYSIS: SAT Essentials
+
+The Problem Solving and Data Analysis domain (~15% of questions, ~7 questions) heavily tests statistical literacy. These concepts appear in both Math and Reading/Writing sections.
+
+#### Measures of Center
+| Measure | Definition | Calculation | Properties |
+|---------|------------|-------------|------------|
+| **Mean** | Average | Sum / Count | Affected by outliers; sum = mean × n |
+| **Median** | Middle value | Order data, find middle (or avg of 2 middle) | Resistant to outliers |
+| **Mode** | Most frequent | Count frequencies | Can have multiple modes or none |
+
+**Critical SAT Patterns:**
+- If data is symmetric: Mean ≈ Median
+- If right-skewed (tail right): Mean > Median
+- If left-skewed (tail left): Mean < Median
+- **Weighted mean**: (w₁x₁ + w₂x₂ + ...) / (w₁ + w₂ + ...)
+
+#### Measures of Spread
+| Measure | Definition | SAT Context |
+|---------|------------|-------------|
+| **Range** | Max - Min | Quick spread indicator |
+| **IQR** (Interquartile Range) | Q3 - Q1 | Middle 50% spread; resistant to outliers |
+| **Standard Deviation** | √[Σ(x-μ)²/n] | Conceptual only: larger = more spread |
+
+**SAT does NOT require you to calculate SD** — only interpret it:
+- "Which data set has greater variability?" → Larger SD
+- Adding a constant to all values: SD unchanged
+- Multiplying all values by constant k: SD × |k|
+
+#### Data Displays
+| Display | Reads | SAT Questions |
+|---------|-------|---------------|
+| **Scatterplot** | Trend, correlation, line of best fit | "Predict y when x = ...", "Slope of best fit" |
+| **Two-way Table** | Joint, marginal, conditional frequencies | "P(A|B)", "Compare groups" |
+| **Histogram** | Shape, center, spread | "Skew direction", "Estimate median" |
+| **Box Plot** | Min, Q1, Median, Q3, Max, Outliers | "IQR", "Compare distributions" |
+| **Bar/Line Graph** | Trends over categories/time | "Greatest increase", "Rate of change" |
+
+#### Probability & Sampling
+- **P(A and B)** = P(A) × P(B|A) (if dependent) or P(A) × P(B) (if independent)
+- **P(A or B)** = P(A) + P(B) - P(A and B)
+- **Conditional P(A|B)** = P(A and B) / P(B)
+- **Random sampling** → Can generalize to population
+- **Random assignment** → Can infer causation
+- **Margin of Error**: Sample statistic ± margin = confidence interval for population parameter
+
+#### Practice Problems (from 8_Statistics.pdf)
+1. Data: {12, 15, 18, 18, 20, 22, 25, 100}
+   - Mean = 230/8 = 28.75, Median = (18+20)/2 = 19
+   - Right-skewed due to outlier 100
+
+2. Two-way table: 200 students surveyed on Sports (Yes/No) and Grades (A/B/C)
+   - P(Grade A | Sports) = (A & Sports) / (Total Sports)
+
+3. Scatterplot shows y = 2.5x + 10 with correlation r = 0.92
+   - Predict y when x = 4: y = 2.5(4) + 10 = 20
+   - Strong positive correlation
+
+---
+
+### 📐 LINES, ANGLES & TRIANGLES: Geometry Deep Dive
+
+From Problem-Solving 7 (16_Lines and Angles.pdf, 17_Triangles.pdf) and SAT Geometry Problems.pdf.
+
+#### Lines and Angles
+| Concept | Key Property |
+|---------|--------------|
+| **Vertical angles** | Equal |
+| **Linear pair** | Supplementary (sum = 180°) |
+| **Parallel lines + transversal** | Corresponding =, Alternate interior =, Consecutive interior supplementary |
+| **Perpendicular lines** | Slopes are negative reciprocals (m₁ × m₂ = -1) |
+| **Angle bisector** | Divides angle into two equal angles |
+
+#### Triangle Properties (ESSENTIAL)
+| Theorem/Property | Statement |
+|------------------|-----------|
+| **Triangle Sum** | Interior angles sum to 180° |
+| **Exterior Angle** | Exterior angle = sum of two remote interior angles |
+| **Isosceles Triangle** | Base angles are equal; sides opposite equal angles are equal |
+| **Triangle Inequality** | Sum of any two sides > third side |
+| **Pythagorean Theorem** | a² + b² = c² (c = hypotenuse) |
+| **Converse Pythagorean** | If a² + b² = c², triangle is RIGHT |
+| **Special Right Triangles** | 45-45-90: sides x, x, x√2 | 30-60-90: sides x, x√3, 2x |
+
+#### Triangle Similarity & Congruence
+| Criterion | Meaning |
+|-----------|---------|
+| **AA (Angle-Angle)** | Two angles equal → triangles similar |
+| **SSS (Side-Side-Side)** | Sides proportional → similar; sides equal → congruent |
+| **SAS (Side-Angle-Side)** | Two sides proportional + included angle equal → similar |
+| **HL (Hypotenuse-Leg)** | Right triangles: hypotenuse + one leg equal → congruent |
+
+#### Coordinate Geometry with Triangles
+- **Distance formula**: √[(x₂-x₁)² + (y₂-y₁)²]
+- **Midpoint formula**: ((x₁+x₂)/2, (y₁+y₂)/2)
+- **Slope formula**: (y₂-y₁)/(x₂-x₁)
+- **Area on coordinate plane**: |x₁(y₂-y₃) + x₂(y₃-y₁) + x₃(y₁-y₂)| / 2 (shoelace formula)
+
+#### SAT Geometry Problem Types (from SAT Geometry Problems.pdf)
+**Type 1: Multi-step angle chasing**
+- Use parallel lines, triangle sum, exterior angle, circle theorems in sequence
+- Draw the diagram! Label everything.
+
+**Type 2: Similar triangles in diagrams**
+- Look for parallel lines creating similar triangles
+- Set up proportions: corresponding sides / corresponding sides = scale factor
+
+**Type 3: Right triangle trigonometry**
+- SOH-CAH-TOA: sin = opp/hyp, cos = adj/hyp, tan = opp/adj
+- Complementary angles: sin(θ) = cos(90°-θ)
+- 30-60-90: sin 30° = 1/2, cos 30° = √3/2, tan 30° = √3/3
+- 45-45-90: sin 45° = cos 45° = √2/2, tan 45° = 1
+
+**Type 4: Circle + Triangle combinations**
+- Right angle inscribed in semicircle
+- Radius to tangent = perpendicular
+- Chord-chord, secant-secant, secant-tangent power theorems (rare but tested)
+
+#### Practice Problems (from 16_Lines and Angles.pdf, 17_Triangles.pdf)
+1. In ΔABC, ∠A = 2x, ∠B = 3x, ∠C = 4x. Find x.
+   - 2x + 3x + 4x = 180° → 9x = 180 → x = 20°
+
+2. Right triangle with legs 5 and 12. Find hypotenuse and sin/cos/tan of smaller acute angle.
+   - c = √(25+144) = 13
+   - sin θ = 5/13, cos θ = 12/13, tan θ = 5/12
+
+3. Two similar triangles. Small: sides 3, 4, 5. Large: shortest side 9. Find perimeter of large.
+   - Scale factor = 9/3 = 3
+   - Large sides: 9, 12, 15 → Perimeter = 36
+
+---
+
+### 🎯 QUADRATICS: Advanced Practice (from 16_Quadratics.pdf, 11_Quadratics.pdf)
+
+Additional factoring patterns from tonight's materials:
+
+#### Factoring Patterns Review
+| Quadratic | Factored Form | Method |
+|-----------|---------------|--------|
+| 16x² - 49 | (4x - 7)(4x + 7) | Difference of squares |
+| 4x² - 12x + 9 | (2x - 3)² | Perfect square trinomial |
+| 6x² - 7x - 49 | (3x + 7)(2x - 7) | AC method / Trial & error |
+| 10x² - 21x - 10 | (5x + 2)(2x - 5) | AC method |
+
+#### Quadratic Formula Discriminant Shortcuts
+- If discriminant is a perfect square → factorable over integers
+- If discriminant = 0 → vertex touches x-axis (one repeated root)
+- If discriminant < 0 → no real solutions (question might ask "no real solutions")
+
+#### Vertex Form: y = a(x - h)² + k
+- Vertex: (h, k)
+- Axis of symmetry: x = h
+- Opens up if a > 0, down if a < 0
+- To convert from standard: complete the square
+
+**Example**: y = 2x² - 12x + 10
+- y = 2(x² - 6x) + 10
+- y = 2(x² - 6x + 9) + 10 - 18
+- y = 2(x - 3)² - 8
+- Vertex: (3, -8), axis: x = 3
+
+---
+
+### 📝 NEW PRACTICE SET (July 3 Update)
+
+**Circles:**
+1. Circle: (x + 2)² + (y - 5)² = 36. Area = ?
+2. Central angle 120°, radius 6. Arc length = ? Sector area = ?
+3. Inscribed angle intercepts arc of 150°. Angle measure = ?
+
+**Statistics:**
+4. Data set A: {10, 20, 30, 40, 50}. Data set B: {10, 20, 30, 40, 50, 100}. Compare mean, median, SD.
+5. Two-way table: 60% of Group X prefers Brand A, 40% Brand B. 30% of Group Y prefers A, 70% B. If randomly select someone who prefers A, P(they're from Group X)?
+
+**Triangles:**
+6. ΔABC ~ ΔDEF. AB = 6, BC = 8, AC = 10. DE = 9. Find EF, DF.
+7. Right triangle: hypotenuse 17, one leg 8. Find other leg and sin/cos/tan of angle opposite side 8.
+8. Coordinates: A(1,2), B(4,6), C(7,2). Is ΔABC right? Area?
+
+**Quadratics:**
+9. 3x² + 11x - 4 = 0. Solve by factoring.
+10. y = -x² + 6x - 5. Vertex? x-intercepts? y-intercept?
+11. Sum of roots = 5, product = -6. Write quadratic with a = 1.
+
+---
+
+### 💡 KEY STRATEGIES FOR NEW MATERIAL
+
+1. **Circles**: Always draw the diagram. Label radii, mark right angles (tangent-radius, inscribed-in-semicircle). Use equation of circle ↔ completing the square.
+
+2. **Statistics**: Distinguish mean vs median vs mode. Understand what SD represents conceptually. For two-way tables, always check: "given X, probability of Y" = P(Y|X) = P(X and Y)/P(X).
+
+3. **Triangles**: Look for similar triangles (parallel lines, shared angles). Use special right triangle ratios (1:1:√2, 1:√3:2) to avoid trig. On coordinate plane, use distance/slope formulas.
+
+4. **Quadratics**: Factoring is fastest when it works. Quadratic formula always works. Vertex form reveals max/min instantly. Desmos for verification.
+
+5. **Time Management**: Circles and triangles often appear in the latter half of modules. Flag and return if you're spending >2 minutes.

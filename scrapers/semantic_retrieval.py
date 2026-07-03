@@ -78,7 +78,7 @@ _ollama_client = None
 def _get_ollama_client() -> httpx.Client:
     global _ollama_client
     if _ollama_client is None:
-        timeout = httpx.Timeout(connect=5.0, read=30.0, write=5.0, pool=5.0)
+        timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)
         _ollama_client = httpx.Client(timeout=timeout)
     return _ollama_client
 

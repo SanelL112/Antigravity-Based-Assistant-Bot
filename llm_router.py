@@ -38,8 +38,8 @@ _or_client = None
 def _get_client() -> httpx.Client:
     global _or_client
     if _or_client is None:
-        # Configure timeouts: connect=10s, read=120s, write=10s, pool=5s
-        timeout = httpx.Timeout(connect=10.0, read=120.0, write=10.0, pool=5.0)
+        # Configure timeouts: connect=10s, read=60s, write=10s, pool=5s
+        timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)
         _or_client = httpx.Client(
             timeout=timeout,
             headers={

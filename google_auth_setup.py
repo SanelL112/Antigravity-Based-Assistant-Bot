@@ -70,6 +70,7 @@ def main():
     # Fall back to console flow (works on headless/remote)
     try:
         creds = flow.run_local_server(
+            host='127.0.0.1',
             port=8080,
             prompt='consent',
             open_browser=True,

@@ -32,17 +32,17 @@ async def consolidate_memory():
     if os.path.exists(summaries_file):
         with open(summaries_file, "r") as f:
             raw_text += "\n--- DAILY SUMMARIES AND NOTES ---\n" + f.read()
-            
+           
     # 2. Read chat_history files
     chat_files = glob.glob(os.path.join(base_dir, "chat_history_*.txt"))
     for cf in chat_files:
         with open(cf, "r") as f:
             raw_text += f"\n--- CHAT HISTORY ({os.path.basename(cf)}) ---\n" + f.read()
-            
+           
     if not raw_text.strip():
         logger.info("No raw memory to consolidate tonight.")
         return
-        
+       
     logger.info("Consolidating memory via Llama 3 8B...")
     prompt = (
         "You are the central Memory Consolidation Engine. It is 2:00 AM. Your task is to process the following raw, messy logs from the day "
@@ -57,7 +57,7 @@ async def consolidate_memory():
     
     try:
         import httpx
-        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=5.0)) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
@@ -67,10 +67,9 @@ async def consolidate_memory():
                     "options": {
                         "temperature": 0.2
                     }
-                },
-                timeout=7200.0 # Heavy generation could take up to 2 hours on CPU
+                }
             )
-            
+        
         if response.status_code == 200:
             brain = response.json().get("response", "").strip()
         else:
@@ -98,8 +97,12 @@ async def consolidate_memory():
             # Merge old and new
             merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
             try:
-                async with httpx.AsyncClient() as client:
-                    resp2 = await client.post("http://localhost:11434/api/generate", json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": merge_prompt, "stream": False}, timeout=7200.0)
+                import httpx
+                async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=5.0)) as client:
+                    resp2 = await client.post(
+                        "http://localhost:11434/api/generate",
+                        json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": merge_prompt, "stream": False}
+                    )
                     if resp2.status_code == 200:
                         final_brain = resp2.json().get("response", "").strip()
                     else:
@@ -109,12 +112,12 @@ async def consolidate_memory():
                 from ai_processor import call_agy
                 merged = call_agy(merge_prompt, timeout=180, model="flash")
                 if merged: final_brain = merged
-                    
+                   
         with open(brain_file, "w") as f:
             f.write(final_brain)
     except Exception as e:
         logger.error(f"Failed to write brain file: {e}")
-            
+           
     # Phase 2: Trigger Deep-Dive Online Researcher
     logger.info("Triggering offline topic researcher...")
     try:
@@ -151,7 +154,7 @@ async def consolidate_memory():
         await run_indexing()
     except Exception as e:
         logger.error(f"Nightly indexer failed: {e}")
-            
+           
     # Phase 5: Embedding Index Rebuild (while Ollama is still awake)
     logger.info("Running embedding index rebuild via Ollama nomic-embed-text...")
     try:
@@ -173,7 +176,7 @@ async def consolidate_memory():
     except Exception as e:
         logger.warning(f"Embedding index rebuild failed (non-critical): {e}")
         log_nightly("embedding_indexer", "error", {"message": str(e)[:80]})
-            
+           
     logger.info("Daily pipeline complete.")
 
     # Phase 6: Trim raw logs (respect rotation limits, don't fully wipe)

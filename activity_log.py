@@ -99,13 +99,13 @@ def _rotate_if_needed():
 
 def _send_telegram_notification(text: str):
     """Send a muted (silent) Telegram message.
-    
+
     SECURITY: PII is scrubbed before sending to Telegram cloud API.
     """
     _init_telegram()
     if not _TELEGRAM_TOKEN or not _TELEGRAM_CHAT_ID:
         return
-    
+
     # Scrub PII from notification text before sending to cloud
     safe_text = scrub_pii(text, aggressive=True)
     try:
@@ -118,7 +118,7 @@ def _send_telegram_notification(text: str):
                 "parse_mode": "Markdown",
                 "disable_notification": True,  # MUTED!
             },
-            timeout=5.0,
+            timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0),
         )
     except Exception:
         pass  # notifications are best-effort

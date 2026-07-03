@@ -41,7 +41,7 @@ async def compile_bot_context():
     
     try:
         import httpx
-        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=5.0)) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
