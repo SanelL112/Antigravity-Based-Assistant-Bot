@@ -265,10 +265,23 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
     if len(chat_history) > 4000:
         chat_history = "[earlier messages trimmed]\n" + chat_history[-4000:]
 
+    # Add semantic retrieval for academic questions
+    retrieval_context = ""
+    try:
+        from scrapers.semantic_retrieval import get_context_for_prompt
+        retrieval_result = get_context_for_prompt(user_message, top_k=5)
+        if retrieval_result and "SEMANTIC RETRIEVAL" in retrieval_result:
+            retrieval_context = f"\n\n=== SEMANTIC RETRIEVAL FROM KNOWLEDGE BASE ===\n{retrieval_result}\n=== END RETRIEVAL ===\n"
+            logger.info(f"Semantic retrieval added to prompt for: {user_message[:50]}")
+    except Exception as e:
+        logger.warning(f"Semantic retrieval failed: {e}")
+
     full_prompt = (system + "\n\n"
                    f"--- {topic.upper()} CONVERSATION HISTORY ---\n"
                    + chat_history +
-                   f"\n--- END HISTORY ---\n\nUser: " + user_message)
+                   f"\n--- END HISTORY ---\n"
+                   + retrieval_context +
+                   f"\nUser: " + user_message)
     
     model = user_models.get(chat_id, "auto")
     
