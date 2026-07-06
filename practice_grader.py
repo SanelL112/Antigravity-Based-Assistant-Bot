@@ -14,8 +14,10 @@ import hashlib
 from pathlib import Path
 from typing import Optional
 from config import (
-    KNOWLEDGE_BASE_DIR, BASE_DIR, SANEL_CHAT_ID, STUDY_GUIDES_DIR
+    BASE_DIR, SANEL_CHAT_ID
 )
+KNOWLEDGE_BASE_DIR = BASE_DIR / "knowledge_base"
+STUDY_GUIDES_DIR = BASE_DIR / "study_guides"
 
 logger = logging.getLogger(__name__)
 GAPS_DIR = BASE_DIR / "knowledge_gaps"
