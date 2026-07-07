@@ -21,6 +21,7 @@ from config import AGENTAPI_BIN, BASE_DIR, CACHE_DIR as CONFIG_CACHE_DIR, LATEST
 BOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 CACHE_DIR = Path(CONFIG_CACHE_DIR)
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+_write_lock = threading.Lock()
 
 # ── Per-source prompts ────────────────────────────────────────────────────────
 
