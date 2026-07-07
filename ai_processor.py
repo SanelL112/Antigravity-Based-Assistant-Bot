@@ -269,7 +269,6 @@ def assemble_digest(summaries: dict) -> dict:
     # Save combined summaries to file for reference (APPEND so memory consolidation can read the whole day)
     # Use atomic append with lock to prevent interleaved writes from ThreadPoolExecutor
     combined_summaries_path = os.path.join(CACHE_DIR, "combined_summaries.txt")
-    _write_lock = threading.Lock()
     with _write_lock:
         with open(combined_summaries_path, "a", encoding="utf-8") as f:
             f.write(summary_text)
@@ -318,7 +317,7 @@ def assemble_digest(summaries: dict) -> dict:
         digest = digest.replace('STUDY_TOPICS_JSON:' + topics_match.group(1).split('\n')[0], '').strip()
 
     # ── Deduplication: bullet-level string comparison (fast, no LLM) ─────────
-    previous_digest_path = config.LATEST_DIGEST_FILE
+    previous_digest_path = LATEST_DIGEST_FILE
     previous_digest = ""
     try:
         with open(previous_digest_path, "r", encoding="utf-8") as f:

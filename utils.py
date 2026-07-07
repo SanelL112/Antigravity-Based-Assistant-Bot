@@ -358,7 +358,7 @@ def _audit_log(cmd: str, chat_id: int, status: str):
 import re as _re
 
 # Email addresses
-_EMAIL_RE = _re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+_EMAIL_RE = _re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b')
 # Phone numbers (US format)
 _PHONE_RE = _re.compile(r'\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b')
 # SSN

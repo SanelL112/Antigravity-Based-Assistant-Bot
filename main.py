@@ -22,24 +22,12 @@ from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, Comma
 from bot.security import require_auth
 from bot.commands import model_command, summary_command, bash_command, priority_command, ping_command, stats_command, backup_command, restore_command, correlations_command, classroom_pdfs_command, help_command, server_command, handle_callback
 
-# ── Background Task Tracking ───────────────────────────────────────────────────
-# Track all background tasks for proper cleanup on shutdown
-_background_tasks: set[asyncio.Task] = set()
-
-def _track_task(task: asyncio.Task) -> asyncio.Task:
-    """Add task to tracking set and auto-remove when done."""
-    _background_tasks.add(task)
-    task.add_done_callback(_background_tasks.discard)
-    return task
-
-def _cleanup_background_tasks():
-    """Cancel all tracked background tasks on exit."""
-    if _background_tasks:
-        logger.info(f"Cancelling {len(_background_tasks)} background tasks...")
-        for task in _background_tasks:
-            if not task.done():
-                task.cancel()
-        # Note: we don't await here since this runs at exit
+import config
+import tempfile
+from inline_keyboards import get_digest_topic_keyboard
+from utils import correlate_items, enforce_all_rotations, create_backup
+from voice_handler import transcribe_voice
+from bot.runtime import _track_task, _cleanup_background_tasks
 
 atexit.register(_cleanup_background_tasks)
 
@@ -585,7 +573,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Get the largest resolution photo
     photo_file = await update.message.photo[-1].get_file()
-    download_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_homework.jpg")
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
+        download_path = tmp.name
     await photo_file.download_to_drive(download_path)
     
     caption = update.message.caption or ""
@@ -646,7 +635,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             model="nvidia/nemotron-3-ultra-550b-a55b:free",
             prompt=prompt,
             task="photo-extract",
-            fallback_chain=["openrouter/owl-alpha"],
+            fallback_chain=["meta-llama/llama-3.3-70b-instruct:free"],
             timeout=120,
         )
     except Exception:

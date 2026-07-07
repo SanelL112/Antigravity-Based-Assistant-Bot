@@ -3,10 +3,12 @@ import asyncio
 import subprocess
 import logging
 import httpx
+import time
 from utils import scrub_pii, run_bash_safely
 from activity_log import log_llm_call, log_event
 from config import AGENTAPI_BIN, RESPONSE_TIMEOUT
-from main import user_models, _track_task
+from bot.state import load_state
+from bot.runtime import _track_task
 
 logger = logging.getLogger(__name__)
 
@@ -209,7 +211,6 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         
         async def _call_or(m_name):
             import time
-from bot.state import load_state
             import json
             full_response = ""
             current_thought = ""

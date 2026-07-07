@@ -9,8 +9,10 @@ from bot.security import require_auth
 from bot.state import load_state, save_state
 from utils import create_backup, list_backups, restore_backup, get_correlation_summary, get_health_status
 from config import SANEL_CHAT_ID
-from main import user_models, _track_task, build_guide_for_drive_file
+from bot.runtime import _track_task
+from scrapers.mega_study_builder import build_guide_for_drive_file
 from llm_router import get_cost_summary
+import time
 
 logger = logging.getLogger(__name__)
 

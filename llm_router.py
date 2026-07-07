@@ -296,6 +296,7 @@ def _do_call(
                 "messages": messages,
                 "max_tokens": max_tokens,
             },
+            timeout=timeout,
         )
         if resp.status_code == 200:
             choice = resp.json()["choices"][0]
