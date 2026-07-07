@@ -163,44 +163,47 @@ def _format_event_short(icon: str, entry: dict) -> str:
     cat = entry.get("cat", "?")
     t = entry.get("time", "?")
 
-    # Category-specific formatting
+    # SCRUB ALL VALUES before formatting - PII protection
+    safe_details = {k: scrub_pii(str(v), aggressive=True) for k, v in d.items()}
+
+    # Category-specific formatting (use safe_details only)
     if cat == "llm_call":
-        model = d.get("model", "?")
-        task = d.get("task", "")
-        dur = d.get("duration_s", "?")
-        cost = d.get("cost_usd", 0)
+        model = safe_details.get("model", "?")
+        task = safe_details.get("task", "")
+        dur = safe_details.get("duration_s", "?")
+        cost = safe_details.get("cost_usd", 0)
         return f"{icon} `{t}` `{model}` {task} ({dur}s, ${cost:.4f})"
 
     if cat == "scrape":
-        source = d.get("source", "?")
-        count = d.get("count", "?")
-        note = d.get("note", "")
+        source = safe_details.get("source", "?")
+        count = safe_details.get("count", "?")
+        note = safe_details.get("note", "")
         return f"{icon} `{t}` Scraped {source}: {count} {note}".strip()
 
     if cat == "system":
-        subsystem = d.get("subsystem", "?")
-        action = d.get("action", "?")
+        subsystem = safe_details.get("subsystem", "?")
+        action = safe_details.get("action", "?")
         return f"{icon} `{t}` {subsystem}: {action}"
 
     if cat == "error":
-        msg = d.get("message", "unknown error")[:80]
-        source = d.get("source", "")
+        msg = safe_details.get("message", "unknown error")[:80]
+        source = safe_details.get("source", "")
         return f"{icon} `{t}` {source}: {msg}" if source else f"{icon} `{t}` {msg}"
 
     if cat == "nightly":
-        phase = d.get("phase", "?")
-        status = d.get("status", "?")
+        phase = safe_details.get("phase", "?")
+        status = safe_details.get("status", "?")
         return f"{icon} `{t}` Nightly: {phase} {status}"
 
     if cat == "digest":
-        sources = d.get("sources", "?")
-        action = d.get("action", "sent")
+        sources = safe_details.get("sources", "?")
+        action = safe_details.get("action", "sent")
         return f"{icon} `{t}` Digest {action} ({sources} sources)"
 
     # Generic
     detail_str = ""
-    if d:
-        detail_str = " " + " ".join(f"{k}={v}" for k, v in list(d.items())[:3])
+    if safe_details:
+        detail_str = " " + " ".join(f"{k}={v}" for k, v in list(safe_details.items())[:3])
     return f"{icon} `{t}` {cat}{detail_str}"
 
 

@@ -8989,3 +8989,331 @@ Additional factoring patterns from tonight's materials:
 4. **Quadratics**: Factoring is fastest when it works. Quadratic formula always works. Vertex form reveals max/min instantly. Desmos for verification.
 
 5. **Time Management**: Circles and triangles often appear in the latter half of modules. Flag and return if you're spending >2 minutes.
+---
+
+## 📅 Update: 2026-07-06 - New Concepts from Summer SAT/ACT Class (Days 10-12)
+
+### 🔵 CIRCLES: Complete Coverage (from 19_Circles.pdf)
+
+The SAT tests circles extensively in the Geometry domain. Master these formulas, theorems, and problem types.
+
+#### Core Circle Formulas (Memorize - Not All on Reference Sheet)
+
+| Formula | Expression | Notes |
+|---------|------------|-------|
+| **Area** | $A = \pi r^2$ | On reference sheet |
+| **Circumference** | $C = 2\pi r$ | On reference sheet |
+| **Diameter** | $d = 2r$ | |
+| **Radius** | $r = \frac{d}{2}$ | |
+| **Sector Area** | $A_{sector} = \frac{\theta}{360} \times \pi r^2$ | **NOT on reference sheet** |
+| **Arc Length** | $s = \frac{\theta}{360} \times 2\pi r$ | **NOT on reference sheet** |
+| **Circle Equation** | $(x - h)^2 + (y - k)^2 = r^2$ | **NOT on reference sheet** |
+| **Completing the Square** | Convert $x^2 + y^2 + Dx + Ey + F = 0$ to standard form | Critical skill |
+
+#### Circle Theorems & Properties
+
+| Theorem | Statement | Application |
+|---------|-----------|-------------|
+| **Central Angle** | $\theta_{central} = \text{arc measure}$ | Direct equality |
+| **Inscribed Angle** | $\theta_{inscribed} = \frac{1}{2} \times \text{intercepted arc}$ | Half the central angle |
+| **Angle in Semicircle** | Any angle inscribed in a semicircle is a right angle | $diameter \rightarrow 90^\circ$ |
+| **Tangent-Radius** | Tangent $\perp$ radius at point of tangency | Right angle at contact |
+| **Chord-Chord** | $a \cdot b = c \cdot d$ (intersecting chords) | Products of segments |
+| **Secant-Secant** | $whole \times outside = whole \times outside$ | External secant theorem |
+| **Secant-Tangent** | $tangent^2 = secant_{whole} \times secant_{outside}$ | Tangent is geometric mean |
+
+#### Circle Problem Types
+
+**Type 1: Equation of Circle**
+- Given center $(h,k)$ and radius $r$: write $(x-h)^2 + (y-k)^2 = r^2$
+- Given equation: find center and radius (complete the square if needed)
+- Given endpoints of diameter: find midpoint = center, distance/2 = radius
+
+**Type 2: Arc Length & Sector Area**
+- Always use the fraction $\frac{\theta}{360}$ of the whole circle
+- Arc length = $\frac{\theta}{360} \times 2\pi r$
+- Sector area = $\frac{\theta}{360} \times \pi r^2$
+
+**Type 3: Inscribed Angles & Cyclic Quadrilaterals**
+- Inscribed angle = $\frac{1}{2}$ intercepted arc
+- Opposite angles of cyclic quadrilateral sum to $180^\circ$
+- Angle between chord and tangent = $\frac{1}{2}$ intercepted arc
+
+**Type 4: Coordinate Geometry with Circles**
+- Distance formula for radius: $r = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$
+- Check if point is inside/on/outside: plug into LHS, compare to $r^2$
+- Intersection of line and circle: substitute line equation into circle equation
+
+#### Practice Problems (from 19_Circles.pdf)
+1. Circle with center $(3, -2)$ passes through $(7, 1)$. Find the equation.
+   - $r = \sqrt{(7-3)^2 + (1-(-2))^2} = \sqrt{16+9} = 5$
+   - $(x-3)^2 + (y+2)^2 = 25$
+
+2. Equation: $x^2 + y^2 - 6x + 8y - 11 = 0$. Find center and radius.
+   - $(x^2 - 6x + 9) + (y^2 + 8y + 16) = 11 + 9 + 16$
+   - $(x-3)^2 + (y+4)^2 = 36$
+   - Center: $(3, -4)$, Radius: $6$
+
+3. Central angle $72^\circ$, radius $10$. Find arc length and sector area.
+   - Arc: $\frac{72}{360} \times 2\pi(10) = \frac{1}{5} \times 20\pi = 4\pi$
+   - Sector: $\frac{72}{360} \times \pi(100) = \frac{1}{5} \times 100\pi = 20\pi$
+
+4. Inscribed angle intercepts arc of $130^\circ$. Find the angle.
+   - $\frac{130}{2} = 65^\circ$
+
+---
+
+### 📊 STATISTICS & DATA ANALYSIS: Complete Coverage (from 8_Statistics.pdf)
+
+#### Core Concepts
+
+| Concept | Formula/Definition | Key Notes |
+|---------|-------------------|-----------|
+| **Mean (Average)** | $\bar{x} = \frac{\sum x_i}{n}$ | Sensitive to outliers |
+| **Median** | Middle value (or avg of 2 middle) | Resistant to outliers |
+| **Mode** | Most frequent value | Can have multiple/no mode |
+| **Range** | $max - min$ | Simple spread measure |
+| **Standard Deviation (SD)** | $\sigma = \sqrt{\frac{\sum(x-\bar{x})^2}{n}}$ | **Conceptual only** - know what it means, not calculation |
+| **Variance** | $\sigma^2$ | Square of SD |
+
+#### Two-Way Tables & Conditional Probability
+
+| Probability Type | Formula | Example Question |
+|------------------|---------|------------------|
+| **Joint** | $P(A \cap B) = \frac{\text{count}(A \text{ and } B)}{\text{total}}$ | "What fraction of all students are males who prefer math?" |
+| **Marginal** | $P(A) = \frac{\text{total}(A)}{\text{total}}$ | "What fraction of students prefer math?" |
+| **Conditional** | $P(B|A) = \frac{P(A \cap B)}{P(A)} = \frac{\text{count}(A \text{ and } B)}{\text{total}(A)}$ | "Given a student prefers math, what's the probability they're male?" |
+
+**Conditional Probability Strategy:**
+1. Identify the "given" condition (this is your NEW denominator)
+2. Find the intersection (numerator)
+3. Divide: $\frac{\text{intersection count}}{\text{condition count}}$
+
+#### Scatterplots & Lines of Best Fit
+
+- **Positive correlation**: As $x$ increases, $y$ increases
+- **Negative correlation**: As $x$ increases, $y$ decreases
+- **No correlation**: No clear pattern
+- **Line of best fit**: $y = mx + b$ where $m$ = slope (rate of change), $b$ = y-intercept
+- **Extrapolation** (predicting outside data range) is riskier than **interpolation**
+
+#### Margin of Error & Sampling
+
+- **Margin of Error (MOE)**: $\pm$ range around estimate
+- **Confidence interval**: $\text{estimate} \pm \text{MOE}$
+- **Larger sample** $\rightarrow$ smaller MOE
+- **Higher confidence** $\rightarrow$ larger MOE
+- **Random sampling** required for generalization
+- **Observational study** $\neq$ causation; **Experiment** (with random assignment) $\rightarrow$ causation
+
+#### Practice Problems (from 8_Statistics.pdf)
+1. Data set: $\{5, 8, 8, 12, 17\}$. Mean? Median? Mode? Range?
+   - Mean: $50/5 = 10$
+   - Median: $8$ (middle)
+   - Mode: $8$ (appears twice)
+   - Range: $17 - 5 = 12$
+
+2. Two-way table: 60 males, 40 females. 45 males + 25 females prefer Brand A. $P(\text{male} | \text{prefers A})$?
+   - Total preferring A: $45 + 25 = 70$
+   - $P(\text{male} | A) = 45/70 = 9/14$
+
+3. Scatterplot shows $y = 2.5x + 10$. What does 2.5 mean?
+   - For every 1 unit increase in $x$, $y$ increases by 2.5
+
+---
+
+### 📐 LINES & ANGLES: Complete Coverage (from 16_Lines and Angles.pdf)
+
+#### Angle Relationships with Parallel Lines
+
+| Angle Pair | Relationship | When Lines Are Parallel |
+|------------|--------------|------------------------|
+| **Corresponding** | Same position at each intersection | **Congruent** |
+| **Alternate Interior** | Inside, opposite sides of transversal | **Congruent** |
+| **Alternate Exterior** | Outside, opposite sides of transversal | **Congruent** |
+| **Consecutive Interior** | Inside, same side of transversal | **Supplementary** ($180^\circ$) |
+| **Vertical Angles** | Opposite when two lines cross | Always **Congruent** |
+| **Linear Pair** | Adjacent, form a line | Always **Supplementary** |
+
+#### Key Formulas
+
+- **Sum of angles on a line**: $180^\circ$
+- **Sum of angles around a point**: $360^\circ$
+- **Sum of interior angles of n-gon**: $(n-2) \times 180^\circ$
+- **Each interior angle of regular n-gon**: $\frac{(n-2) \times 180^\circ}{n}$
+- **Exterior angle of triangle**: Equals sum of two remote interior angles
+
+#### Problem Types
+
+**Type 1: Find $x$ in angle diagram**
+- Identify parallel lines (marked with arrows)
+- Use corresponding/alternate interior/vertical angles
+- Set up equation and solve
+
+**Type 2: Polygon angle sums**
+- Triangle: $180^\circ$
+- Quadrilateral: $360^\circ$
+- Pentagon: $540^\circ$
+- Use $(n-2) \times 180$
+
+**Type 3: Angle chasing with multiple steps**
+- Work backwards from what you need
+- Label every angle you can find
+- Use triangle sum, linear pair, vertical angles repeatedly
+
+#### Practice (from 16_Lines and Angles.pdf)
+1. Two parallel lines cut by transversal. One angle = $3x + 15$, corresponding angle = $5x - 25$. Find $x$.
+   - $3x + 15 = 5x - 25 \rightarrow 40 = 2x \rightarrow x = 20$
+   - Angle = $3(20) + 15 = 75^\circ$
+
+2. Pentagon with angles: $110^\circ, 120^\circ, 90^\circ, 100^\circ, x$. Find $x$.
+   - Sum = $(5-2) \times 180 = 540$
+   - $110 + 120 + 90 + 100 + x = 540 \rightarrow 420 + x = 540 \rightarrow x = 120^\circ$
+
+---
+
+### 🔺 TRIANGLES: Complete Coverage (from 17_Triangles.pdf)
+
+#### Triangle Classification
+
+| By Sides | By Angles |
+|----------|-----------|
+| **Equilateral**: 3 equal sides, $60^\circ$ each | **Acute**: All $< 90^\circ$ |
+| **Isosceles**: 2 equal sides, base angles equal | **Right**: One $= 90^\circ$ |
+| **Scalene**: No equal sides | **Obtuse**: One $> 90^\circ$ |
+
+#### Critical Theorems & Formulas
+
+| Theorem | Statement | Application |
+|---------|-----------|-------------|
+| **Triangle Sum** | $\angle A + \angle B + \angle C = 180^\circ$ | Find missing angle |
+| **Exterior Angle** | Ext $\angle = \text{sum of 2 remote interior}$ | Multi-step angle problems |
+| **Triangle Inequality** | Sum of any 2 sides $>$ 3rd side | Check if sides form triangle |
+| **Pythagorean** | $a^2 + b^2 = c^2$ (right triangles only) | Find missing side |
+| **Converse Pythagorean** | If $a^2 + b^2 = c^2$, it's a right triangle | Classify triangles |
+| **30-60-90** | Sides: $x : x\sqrt{3} : 2x$ | Fast solving |
+| **45-45-90** | Sides: $x : x : x\sqrt{2}$ | Fast solving |
+
+#### Similar Triangles
+
+- **AA criterion**: Two angles equal $\rightarrow$ similar
+- **SAS similarity**: Two sides proportional + included angle equal
+- **SSS similarity**: All sides proportional
+- **Ratio of areas** = (scale factor)$^2$
+- **Ratio of perimeters** = scale factor
+
+#### Triangle Area Formulas
+
+| Formula | When to Use |
+|---------|-------------|
+| $A = \frac{1}{2}bh$ | Base and height known |
+| $A = \frac{1}{2}ab\sin C$ | Two sides + included angle (SAS) |
+| **Heron's**: $A = \sqrt{s(s-a)(s-b)(s-c)}$ | Three sides known (SSS), $s = \frac{a+b+c}{2}$ |
+| $A = \frac{s^2\sqrt{3}}{4}$ | Equilateral triangle side $s$ |
+
+#### Coordinate Geometry with Triangles
+
+- **Distance formula**: side lengths $\rightarrow$ classify, perimeter
+- **Slope formula**: perpendicular $\rightarrow$ right triangle
+- **Midpoint**: medians, centroid
+- **Area via coordinates**: $\frac{1}{2}|x_1(y_2-y_3) + x_2(y_3-y_1) + x_3(y_1-y_2)|$
+
+#### Practice (from 17_Triangles.pdf)
+1. $\triangle ABC$: $\angle A = 2x$, $\angle B = 3x$, $\angle C = 4x$. Find $x$.
+   - $2x + 3x + 4x = 180 \rightarrow 9x = 180 \rightarrow x = 20^\circ$
+   - Angles: $40^\circ, 60^\circ, 80^\circ$
+
+2. Right triangle legs: 5, 12. Find hypotenuse and trig ratios of smaller acute angle.
+   - $c = \sqrt{25 + 144} = 13$
+   - $\sin = 5/13$, $\cos = 12/13$, $\tan = 5/12$
+
+3. $\triangle ABC \sim \triangle DEF$. $AB=6, BC=8, AC=10$. $DE=9$. Find $EF, DF$.
+   - Scale factor: $9/6 = 1.5$
+   - $EF = 8 \times 1.5 = 12$, $DF = 10 \times 1.5 = 15$
+
+---
+
+### 🎯 QUADRATICS: Advanced Practice (from 11_Quadratics.pdf, 16_Quadratics.pdf)
+
+#### Factoring Patterns (Tonight's Additions)
+
+| Quadratic | Factored Form | Method |
+|-----------|---------------|--------|
+| $16x^2 - 49$ | $(4x - 7)(4x + 7)$ | Difference of squares |
+| $4x^2 - 12x + 9$ | $(2x - 3)^2$ | Perfect square trinomial |
+| $6x^2 - 7x - 49$ | $(3x + 7)(2x - 7)$ | AC method |
+| $10x^2 - 21x - 10$ | $(5x + 2)(2x - 5)$ | AC method |
+
+#### AC Method (for $ax^2 + bx + c$ where $a \neq 1$)
+1. Multiply $a \times c$
+2. Find two numbers that multiply to $ac$ and add to $b$
+3. Split middle term, factor by grouping
+
+**Example**: $6x^2 - 7x - 49$
+- $ac = 6(-49) = -294$
+- Factors of -294 that add to -7: $14$ and $-21$
+- $6x^2 + 14x - 21x - 49$
+- $2x(3x + 7) - 7(3x + 7)$
+- $(3x + 7)(2x - 7)$
+
+#### Quadratic Formula Discriminant Shortcuts
+- $\Delta = b^2 - 4ac$
+- $\Delta > 0$, perfect square $\rightarrow$ 2 rational roots, factorable
+- $\Delta > 0$, not perfect square $\rightarrow$ 2 irrational roots
+- $\Delta = 0$ $\rightarrow$ 1 repeated root (vertex on x-axis)
+- $\Delta < 0$ $\rightarrow$ no real roots (question may ask "no real solutions")
+
+#### Vertex Form: $y = a(x - h)^2 + k$
+- Vertex: $(h, k)$
+- Axis of symmetry: $x = h$
+- Opens up if $a > 0$, down if $a < 0$
+- Max/min value = $k$
+
+**Converting Standard $\rightarrow$ Vertex (Complete the Square):**
+$$y = 2x^2 - 12x + 10$$
+$$y = 2(x^2 - 6x) + 10$$
+$$y = 2(x^2 - 6x + 9) + 10 - 18$$
+$$y = 2(x - 3)^2 - 8$$
+Vertex: $(3, -8)$, Axis: $x = 3$
+
+#### Sum/Product of Roots (Vieta's Formulas)
+- Sum: $-\frac{b}{a}$
+- Product: $\frac{c}{a}$
+
+---
+
+### 📝 NEW PRACTICE SET (July 6 Update)
+
+**Circles:**
+1. Circle: $(x + 2)^2 + (y - 5)^2 = 36$. Area = ?
+2. Central angle $120^\circ$, radius $6$. Arc length = ? Sector area = ?
+3. Inscribed angle intercepts arc of $150^\circ$. Angle measure = ?
+
+**Statistics:**
+4. Data set A: $\{10, 20, 30, 40, 50\}$. Data set B: $\{10, 20, 30, 40, 50, 100\}$. Compare mean, median, SD.
+5. Two-way table: 60% of Group X prefers Brand A, 40% Brand B. 30% of Group Y prefers A, 70% B. If randomly select someone who prefers A, $P(\text{they're from Group X})$?
+
+**Triangles:**
+6. $\triangle ABC \sim \triangle DEF$. $AB = 6, BC = 8, AC = 10$. $DE = 9$. Find $EF, DF$.
+7. Right triangle: hypotenuse $17$, one leg $8$. Find other leg and $\sin/\cos/\tan$ of angle opposite side $8$.
+8. Coordinates: $A(1,2), B(4,6), C(7,2)$. Is $\triangle ABC$ right? Area?
+
+**Quadratics:**
+9. $3x^2 + 11x - 4 = 0$. Solve by factoring.
+10. $y = -x^2 + 6x - 5$. Vertex? x-intercepts? y-intercept?
+11. Sum of roots = 5, product = -6. Write quadratic with $a = 1$.
+
+---
+
+### 💡 KEY STRATEGIES FOR NEW MATERIAL
+
+1. **Circles**: Always draw the diagram. Label radii, mark right angles (tangent-radius, inscribed-in-semicircle). Use equation of circle $\leftrightarrow$ completing the square.
+
+2. **Statistics**: Distinguish mean vs median vs mode. Understand what SD represents conceptually. For two-way tables, always check: "given X, probability of Y" = $P(Y|X) = \frac{P(X \text{ and } Y)}{P(X)}$.
+
+3. **Triangles**: Look for similar triangles (parallel lines, shared angles). Use special right triangle ratios ($1:1:\sqrt{2}$, $1:\sqrt{3}:2$) to avoid trig. On coordinate plane, use distance/slope formulas.
+
+4. **Quadratics**: Factoring is fastest when it works. Quadratic formula always works. Vertex form reveals max/min instantly. Desmos for verification.
+
+5. **Time Management**: Circles and triangles often appear in the latter half of modules. Flag and return if you're spending >2 minutes.
+---

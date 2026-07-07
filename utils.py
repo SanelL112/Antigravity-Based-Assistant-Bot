@@ -77,37 +77,97 @@ def enforce_all_rotations():
 
 
 # ── BASH Safety (Fix #7) ─────────────────────────────────────────────────────
-# Allowlist of SAFE commands that can be executed.
-# Only these base commands are permitted. Arguments are validated.
-ALLOWED_COMMANDS = {
-    # System info
-    'free', 'uptime', 'df', 'ps', 'top', 'htop', 'lscpu', 'lsblk',
-    'systemctl', 'journalctl', 'dmesg', 'whoami', 'id', 'uname', 'hostname',
-    'echo', 'printf',
+# STRICT ALLOWLIST: Only these exact command patterns are permitted.
+# Each entry is a tuple: (base_command, allowed_args_pattern)
+# args_pattern can be:
+#   - [] : no arguments allowed
+#   - ["<fixed_arg>"] : exactly these fixed arguments
+#   - ["*"] : any single argument allowed (but still validated)
+#   - ["<path>"] : any single path argument
+#   - ["<n>", "<path>"] : two arguments (number then path)
+ALLOWED_COMMAND_TEMPLATES = [
+    # System info - read only, no args
+    ("free", []),
+    ("uptime", []),
+    ("df", ["-h"]),
+    ("ps", ["aux"]),
+    ("top", ["-bn1"]),
+    ("lscpu", []),
+    ("lsblk", []),
+    ("whoami", []),
+    ("id", []),
+    ("uname", ["-a"]),
+    ("hostname", []),
+    ("echo", ["*"]),
+    ("printf", ["*"]),
     # File operations (read-only)
-    'cat', 'head', 'tail', 'less', 'more', 'wc', 'grep', 'rg', 'find', 'ls', 'stat',
-    'file', 'du', 'diff', 'sort', 'uniq', 'awk', 'sed', 'cut', 'tr',
-    # Network (read-only)
-    'ping', 'curl', 'wget', 'nslookup', 'dig', 'host', 'ss', 'netstat', 'lsof',
-    # Git (read-only)
-    'git', 'git status', 'git log', 'git diff', 'git show', 'git branch',
+    ("cat", ["<path>"]),
+    ("head", ["-n", "<n>", "<path>"]),
+    ("tail", ["-n", "<n>", "<path>"]),
+    ("wc", ["-l", "<path>"]),
+    ("grep", ["-r", "<pattern>", "<path>"]),
+    ("grep", ["-i", "<pattern>", "<path>"]),
+    ("grep", ["<pattern>", "<path>"]),
+    ("rg", ["<pattern>", "<path>"]),
+    ("find", ["<path>", "-name", "<pattern>"]),
+    ("ls", ["-la", "<path>"]),
+    ("ls", ["<path>"]),
+    ("stat", ["<path>"]),
+    ("file", ["<path>"]),
+    ("du", ["-sh", "<path>"]),
+    ("diff", ["-u", "<path>", "<path>"]),
+    ("sort", ["<path>"]),
+    ("uniq", ["<path>"]),
+    ("awk", ["<script>", "<path>"]),
+    ("sed", ["<script>", "<path>"]),
+    ("cut", ["-d", "<delim>", "-f", "<fields>", "<path>"]),
+    ("tr", ["<set1>", "<set2>"]),
+    # Network (read-only, no output redirection)
+    ("ping", ["-c", "<n>", "<host>"]),
+    ("nslookup", ["<host>"]),
+    ("dig", ["<host>"]),
+    ("host", ["<host>"]),
+    ("ss", ["-tuln"]),
+    ("netstat", ["-tuln"]),
+    ("lsof", ["-i"]),
+    # Git (read-only commands only)
+    ("git", ["status"]),
+    ("git", ["log", "--oneline", "-n", "<n>"]),
+    ("git", ["diff"]),
+    ("git", ["show", "<commit>"]),
+    ("git", ["branch"]),
+    ("git", ["branch", "-a"]),
     # Python/Node tools
-    'python3', 'python', 'pip', 'npm', 'node', 'npx',
-    # Archive/Compression
-    'tar', 'gzip', 'gunzip', 'zip', 'unzip',
-    # Process management
-    'kill', 'pkill', 'pgrep', 'pidof',
+    ("python3", ["-c", "<code>"]),  # validated separately
+    ("pip", ["list"]),
+    ("pip", ["show", "<package>"]),
+    ("npm", ["list"]),
+    ("node", ["--version"]),
+    ("npx", ["--version"]),
+    # Archive/Compression (read-only)
+    ("tar", ["-tzf", "<path>"]),
+    ("tar", ["-tf", "<path>"]),
+    ("gzip", ["-t", "<path>"]),
+    ("gunzip", ["-t", "<path>"]),
+    ("unzip", ["-l", "<path>"]),
+    # Process management (read-only)
+    ("kill", ["-0", "<pid>"]),  # only signal 0 (check existence)
+    ("pkill", ["-0", "<pattern>"]),
+    ("pgrep", ["<pattern>"]),
+    ("pidof", ["<name>"]),
     # Ollama
-    'ollama',
+    ("ollama", ["list"]),
+    ("ollama", ["show", "<model>"]),
     # Agy
-    'agy',
+    ("agy", ["--version"]),
     # Pandoc
-    'pandoc',
+    ("pandoc", ["--version"]),
     # PDF tools
-    'pdftotext', 'pdfinfo',
+    ("pdftotext", ["<path>"]),
+    ("pdfinfo", ["<path>"]),
     # Tesseract
-    'tesseract',
-}
+    ("tesseract", ["<path>", "stdout"]),
+]
 
 # Patterns that are NEVER allowed (blocklist as safety net)
 BLOCKED_PATTERNS = [
@@ -126,6 +186,8 @@ BLOCKED_PATTERNS = [
     'docker', 'podman', 'kubectl', 'helm',
     'chroot', 'pivot_root',
     '> /dev/', '> /proc/', '> /sys/',
+    'tar --checkpoint', 'tar --checkpoint-action',
+    '__import__', 'importlib', 'exec(', 'eval(', 'os.system', 'subprocess',
 ]
 
 _audit_log_path = BASE_DIR / "command_audit.log"
@@ -134,46 +196,49 @@ _rate_limit = {}  # chat_id -> [timestamps]
 
 def _is_command_allowed(cmd: str) -> tuple[bool, str]:
     """
-    Validate command against allowlist.
+    Validate command against strict allowlist templates.
     Returns (allowed, reason_if_blocked).
     """
     cmd_stripped = cmd.strip()
     if not cmd_stripped:
         return False, "Empty command"
-    
+
     # Check blocklist first (safety net)
     cmd_lower = cmd_stripped.lower()
     for blocked in BLOCKED_PATTERNS:
         if blocked in cmd_lower:
             return False, f"Blocked pattern: {blocked}"
-    
-    # Parse command to get base command
+
+    # Parse command to get base command and args
     import shlex
     try:
         parts = shlex.split(cmd_stripped)
     except ValueError as e:
         return False, f"Shell parsing error: {e}"
-    
+
     if not parts:
         return False, "No command parsed"
-    
+
     base_cmd = parts[0]
+    args = parts[1:]
+
+    # Check against ALLOWED_COMMAND_TEMPLATES
+    matched_template = False
+    for template_cmd, template_args in ALLOWED_COMMAND_TEMPLATES:
+        if base_cmd != template_cmd:
+            continue
+        
+        # Match arguments against template
+        if _match_args(args, template_args):
+            matched_template = True
+            break
     
-    # Check if base command is in allowlist
-    if base_cmd not in ALLOWED_COMMANDS:
-        # Also check if it's a full command in allowlist (e.g., 'git status')
-        full_cmd = ' '.join(parts[:2]) if len(parts) >= 2 else base_cmd
-        if full_cmd not in ALLOWED_COMMANDS:
-            return False, f"Command not in allowlist: {base_cmd}"
-    
+    if not matched_template:
+        return False, f"Command not in allowlist: {base_cmd} {args}"
+
     # Additional validation for specific commands
-    if base_cmd in ('curl', 'wget'):
-        # Prevent writing to files or piping to shell
-        if any(arg in ('-o', '-O', '--output', '|', '>', '>>') for arg in parts[1:]):
-            return False, "curl/wget output redirection not allowed"
-    
     if base_cmd in ('python3', 'python'):
-        # Prevent dangerous imports
+        # Prevent dangerous imports in python -c code
         if '-c' in parts:
             code_idx = parts.index('-c') + 1
             if code_idx < len(parts):
@@ -181,8 +246,48 @@ def _is_command_allowed(cmd: str) -> tuple[bool, str]:
                 dangerous = ['os.system', 'subprocess', 'eval(', 'exec(', '__import__', 'open(', 'importlib']
                 if any(d in code for d in dangerous):
                     return False, "Dangerous Python code detected"
-    
+
     return True, "OK"
+
+
+def _match_args(args: list[str], template_args: list[str]) -> bool:
+    """
+    Match actual arguments against template pattern.
+    Template placeholders: <path>, <n>, <pattern>, <code>, <host>, <commit>, <package>, <script>, <delim>, <fields>, <set1>, <set2>, <pid>, <model>, <name>
+    Special: '*' matches any single argument, [] means no args allowed.
+    """
+    if template_args == []:
+        return len(args) == 0
+    
+    if template_args == ["*"]:
+        return len(args) == 1
+    
+    # Count required positional args (non-placeholder)
+    required_count = sum(1 for a in template_args if not a.startswith('<') and not a.endswith('>'))
+    placeholder_count = len(template_args) - required_count
+    
+    if len(args) < required_count:
+        return False
+    
+    # Simple matching: check fixed args match at their positions
+    arg_idx = 0
+    for tmpl_arg in template_args:
+        if tmpl_arg.startswith('<') and tmpl_arg.endswith('>'):
+            # Placeholder - skip one argument
+            if arg_idx >= len(args):
+                return False
+            arg_idx += 1
+        else:
+            # Fixed argument - must match exactly
+            if arg_idx >= len(args) or args[arg_idx] != tmpl_arg:
+                return False
+            arg_idx += 1
+    
+    # Allow extra arguments only if there are placeholders to consume them
+    if arg_idx < len(args) and placeholder_count == 0:
+        return False
+    
+    return True
 
 
 def run_bash_safely(cmd: str, chat_id: int = 0, timeout: int = 60) -> str:

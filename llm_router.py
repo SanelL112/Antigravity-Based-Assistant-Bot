@@ -391,15 +391,18 @@ def call_ollama(prompt: str, model: str = "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:l
                 timeout: int = 30) -> str:
     """Call local Ollama model. Safe for PII — runs entirely on your server."""
     try:
-        resp = requests.post(
+        import httpx
+        # Use proper httpx timeout with all 4 parameters
+        httpx_timeout = httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0)
+        resp = httpx.post(
             "http://localhost:11434/api/generate",
             json={"model": model, "prompt": prompt, "stream": False, "options": {"temperature": 0.0}},
-            timeout=timeout,
+            timeout=httpx_timeout,
         )
         if resp.status_code == 200:
             return resp.json().get("response", "").strip()
         return ""
-    except requests.Timeout:
+    except httpx.TimeoutException:
         logger.error(f"Ollama call timed out after {timeout}s")
         return ""
     except Exception as e:
@@ -528,4 +531,4 @@ _agy_ok = is_agy_healthy()
 if not _ollama_ok:
     logger.warning("Ollama is not running — local AI may fail silently")
 if not _agy_ok:
-    logger.Warning("agy CLI is not responding — local AI may fail silently")
+    logger.warning("agy CLI is not responding — local AI may fail silently")

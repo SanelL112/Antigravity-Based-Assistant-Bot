@@ -1483,22 +1483,27 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # ── Digest topic guide builder ───────────────────────────────────────
     if data.startswith("build_guide:"):
-        topic = data.split("build_guide:", 1)[1]
-        await context.bot.edit_message_text(
-            chat_id=chat_id, message_id=query.message.message_id,
-            text=f"� Building Mega Study Guide for: **{topic}**... This will take a minute!"
-        )
-        try:
-            from scrapers.mega_study_builder import generate_mega_guide
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, generate_mega_guide, topic)
+            topic = data.split("build_guide:", 1)[1]
+            await context.bot.edit_message_text(
+                chat_id=chat_id, message_id=query.message.message_id,
+                text=f"🔨 Building Mega Study Guide for: **{topic}**... This will take a minute!"
+            )
             try:
-                await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
-            except Exception:
-                await context.bot.send_message(chat_id=chat_id, text=result)
-        except Exception as e:
-            await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
-        return
+                from scrapers.mega_study_builder import generate_mega_guide
+                loop = asyncio.get_event_loop()
+                # Track the executor task to prevent fire-and-forget
+                future = loop.run_in_executor(None, generate_mega_guide, topic)
+                # Wrap the future in an async function for proper tracking
+                async def wait_for_future():
+                    return await asyncio.wrap_future(future)
+                result = await _track_task(asyncio.create_task(wait_for_future()))
+                try:
+                    await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
+                except Exception:
+                    await context.bot.send_message(chat_id=chat_id, text=result)
+            except Exception as e:
+                await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
+            return
     elif data == "digest_dismiss":
         await query.edit_message_text("� Okay, I won't build a guide right now. Ask me anytime!")
         return
@@ -1544,7 +1549,12 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         loop = asyncio.get_event_loop()
         try:
             from scrapers.mega_study_builder import build_guide_for_drive_file
-            result = await loop.run_in_executor(None, build_guide_for_drive_file, file_id, "XA_MWF Notes")
+            # Track the executor task to prevent fire-and-forget
+            future = loop.run_in_executor(None, build_guide_for_drive_file, file_id, "XA_MWF Notes")
+            # Wrap the future in an async function for proper tracking
+            async def wait_for_future():
+                return await asyncio.wrap_future(future)
+            result = await _track_task(asyncio.create_task(wait_for_future()))
             try:
                 await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
             except Exception:
