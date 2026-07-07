@@ -41,7 +41,6 @@ TRANSCRIPT_PATH     = os.getenv(
 )
 user_models = {}
 POLL_INTERVAL       = 2    # seconds between transcript polls
-RESPONSE_TIMEOUT    = 300  # seconds to wait for a reply
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

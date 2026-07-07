@@ -38,6 +38,7 @@ if _missing_vars:
 # ── External Services ─────────────────────────────────────────────────────────
 AGENTAPI_BIN = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
 OLLAMA_URL = "http://localhost:11434"
+RESPONSE_TIMEOUT = 300  # seconds to wait for a reply
 
 # ── OpenRouter Models ─────────────────────────────────────────────────────────
 OR_DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"  # Working, free, 1M context
