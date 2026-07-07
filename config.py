@@ -21,6 +21,9 @@ SUDO_PASSWORD = os.getenv("SUDO_PASSWORD", "")
 GROUPME_TOKEN = os.getenv("GROUPME_TOKEN", "")
 GROUPME_GROUP_ID = os.getenv("GROUPME_GROUP_ID", "")
 
+NOTION_API_KEY = os.getenv("NOTION_API_KEY", "")
+NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID", "")
+
 # Validate required environment variables at startup
 _missing_vars = []
 if not OPENROUTER_API_KEY:
