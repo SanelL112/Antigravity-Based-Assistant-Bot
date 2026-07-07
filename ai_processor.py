@@ -24,44 +24,6 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Per-source prompts ────────────────────────────────────────────────────────
 
-SOURCE_PROMPTS = {
-    "canvas": (
-        "Read the raw data below. Does it contain ANY upcoming assignments, deadlines, announcements, or anything else that might be useful?\n"
-        "If you are 100% sure it is empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
-        "Raw Canvas data:\n{data}"
-    ),
-    "classroom": (
-        "Read the raw data below. Does it contain ANY assignments, homework, or classwork?\n"
-        "If you are 100% sure it is empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
-        "Raw Classroom data:\n{data}"
-    ),
-    "gmail": (
-        "Read the raw data below. Does it contain ANY emails from real people, teachers, or important senders?\n"
-        "If you are 100% sure they are ALL spam or marketing, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "Otherwise, if there is ANY real email, reply exactly with: IMPORTANT\n\n"
-        "Raw Gmail data:\n{data}"
-    ),
-    "groupme": (
-        "Read the raw data below. Does it contain ANY new events, announcements, or conversations?\n"
-        "If you are 100% sure it is empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
-        "Raw GroupMe data:\n{data}"
-    ),
-    "classroom_announcements": (
-        "Read the raw data below. Does it contain ANY announcements or class posts?\n"
-        "If you are 100% sure it is empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
-        "Raw Classroom Announcements:\n{data}"
-    ),
-    "gdocs": (
-        "Read the raw Google Docs data below. Does it contain ANY notes, homework, or text?\n"
-        "If you are 100% sure it is completely empty or useless, reply exactly with: NO_IMPORTANT_UPDATES\n"
-        "Otherwise, if it contains ANY data, reply exactly with: IMPORTANT\n\n"
-        "Raw Docs Text:\n{data}"
-    ),
-}
 
 DIGEST_ASSEMBLY_PROMPT = (
     "You are Sanel Lathiya's personal assistant bot. "
@@ -236,7 +198,7 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
     # Content-hash caching: skip LLM processing if source unchanged
     if not force_reprocess:
         try:
-            from utils import has_changed
+            from utils import has_changed, mark_processed
             if not has_changed(name, data[:1000]):
                 try:
                     with open(cache_file, "r", encoding="utf-8") as f:
@@ -285,6 +247,13 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
 
     with open(cache_file, "w") as f:
         f.write(summary)
+        
+    try:
+        from utils import mark_processed
+        mark_processed(name, data[:1000])
+    except ImportError:
+        pass
+        
     logger.info(f"Saved {name} summary to {cache_file}")
     return summary
 

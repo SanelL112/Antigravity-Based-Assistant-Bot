@@ -5,10 +5,9 @@ import logging
 try:
     import telegram_logger
     telegram_logger.setup_telegram_logging()
-except:
+except Exception:
     pass
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
 from youtubesearchpython import VideosSearch
 from youtube_transcript_api import YouTubeTranscriptApi
 

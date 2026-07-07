@@ -231,7 +231,6 @@ def update_notion_task(page_id: str, priority: str = None, status: str = None, s
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     print("Testing Notion Tracker push...")
     success = add_task_to_notion(
         title="Test Task from Bot",

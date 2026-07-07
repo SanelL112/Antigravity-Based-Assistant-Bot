@@ -5,11 +5,10 @@ import logging
 try:
     import telegram_logger
     telegram_logger.setup_telegram_logging()
-except:
+except Exception:
     pass
 
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 BASE_DIR = "/home/sanel/personal-assistant-bot"

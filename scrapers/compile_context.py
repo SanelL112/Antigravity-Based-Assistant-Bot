@@ -2,7 +2,6 @@ import os
 import httpx
 import logging
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 async def compile_bot_context():

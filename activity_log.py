@@ -23,11 +23,9 @@ import logging
 import threading
 from datetime import datetime, timezone
 
-from utils import scrub_pii
-
 logger = logging.getLogger(__name__)
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_PATH = os.path.join(BASE_DIR, "activity_log.jsonl")
 MAX_LOG_SIZE = 5 * 1024 * 1024  # 5 MB max, then rotate
 MAX_ENTRIES = 5000  # keep last 5000 entries after rotation
@@ -107,6 +105,7 @@ def _send_telegram_notification(text: str):
         return
 
     # Scrub PII from notification text before sending to cloud
+    from utils import scrub_pii
     safe_text = scrub_pii(text, aggressive=True)
     try:
         import httpx
@@ -164,6 +163,7 @@ def _format_event_short(icon: str, entry: dict) -> str:
     t = entry.get("time", "?")
 
     # SCRUB ALL VALUES before formatting - PII protection
+    from utils import scrub_pii
     safe_details = {k: scrub_pii(str(v), aggressive=True) for k, v in d.items()}
 
     # Category-specific formatting (use safe_details only)
@@ -171,7 +171,10 @@ def _format_event_short(icon: str, entry: dict) -> str:
         model = safe_details.get("model", "?")
         task = safe_details.get("task", "")
         dur = safe_details.get("duration_s", "?")
-        cost = safe_details.get("cost_usd", 0)
+        try:
+            cost = float(safe_details.get("cost_usd", 0))
+        except ValueError:
+            cost = 0.0
         return f"{icon} `{t}` `{model}` {task} ({dur}s, ${cost:.4f})"
 
     if cat == "scrape":

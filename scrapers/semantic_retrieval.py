@@ -17,7 +17,6 @@ import subprocess
 
 import numpy as np
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [retrieval] %(message)s")
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

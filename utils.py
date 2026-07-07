@@ -346,7 +346,7 @@ def _audit_log(cmd: str, chat_id: int, status: str):
         import pytz
         et = pytz.timezone("US/Eastern")
         ts = datetime.now(et).strftime("%Y-%m-%d %H:%M:%S %Z")
-    except:
+    except Exception:
         ts = datetime.now().isoformat()
 
     with open(_audit_log_path, "a") as f:
@@ -468,10 +468,10 @@ def create_backup() -> Optional[str]:
 
     try:
         # Create tar.gz with relative paths
-        sh_cmd = f"tar -czf {backup_path} -C {BASE_DIR} " + " ".join(
+        cmd = ["tar", "-czf", str(backup_path), "-C", str(BASE_DIR)] + [
             os.path.relpath(f, BASE_DIR) for f in files_to_backup
-        )
-        subprocess.run(sh_cmd, shell=True, check=True, timeout=30)
+        ]
+        subprocess.run(cmd, check=True, timeout=30)
         logger.info(f"Backup created: {backup_path}")
         # Clean old backups
         cleanup_old_backups()
@@ -515,7 +515,7 @@ def restore_backup(backup_path: str, dry_run: bool = True) -> str:
 
     if dry_run:
         result = subprocess.run(
-            f"tar -tzf {p}", shell=True, capture_output=True, text=True
+            ["tar", "-tzf", str(p)], capture_output=True, text=True
         )
         files = result.stdout.strip().split("\n")[:30]
         return f"📦 **Backup contents** ({len(files)}+ files):\n" + "\n".join(f"  {f}" for f in files)
@@ -523,7 +523,7 @@ def restore_backup(backup_path: str, dry_run: bool = True) -> str:
     # Actual restore
     try:
         subprocess.run(
-            f"tar -xzf {p} -C {BASE_DIR}", shell=True, check=True, timeout=30
+            ["tar", "-xzf", str(p), "-C", str(BASE_DIR)], check=True, timeout=30
         )
         return f"✅ Restored from {p.name}"
     except Exception as e:
@@ -658,7 +658,7 @@ def get_health_status() -> str:
         )
         if result.stdout.strip():
             uptime_str = result.stdout.strip()
-    except:
+    except Exception:
         pass
 
     # Disk usage
@@ -674,7 +674,7 @@ def get_health_status() -> str:
             last_digest = f"{age_min}m ago"
         else:
             last_digest = f"{age_min // 60}h ago"
-    except:
+    except Exception:
         pass
 
     # Nightly queue size
@@ -683,7 +683,7 @@ def get_health_status() -> str:
         qf = BASE_DIR / "nightly_queue.json"
         if qf.exists():
             queue_size = len(json.loads(qf.read_text()))
-    except:
+    except Exception:
         pass
 
     # Rotating file sizes
@@ -738,12 +738,17 @@ def has_changed(source_name: str, data: str) -> bool:
     h = content_hash(data)
     if cache.get(source_name) == h:
         return False  # unchanged
+    return True
+
+def mark_processed(source_name: str, data: str):
+    """Mark source data as processed to prevent reprocessing."""
+    cache = load_processed_cache()
+    h = content_hash(data)
     cache[source_name] = h
     # Keep only last 100 entries to prevent bloat
     if len(cache) > 100:
         cache = dict(list(cache.items())[-100:])
     save_processed_cache(cache)
-    return True
 
 
 # ── Retry Decorator ──────────────────────────────────────────────────────────

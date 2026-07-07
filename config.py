@@ -16,6 +16,11 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "0"))
 SANEL_CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "0"))  # Alias for backward compatibility
 
+CONVERSATION_ID = os.getenv("CONVERSATION_ID", "")
+SUDO_PASSWORD = os.getenv("SUDO_PASSWORD", "")
+GROUPME_TOKEN = os.getenv("GROUPME_TOKEN", "")
+GROUPME_GROUP_ID = os.getenv("GROUPME_GROUP_ID", "")
+
 # Validate required environment variables at startup
 _missing_vars = []
 if not OPENROUTER_API_KEY:
@@ -24,6 +29,8 @@ if not TELEGRAM_BOT_TOKEN:
     _missing_vars.append("TELEGRAM_BOT_TOKEN")
 if TELEGRAM_CHAT_ID == 0:
     _missing_vars.append("TELEGRAM_CHAT_ID")
+if not CONVERSATION_ID:
+    _missing_vars.append("CONVERSATION_ID")
 
 if _missing_vars:
     raise ValueError(f"Missing required environment variables: {', '.join(_missing_vars)}. Please set them in .env file.")

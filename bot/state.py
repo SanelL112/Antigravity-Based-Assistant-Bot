@@ -5,8 +5,16 @@ import logging
 import tempfile
 from config import STATE_FILE
 
+import asyncio
+from collections import defaultdict
+
 logger = logging.getLogger(__name__)
 
+# In-memory locks per user to allow concurrent bot usage by different users
+user_locks = defaultdict(asyncio.Lock)
+
+def get_user_lock(chat_id: int) -> asyncio.Lock:
+    return user_locks[chat_id]
 
 def get_hash(text):
     import hashlib
@@ -32,8 +40,10 @@ def load_state() -> dict:
             state = json.load(f)
             if "pending_priorities" not in state:
                 state["pending_priorities"] = {}
+            if "user_models" not in state:
+                state["user_models"] = {}
             return state
-    return {"seen_tasks": [], "seen_alerts": [], "pending_priorities": {}}
+    return {"seen_tasks": [], "seen_alerts": [], "pending_priorities": {}, "user_models": {}}
 
 
 def save_state(state):

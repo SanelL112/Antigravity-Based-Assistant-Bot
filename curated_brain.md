@@ -23,10 +23,10 @@ This document consolidates historical details, ongoing study topics, upcoming ta
     *   Study Barron's vocabulary list (50–100 words).
     *   Complete Barron's Test 3 Module 1 & 2A ELA homework.
 *   **Daily Reading Practice**: Print and annotate 3 Jack Westin passages daily.
-*   **Mock Test Prep Plan**: Detail your daily prep schedule and text it to the instructor at **678.429.1709**.
-*   **Instructor Responses**: Text responses for Day 9 and Day 11 to **678.429.1709**.
-*   **Respond to Naisha Verma on LinkedIn**: Gmail outreach task. *(Source: [chat_history_8534649457_notion.txt](file:///home/sanel/personal-assistant-bot/chat_history_8534649457_notion.txt))*
-*   **Join IAAC Discord Server**: GroupMe sync task. Join link: https://discord.gg/Vu6bfpRq *(Source: [chat_history_8534649457_notion.txt](file:///home/sanel/personal-assistant-bot/chat_history_8534649457_notion.txt))*
+*   **Mock Test Prep Plan**: Detail your daily prep schedule and text it to the instructor at **[REDACTED PHONE NUMBER]**.
+*   **Instructor Responses**: Text responses for Day 9 and Day 11 to **[REDACTED PHONE NUMBER]**.
+*   **Respond to [REDACTED NAME] on LinkedIn**: Gmail outreach task. *(Source: [chat_history_8534649457_notion.txt](file:///home/sanel/personal-assistant-bot/chat_history_8534649457_notion.txt))*
+*   **Join IAAC Discord Server**: GroupMe sync task. Join link: [REDACTED LINK] *(Source: [chat_history_8534649457_notion.txt](file:///home/sanel/personal-assistant-bot/chat_history_8534649457_notion.txt))*
 *   **Review Practice Test Scores**: Mock test scores will be released tonight for review. *(Source: Google Classroom Announcements)*
 
 ### 🟡 Medium Priority Tasks
@@ -116,10 +116,10 @@ This document consolidates historical details, ongoing study topics, upcoming ta
 > - **Community Engagement**: Stay active in the IAAC Discord server for support, peer interaction, and motivation.
 
 ### 🎭 Quirky Practice Scenarios
-*   The handwritten math notes contain personalized, humorous scenarios (e.g., Viraj buying an entire store, Aashni vs. Ashish age ratios, and "stealing $50 from Matias") that aid in memory retention.
+*   The handwritten math notes contain personalized, humorous scenarios (e.g., [REDACTED] buying an entire store, [REDACTED] vs. [REDACTED] age ratios, and "stealing $50 from [REDACTED]") that aid in memory retention.
 
 ### 🚀 Extracurriculars & Club Activities
-*   **STEM in Space Club Officers**: 2026-2027 leadership roles filled: Anvi Kotharkar (Social Media Officer) and Akanksha Nethi (Outreach Officer). Other officer applications will re-open in the fall. *(Source: GroupMe)*
+*   **STEM in Space Club Officers**: 2026-2027 leadership roles filled: [REDACTED NAME] (Social Media Officer) and [REDACTED NAME] (Outreach Officer). Other officer applications will re-open in the fall. *(Source: GroupMe)*
 
 ***
 

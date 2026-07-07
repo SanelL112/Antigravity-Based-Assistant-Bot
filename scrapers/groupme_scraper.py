@@ -65,6 +65,5 @@ def get_latest_messages(group_id, limit=5):
         return f"Error connecting to GroupMe: {e}"
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     print("Testing GroupMe API connection...")
     print(get_groups())

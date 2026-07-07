@@ -12,7 +12,6 @@ try:
 except Exception as e:
     print(f"Could not load telegram logger: {e}")
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 async def main():
     import datetime

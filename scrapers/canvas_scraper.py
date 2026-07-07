@@ -131,6 +131,5 @@ def get_all_canvas_data():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     print("Testing Canvas API connection...")
     print(get_all_canvas_data())

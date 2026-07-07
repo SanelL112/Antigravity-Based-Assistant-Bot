@@ -23,7 +23,6 @@ import time
 import httpx
 import numpy as np
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [embedding] %(message)s")
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

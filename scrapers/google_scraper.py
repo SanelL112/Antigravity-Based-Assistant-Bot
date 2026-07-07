@@ -532,7 +532,6 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     print("Testing Gmail API...")
     print(get_unread_emails())
     print("\nTesting Google Classroom Assignments...")

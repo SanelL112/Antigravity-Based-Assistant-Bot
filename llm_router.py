@@ -308,10 +308,9 @@ def _do_call(
             raise Exception(f"HTTP {resp.status_code}: {resp.text[:200]}")
 
 def _streaming_call(client, model, messages, task, max_tokens, timeout, stream_to_status):
-    """Handle streaming response with live Telegram status updates."""
-    import asyncio
-
-    context, chat_id, status_msg = stream_to_status
+    """Fallback streaming implementation if not using async HTTPX."""
+    # stream_to_status is (context, chat_id, status_msg, loop)
+    context, chat_id, status_msg, main_loop = stream_to_status
     full_response = ""
     current_thought = ""
     in_thought = False
@@ -359,20 +358,27 @@ def _streaming_call(client, model, messages, task, max_tokens, timeout, stream_t
                     if now - last_edit > 1.5 and status_msg and context:
                         last_edit = now
                         try:
+                            import asyncio
+                            coro = None
                             if in_thought:
-                                import asyncio
-                                asyncio.create_task(context.bot.edit_message_text(
+                                coro = context.bot.edit_message_text(
                                     chat_id=chat_id, message_id=status_msg.message_id,
                                     text=f"🧠 **Thinking...**\n_{current_thought[-400:].strip()}_", parse_mode="Markdown"
-                                ))
+                                )
                             else:
                                 final_text = full_response.split("</thought>")[-1] if "</thought>" in full_response else full_response
                                 disp = final_text[-800:].strip()
                                 if disp:
-                                    asyncio.create_task(context.bot.edit_message_text(
+                                    coro = context.bot.edit_message_text(
                                         chat_id=chat_id, message_id=status_msg.message_id,
                                         text=f"✍️ **Typing...**\n{disp}"
-                                    ))
+                                    )
+                            if coro:
+                                try:
+                                    import asyncio
+                                    asyncio.run_coroutine_threadsafe(coro, main_loop)
+                                except Exception:
+                                    pass # Ignore if loop is dead or coro fails
                         except Exception:
                             pass
             except Exception:
@@ -526,9 +532,4 @@ def is_agy_healthy(model: str = "flash") -> bool:
 
 
 # ── Health Check on Import ─────────────────────────────────────────────────
-_ollama_ok = is_ollama_healthy()
-_agy_ok = is_agy_healthy()
-if not _ollama_ok:
-    logger.warning("Ollama is not running — local AI may fail silently")
-if not _agy_ok:
-    logger.warning("agy CLI is not responding — local AI may fail silently")
+# Removed to speed up import time. Health checks should be called lazily.

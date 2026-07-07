@@ -4,3 +4,17 @@ canvasapi
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+httpx
+requests
+pytz
+pytesseract
+Pillow
+numpy
+python-docx
+beautifulsoup4
+duckduckgo-search
+youtube-search-python
+youtube-transcript-api
+pdf2image
+PyPDF2
+httpx

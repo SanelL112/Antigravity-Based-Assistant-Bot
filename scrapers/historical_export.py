@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-logging.basicConfig(level=logging.INFO, format='%(message)s')
 import datetime
 from googleapiclient.discovery import build
 from canvasapi import Canvas
@@ -140,7 +139,7 @@ def export_all_classroom():
                             logger.error(f"Failed historical PDF {f_title}: {e}")
                     try:
                         os.remove(path)
-                    except: pass
+                    except Exception: pass
 
     for course in courses:
         # Announcements

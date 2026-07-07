@@ -1,7 +1,6 @@
 import os
 import glob
 import logging
-logging.basicConfig(level=logging.INFO, format='%(message)s')
 import asyncio
 import httpx
 from activity_log import log_nightly

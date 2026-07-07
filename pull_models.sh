@@ -13,4 +13,5 @@ echo "Daemon is up. Pulling GGUF models sequentially..."
 ollama pull hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest
 ollama pull hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest
 ollama pull hf.co/unsloth/Meta-Llama-3.1-8B-Instruct-GGUF:latest
-echo "All GGUF models downloaded successfully."
+ollama pull nomic-embed-text
+echo "All models downloaded successfully."

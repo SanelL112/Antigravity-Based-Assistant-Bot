@@ -41,32 +41,31 @@ def run_cmd_safe(cmd: str, timeout: int = 120, cwd: str = None) -> tuple[bool, s
         return False, f"Error: {e}"
 
 def extract_dynamic_topics(pdf_text: str, num_topics: int = 3) -> list:
-    def extract_dynamic_topics(pdf_text: str, num_topics: int = 3) -> list:
-        """Uses the AI to extract new, highly specific topics from the user's classroom notes."""
-        prompt = f"""You are an intelligent topic extractor. Scan the following classroom notes and identify exactly {num_topics} distinct, highly specific academic topics or chapters that would make great study guides.
-    Respond ONLY with a comma-separated list of the topics. Do not include bullet points or numbers.
-    Example: Quadratic Equations, Civil War History, Biology Cell Structure
+    """Uses the AI to extract new, highly specific topics from the user's classroom notes."""
+    prompt = f"""You are an intelligent topic extractor. Scan the following classroom notes and identify exactly {num_topics} distinct, highly specific academic topics or chapters that would make great study guides.
+Respond ONLY with a comma-separated list of the topics. Do not include bullet points or numbers.
+Example: Quadratic Equations, Civil War History, Biology Cell Structure
 
-    Notes:
-    {pdf_text[:15000]}"""
-        print("Extracting dynamic topics from classroom notes using OpenRouter...")
-    
-        scrubbed_prompt = scrub_pii(prompt)
-        try:
-            result = call_openrouter(
-                model="meta-llama/llama-3.3-70b-instruct:free",
-                prompt=scrubbed_prompt,
-                task="extract_topics",
-                max_tokens=500,
-                timeout=600,
-            )
-            if result:
-                topics = [t.strip() for t in result.split(",") if t.strip()]
-                return topics[:num_topics]
-        except Exception as e:
-            print(f"Extraction error: {e}")
-    
-        return ["General Mathematics", "Advanced Grammar", "Test Strategies"]
+Notes:
+{pdf_text[:15000]}"""
+    print("Extracting dynamic topics from classroom notes using OpenRouter...")
+
+    scrubbed_prompt = scrub_pii(prompt)
+    try:
+        result = call_openrouter(
+            model="meta-llama/llama-3.3-70b-instruct:free",
+            prompt=scrubbed_prompt,
+            task="extract_topics",
+            max_tokens=500,
+            timeout=600,
+        )
+        if result:
+            topics = [t.strip() for t in result.split(",") if t.strip()]
+            return topics[:num_topics]
+    except Exception as e:
+        print(f"Extraction error: {e}")
+
+    return ["General Mathematics", "Advanced Grammar", "Test Strategies"]
 
 def build_and_push(topic: str):
     """Generates or updates the massive study guide and automatically pushes it to GitHub."""
@@ -147,28 +146,28 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
 
     if result:
         # 3. Convert to DOCX format
-                print("Converting Markdown to DOCX format...")
-                success, output = run_cmd_safe(f"pandoc {shlex.quote(output_md)} -o {shlex.quote(output_docx)}", timeout=60)
-                if not success:
-                    print(f"Pandoc failed: {output}")
-                    return
-                print(f"Successfully created Word document at {output_docx}")
+        print("Converting Markdown to DOCX format...")
+        success, output = run_cmd_safe(f"pandoc {shlex.quote(output_md)} -o {shlex.quote(output_docx)}", timeout=60)
+        if not success:
+            print(f"Pandoc failed: {output}")
+            return
+        print(f"Successfully created Word document at {output_docx}")
 
-                # 4. Automatically Sync to GitHub
-                print("Pushing freshly generated study guide to GitHub...")
-                success, output = run_cmd_safe(f"git add {shlex.quote(output_md)} {shlex.quote(output_docx)}", timeout=30)
-                if not success:
-                    print(f"Git add failed: {output}")
-                    return
-                success, output = run_cmd_safe(f'git commit -m "docs: Nightly autonomous update of {filename_base} study guide"', timeout=30)
-                if not success:
-                    print(f"Git commit failed: {output}")
-                    return
-                success, output = run_cmd_safe("git push", timeout=60)
-                if not success:
-                    print(f"Git push failed: {output}")
-                    return
-                print(f"Nightly build for '{topic}' completely successfully!")
+        # 4. Automatically Sync to GitHub
+        print("Pushing freshly generated study guide to GitHub...")
+        success, output = run_cmd_safe(f"git add {shlex.quote(output_md)} {shlex.quote(output_docx)}", timeout=30)
+        if not success:
+            print(f"Git add failed: {output}")
+            return
+        success, output = run_cmd_safe(f'git commit -m "docs: Nightly autonomous update of {filename_base} study guide"', timeout=30)
+        if not success:
+            print(f"Git commit failed: {output}")
+            return
+        success, output = run_cmd_safe("git push", timeout=60)
+        if not success:
+            print(f"Git push failed: {output}")
+            return
+        print(f"Nightly build for '{topic}' completely successfully!")
     else:
         print(f"Failed to process study guide for {topic}.")
 

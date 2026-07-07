@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-logging.basicConfig(level=logging.INFO, format='%(message)s')
 import asyncio
 import httpx
 from bs4 import BeautifulSoup
@@ -49,10 +48,10 @@ async def pre_cache_web():
             except Exception:
                 return None
                
-        topic = await _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
+        topic = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
         if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
             logger.warning(f"Nemotron failed in precacher, falling back to {OR_FALLBACK_MODEL}...")
-            fallback = await _call_or(OR_FALLBACK_MODEL, prompt)
+            fallback = _call_or(OR_FALLBACK_MODEL, prompt)
             if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
                 topic = fallback
             else:
@@ -95,10 +94,10 @@ async def pre_cache_web():
                
                 # Summarize
                 sum_prompt = f"Summarize the following educational text about {topic}. Extract key formulas, facts, and examples.\n\nTEXT:\n{text[:10000]}"
-                summary = await _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", sum_prompt)
+                summary = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", sum_prompt)
                 if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
                     logger.warning(f"Nemotron failed summarization, falling back to {OR_FALLBACK_MODEL}...")
-                    fallback = await _call_or(OR_FALLBACK_MODEL, sum_prompt)
+                    fallback = _call_or(OR_FALLBACK_MODEL, sum_prompt)
                     if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
                         summary = fallback
                     else:

@@ -5,7 +5,7 @@ import atexit
 try:
     import telegram_logger
     telegram_logger.setup_telegram_logging()
-except:
+except Exception:
     pass
 
 from activity_log import log_event, log_llm_call, log_scrape, log_system, log_nightly, get_recent_events, format_events
@@ -19,6 +19,8 @@ import pytz
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
+from bot.security import require_auth
+from bot.commands import model_command, summary_command, bash_command, priority_command, ping_command, stats_command, backup_command, restore_command, correlations_command, classroom_pdfs_command, help_command, server_command, handle_callback
 
 # ── Background Task Tracking ───────────────────────────────────────────────────
 # Track all background tasks for proper cleanup on shutdown
@@ -119,579 +121,14 @@ def get_new_responses(after_step: int) -> list[str]:
         pass
     return responses
 
+from bot.ai_bridge import detect_topic, send_to_antigravity_and_wait
 
-# ── Topic detection ───────────────────────────────────────────────────────────
-
-TOPIC_KEYWORDS = {
-    "server": [
-        "server", "bot", "install", "restart", "log", "service", "systemd", "process",
-        "bash", "command", "code", "git", "python", "script", "file", "disk", "cpu",
-        "memory", "ram", "port", "ssh", "deploy", "update", "package", "apt", "run",
-        "debug", "error", "crash", "status", "config", "environment", "docker"
-    ],
-    "school": [
-        "canvas", "assignment", "homework", "class", "course", "school", "grade",
-        "notion", "task", "due", "quiz", "test", "exam", "teacher", "student",
-        "classroom", "lecture", "study", "project", "submit", "deadline", "ap",
-        "groupme", "club", "tsa", "skills", "robotics", "hosa", "biotech"
-    ],
-}
-
-async def detect_topic(message: str, chat_id: int) -> str:
-    """Detect conversation topic using local Ollama model. Returns an existing topic or invents a new one."""
-    import glob
-    import re
-    history_dir = os.path.dirname(os.path.abspath(__file__))
-    existing_files = glob.glob(os.path.join(history_dir, f"chat_history_{chat_id}_*.txt"))
-    
-    existing_topics = []
-    for f in existing_files:
-        basename = os.path.basename(f)
-        m = re.search(f"chat_history_{chat_id}_(.+)\\.txt", basename)
-        if m:
-            existing_topics.append(m.group(1))
-            
-    topics_list_str = ", ".join(existing_topics) if existing_topics else "None"
-
-    prompt = (
-        "You are a topic classifier and router. Your job is to organize a user's messages into distinct conversation files.\n"
-        f"The existing topics are: [{topics_list_str}].\n"
-        "If the following message perfectly matches one of the existing topics, reply with that exact topic name.\n"
-        "If it is a completely new subject, invent a short, 1-2 word topic name for it (e.g., 'math_homework', 'python_bot', 'fitness').\n"
-        "Reply with ONLY the topic name in lowercase, using underscores instead of spaces. Do not write anything else.\n\n"
-        f"Message: {message}"
-    )
-    
-    try:
-        result = await asyncio.wait_for(
-            asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: subprocess.run(
-                    [AGENTAPI_BIN, "--model", "Gemini 3.5 Flash (Low)", "--dangerously-skip-permissions", "--print", prompt],
-                    capture_output=True, text=True, timeout=30
-                )
-            ),
-            timeout=35
-        )
-        topic = result.stdout.strip().lower()
-        topic = re.sub(r'[^a-z0-9_]', '', topic.replace(' ', '_'))
-        if len(topic) > 30:
-            logger.warning(f"Topic name too long from flash_lite model, falling back to 'general': {topic}")
-            return "general"
-        return topic if topic else "general"
-    except Exception as e:
-        logger.error(f"Topic detection failed: {e}")
-        return "general"
-
-
-# ── Bridge logic ───────────────────────────────────────────────────────────────
-
-async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, context=None, status_msg=None) -> str:
-    """Uses agy --print for a direct response. Works standalone on Debian."""
-    try:
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "r") as f:
-            digest_context = f.read()
-    except Exception:
-        digest_context = "No recent data available."
-        
-    try:
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bot_context.txt"), "r") as f:
-            brain_context = f.read()
-    except Exception:
-        brain_context = "No offline memory consolidated yet."
-
-    if status_msg and context:
-        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="🔍 Classifying topic...")
-        except Exception: pass
-    # Detect topic and load the matching history file
-    topic = await detect_topic(user_message, chat_id)
-    history_dir = os.path.dirname(os.path.abspath(__file__))
-    history_file = os.path.join(history_dir, f"chat_history_{chat_id}_{topic}.txt")
-    logger.info(f"Topic detected: {topic} -> {os.path.basename(history_file)}")
-
-    system = (
-        f"You are a powerful personal assistant AI for Sanel Lathiya running on his personal Debian server. "
-        f"You have FULL ROOT ACCESS to the server and can execute any shell command automatically.\n\n"
-        f"CURRENT CONVERSATION TOPIC: {topic}\n"
-        f"You are in a focused conversation about this topic. Stay on topic unless Sanel switches subjects.\n\n"
-        f"CRITICAL INSTRUCTION — COMMAND EXECUTION:\n"
-        f"You are operating in a pure text-generation mode. DO NOT use any of your built-in Antigravity tools (like run_command or write_file). "
-        f"When Sanel asks you to DO something on the server, you MUST instead wrap the shell command in angle-bracket BASH tags like this:\n"
-        f"[BASH]your command here[/BASH] (Note: Use angle brackets <> instead of square brackets [])\n"
-        f"The system's python wrapper will automatically parse these tags and run that command as root, then show you the output in the next turn. "
-        f"You can chain multiple commands. Always include the angle-bracket BASH tags when action is needed.\n\n"
-    )
-
-    capabilities_str = (
-        "OTHER CAPABILITIES:\n"
-        "--- SERVER MANAGEMENT ---\n"
-        "- Server Status: Check system resources via bash [BASH]free -h && uptime && ps aux | head -n 10[/BASH]\n"
-        "- Embedding Progress: Check the offline indexer via bash [BASH]tail -n 20 /tmp/embed_build4.log[/BASH]\n"
-        "- Minecraft Server: Check MC via bash [BASH]ps aux | grep paper.jar | grep -v grep || echo 'MC stopped'[/BASH], start [BASH]bash /home/sanel/mc_server/start_mc.sh[/BASH], stop [BASH]tmux send-keys -t minecraft 'stop' C-m[/BASH]\n"
-        "- Activity Log: Check recent bot events via bash [BASH]python3 -c 'from activity_log import get_recent_events, format_events; print(format_events(get_recent_events(10)))'[/BASH]\n\n"
-        "--- ACADEMIC & STUDY ---\n"
-        "- STUDY COMPANION: If Sanel asks you to build a study guide, find a YouTube video for a topic, or research something to study, you MUST use the mega study builder script via bash:\n"
-        "[BASH]python3 -c 'from mega_study_builder import generate_mega_guide; print(generate_mega_guide(\"Topic Name Here\"))'[/BASH]\n"
-        "- DEEP-DIVE KNOWLEDGE BASE: An offline researcher runs every night to compile massive study sheets on your current topics. If Sanel asks a question about an academic topic, check if a guide exists by using bash to list and read files in `/home/sanel/personal-assistant-bot/knowledge_base/` before answering, so you can interact and research much faster!\n"
-        "- KNOWLEDGE GAP TRACKING: If you are grading an answer or helping Sanel with a problem and you notice a weakness (e.g. \"struggles with polynomial factoring\"), you MUST log this to a text file using bash: `echo 'Struggles with factoring when a > 1' >> /home/sanel/personal-assistant-bot/knowledge_gaps/math.txt` so the offline researcher can heavily target his weak points tonight.\n\n"
-        "--- LIFE MANAGEMENT ---\n"
-        "- Every 4 hours: auto-digest from Canvas, Classroom, Gmail, GroupMe\n"
-        "- Notion: assignments auto-pushed to Tasks Tracker\n"
-        "- Natural Language Notion Pushes: When the background job alerts Sanel about a NEW task and asks him for priority/status, you MUST push it to Notion using the add_task_to_notion python script when he replies! Example:\n"
-        "[BASH]python3 -c 'from notion_client import add_task_to_notion; add_task_to_notion(title=\"Math Homework\", priority=\"high\", status=\"Not started\", start_value=0, end_value=100)'[/BASH]\n"
-        "- CALENDAR SCHEDULING: If Sanel asks you to schedule a study session, block off time, or add something to his calendar, you MUST use the calendar manager via bash. Calculate the start time in ISO format based on his request and current time:\n"
-        "[BASH]python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'[/BASH] (Remember: Use angle brackets <> instead of [])\n"
-        "- DYNAMIC LEARNING: If Sanel is answering a question about whether a certain type of message, email, or topic is important to track or ignore, you MUST save this rule to the local memory so the local filter AI can use it in the future. To do this, use a bash command:\n"
-        "[BASH]echo 'Ignore all emails from XYZ' >> /home/sanel/personal-assistant-bot/learning_rules.txt[/BASH]\n"
-        "- VERIFICATION CUSTOMIZATION: If Sanel gives you custom instructions on how the Verification Agent should behave (e.g. telling it to auto-fix errors instead of summarizing them), you MUST save his instructions using bash: `echo 'Auto-fix syntax errors' >> /home/sanel/personal-assistant-bot/verification_rules.txt`.\n\n"
-        "--- BE PROACTIVE ---\n"
-        "- Do not wait for permission. If the user asks about the server, check it! If the user asks about Minecraft, check its status and offer to start it! Take initiative.\n\n"
-        "- /summary: manual digest trigger | /server: server dashboard | /bash <cmd>: run commands directly\n\n"
-    )
-
-    system = system + capabilities_str + (
-        f"Here is the core context of your life and active classes (from your compressed Memory Index):\n\n{brain_context}\n\n"
-        f"Here is the latest live data digest:\n\n{digest_context}\n\n"
-        f"Be direct and take action immediately when asked. Never ask for permission."
-    )
-
-    try:
-        with open(history_file, "r") as f:
-            chat_history = f.read()
-    except Exception:
-        chat_history = ""
-
-    # Cap history to last 4000 chars per topic
-    if len(chat_history) > 4000:
-        chat_history = "[earlier messages trimmed]\n" + chat_history[-4000:]
-
-    # Add semantic retrieval for academic questions
-    retrieval_context = ""
-    try:
-        from scrapers.semantic_retrieval import get_context_for_prompt
-        retrieval_result = get_context_for_prompt(user_message, top_k=5)
-        if retrieval_result and "SEMANTIC RETRIEVAL" in retrieval_result:
-            retrieval_context = f"\n\n=== SEMANTIC RETRIEVAL FROM KNOWLEDGE BASE ===\n{retrieval_result}\n=== END RETRIEVAL ===\n"
-            logger.info(f"Semantic retrieval added to prompt for: {user_message[:50]}")
-    except Exception as e:
-        logger.warning(f"Semantic retrieval failed: {e}")
-
-    full_prompt = (system + "\n\n"
-                   f"--- {topic.upper()} CONVERSATION HISTORY ---\n"
-                   + chat_history +
-                   f"\n--- END HISTORY ---\n"
-                   + retrieval_context +
-                   f"\nUser: " + user_message)
-    
-    model = user_models.get(chat_id, "auto")
-    
-    if model == "auto":
-        if status_msg and context:
-            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="🛡️ Running local PII privacy filter...")
-            except Exception: pass
-        logger.info("Running PII privacy filter via flash...")
-        privacy_prompt = (
-            "Analyze the following conversation context. Does it contain ANY highly personal "
-            "information (e.g. real names, personal emails, physical addresses, private academic grades, "
-            "bank details, or intimate personal stories)?\n\n"
-            f"Context to check:\n{chat_history[-1000:]}\n\nUser: {user_message}\n\n"
-            "Reply with EXACTLY ONE WORD: 'YES' if it contains personal info, or 'NO' if it is safe general/academic knowledge."
-        )
-        try:
-            p_result = await asyncio.wait_for(
-                asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda: subprocess.run(
-                        [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", privacy_prompt],
-                        capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL
-                    )
-                ),
-                timeout=65
-            )
-            is_private = "yes" in p_result.stdout.lower()
-        except Exception as e:
-            logger.error(f"Privacy filter failed, defaulting to secure: {e}")
-            is_private = True # Fail safe
-            
-        if is_private:
-            logger.info("Auto-routing to FLASH (PII detected)")
-            model = "flash"
-        else:
-            if len(user_message) > 300:
-                logger.info("Auto-routing to NEMOTRON (Long/Complex query)")
-                model = "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"
-            else:
-                from config import OR_FALLBACK_MODEL
-                logger.info(f"Auto-routing to fallback model ({OR_FALLBACK_MODEL}) (Short/Academic query)")
-                model = f"openrouter:{OR_FALLBACK_MODEL}"
-    
-    out = ""
-    actual_model_used = model
-    if model.startswith("openrouter:"):
-        or_model_name = model.split("openrouter:", 1)[1]
-        logger.info(f"OpenRouter model={or_model_name}: {user_message[:60]}")
-        log_llm_call(or_model_name, "chat", 0, is_local=False)
-        import httpx
-        
-        async def _call_or(m_name):
-            import time
-            import json
-            full_response = ""
-            current_thought = ""
-            in_thought = False
-            last_edit_time = 0
-            
-            # SECURITY: Scrub PII from all cloud-bound data
-            scrubbed_system = scrub_pii(system, aggressive=True)
-            scrubbed_chat_history = scrub_pii(chat_history, aggressive=True)
-            scrubbed_user_message = scrub_pii(user_message, aggressive=True)
-            
-            try:
-                async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=5.0)) as client:
-                    async with client.stream(
-                        "POST",
-                        "https://openrouter.ai/api/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-                            "HTTP-Referer": "https://github.com/SanelL112/Antigravity-Based-Assistant-Bot",
-                            "X-Title": "Antigravity-Based-Assistant-Bot"
-                        },
-                        json={
-                            "model": m_name,
-                            "stream": True,
-                            "messages": [
-                                {"role": "system", "content": scrubbed_system + "\n\nCRITICAL: Before answering, you MUST think step-by-step and wrap your internal thought process in <thought>...</thought> tags."},
-                                {"role": "user", "content": f"--- {topic.upper()} CONVERSATION HISTORY ---\n{scrubbed_chat_history}\n--- END HISTORY ---\n\nUser: {scrubbed_user_message}"}
-                            ]
-                        },
-                        timeout=180.0
-                    ) as resp:
-                        if resp.status_code != 200:
-                            return None
-                            
-                        async for line in resp.aiter_lines():
-                            if line.startswith("data: "):
-                                if line.strip() == "data: [DONE]":
-                                    break
-                                try:
-                                    chunk = json.loads(line[6:])
-                                    delta = chunk["choices"][0].get("delta", {})
-                                    content = delta.get("content", "")
-                                    if content:
-                                        full_response += content
-                                        
-                                        if "<thought>" in full_response and "</thought>" not in full_response:
-                                            in_thought = True
-                                            current_thought = full_response.split("<thought>")[-1]
-                                        elif "</thought>" in full_response:
-                                            in_thought = False
-                                            
-                                        now = time.time()
-                                        if now - last_edit_time > 1.5:
-                                            last_edit_time = now
-                                            if status_msg and context:
-                                                try:
-                                                    if in_thought:
-                                                        disp = current_thought[-400:].strip()
-                                                        await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 **Thinking...**\n_{disp}_", parse_mode="Markdown")
-                                                    else:
-                                                        final_text = full_response.split("</thought>")[-1] if "</thought>" in full_response else full_response
-                                                        disp = final_text[-800:].strip()
-                                                        if disp:
-                                                            await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"✍️ **Typing...**\n{disp}")
-                                                except Exception:
-                                                    pass
-                                except Exception:
-                                    pass
-            except Exception as e:
-                logger.error(f"Streaming error: {e}")
-                return None
-                
-            if "</thought>" in full_response:
-                return full_response.split("</thought>")[-1].strip()
-            return full_response.strip()
-                
-        try:
-            if status_msg and context:
-                try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using {or_model_name}...")
-                except Exception: pass
-            out = await _call_or(or_model_name)
-            actual_model_used = or_model_name
-            fail_phrases = ["i cannot", "i'm sorry", "i don't know", "as an ai", "unable to", "i apologize"]
-            if not out or (isinstance(out, str) and any(p in out.lower()[:50] for p in fail_phrases)):
-                if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                    from config import OR_FALLBACK_MODEL
-                    logger.warning(f"Nemotron failed or refused. Falling back to {OR_FALLBACK_MODEL}...")
-                    fallback_out = await _call_or(OR_FALLBACK_MODEL)
-                    if fallback_out and not any(p in fallback_out.lower()[:50] for p in fail_phrases):
-                        out = fallback_out
-                        actual_model_used = OR_FALLBACK_MODEL
-                    else:
-                        logger.warning("Fallback failed or refused. Falling back to local G1 Flash...")
-                        result = await asyncio.wait_for(
-                            asyncio.get_event_loop().run_in_executor(
-                                None,
-                                lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                            ), timeout=RESPONSE_TIMEOUT + 5)
-                        out = result.stdout.strip()
-                        actual_model_used = "flash (local fallback)"
-        except Exception as e:
-            if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                from config import OR_FALLBACK_MODEL
-                logger.warning(f"Nemotron exception ({e}). Falling back to {OR_FALLBACK_MODEL}...")
-                try:
-                    out = await _call_or(OR_FALLBACK_MODEL)
-                    actual_model_used = OR_FALLBACK_MODEL
-                    if not out: raise Exception(f"{OR_FALLBACK_MODEL} empty")
-                except Exception as e2:
-                    logger.warning(f"{OR_FALLBACK_MODEL} exception ({e2}). Falling back to local G1 Flash...")
-                    try:
-                        result = await asyncio.wait_for(
-                            asyncio.get_event_loop().run_in_executor(
-                                None,
-                                lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                            ), timeout=RESPONSE_TIMEOUT + 5)
-                        out = result.stdout.strip()
-                        actual_model_used = "flash (local fallback)"
-                    except Exception as e3:
-                        out = f"⚠️ Fallback to G1 Exception: {e3}"
-            else:
-                out = f"⚠️ OpenRouter Exception: {e}"
-                
-        if not out:
-            out = "⚠️ OpenRouter returned an empty response or failed."
-    else:
-        if status_msg and context:
-            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using local {model}...")
-            except Exception: pass
-        logger.info(f"agy --print model={model}: {user_message[:60]}")
-        log_llm_call(f"agy/{model}", "chat", 0, is_local=True)
-        try:
-            result = await asyncio.wait_for(
-                asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda: subprocess.run(
-                        [AGENTAPI_BIN, "--model", model, "--dangerously-skip-permissions", "--print", full_prompt],
-                        capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL
-                    )
-                ),
-                timeout=RESPONSE_TIMEOUT + 5
-            )
-            out = result.stdout.strip()
-            if not out:
-                out = "⚠️ Assistant returned empty output. " + result.stderr[:200]
-        except Exception as e:
-            out = f"⚠️ Assistant timed out or failed: {e}"
-
-    if out and not out.startswith("⚠️"):
-        logger.info("Response generated successfully.")
-        # Lightweight sanity check: only run on responses that look suspicious
-        # (very short, contain error markers, or look like raw system output)
-        _suspicious = (
-            len(out.strip()) < 20
-            or "error" in out.lower()[:100] and "bash" not in out.lower()[:100]
-            or out.strip().startswith(("[", "{", "Traceback", "Error:"))
-            or "I cannot" in out and len(out.strip()) < 50
-        )
-        if _suspicious:
-            logger.warning("Response looks suspicious, running quick sanity check...")
-            try:
-                sanity_prompt = (
-                    "You are a quality-control filter. Does this AI response look coherent and helpful?\n\n"
-                    f"RESPONSE: {out[:500]}\n\n"
-                    "Reply YES if coherent, NO if broken/hallucinated."
-                )
-                sanity_result = await asyncio.wait_for(
-                    asyncio.get_event_loop().run_in_executor(
-                        None,
-                        lambda: subprocess.run(
-                            [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", sanity_prompt],
-                            capture_output=True, text=True, timeout=15, stdin=subprocess.DEVNULL
-                        )
-                    ),
-                    timeout=20
-                )
-                if "no" in sanity_result.stdout.lower() and "yes" not in sanity_result.stdout.lower()[:5]:
-                    logger.warning("Sanity check flagged response as broken. Running recovery agent...")
-                    log_event("error", {"message": "AI response failed sanity check, running recovery", "source": "sanity_filter"})
-                    recovery_prompt = (
-                        "You are a Recovery AI Agent. The primary AI model hallucinated or produced broken output.\n\n"
-                        f"USER REQUEST:\n{user_message}\n\n"
-                        f"BROKEN OUTPUT:\n{out[:2000]}\n\n"
-                        "Your job is to provide a clear, coherent, correct response. Do not apologize, just answer correctly. "
-                        "Use [BASH] tags if you need to run commands."
-                    )
-                    try:
-                        recovery_result = await asyncio.wait_for(
-                            asyncio.get_event_loop().run_in_executor(
-                                None,
-                                lambda: subprocess.run(
-                                    [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", recovery_prompt],
-                                    capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL
-                                )
-                            ),
-                            timeout=65
-                        )
-                        recovered_text = recovery_result.stdout.strip()
-                        if recovered_text:
-                            out = recovered_text
-                            actual_model_used = "flash (Recovery Agent)"
-                            logger.info("Recovery agent produced a corrected response.")
-                        else:
-                            out = "⚠️ The AI hallucinated and the Recovery Agent failed to fix it. Please try again."
-                    except Exception as e:
-                        logger.error(f"Recovery agent timeout or error: {e}")
-                        out = "⚠️ The AI hallucinated and the Recovery Agent timed out. Please try your request again."
-                else:
-                    logger.info("Sanity check passed.")
-            except Exception:
-                pass  # Don't let sanity check failures block responses
-
-    if out and not out.startswith("⚠️"):
-        disp_model = actual_model_used.replace("openrouter:", "") if "openrouter" in actual_model_used else actual_model_used
-        out += f"\n\n_(Generated by: `{disp_model}`)_"
-
-    # Auto-execute any <BASH>...</BASH> blocks in the response
-    import re as _re
-    
-    # BASH execution now uses run_bash_safely from utils (with audit log + rate limit)
-
-    def _replace_bash(m):
-        cmd = m.group(1).strip()
-        logger.info(f"Auto-executing: {cmd[:80]}")
-        output = run_bash_safely(cmd, chat_id=chat_id)
-        return f"\n💻 `{cmd}`\n```\n{output}\n```"
-
-    original_out = out
-    out = _re.sub(r'<BASH>(.*?)</BASH>', _replace_bash, out, flags=_re.DOTALL)
-    out = _re.sub(r'\[BASH\](.*?)\[/BASH\]', _replace_bash, out, flags=_re.DOTALL)
-
-    if original_out != out and "\n```\n" in out:
-        logger.info("Command executed. Dispatching Verification Agent...")
-        
-        custom_instructions = ""
-        vrules = os.path.join(os.path.dirname(os.path.abspath(__file__)), "verification_rules.txt")
-        if os.path.exists(vrules):
-            with open(vrules, "r") as f:
-                custom_instructions = f"\n\nCRITICAL CUSTOM INSTRUCTIONS FROM USER:\n{f.read()}"
-                
-        summary_prompt = (
-            "You are a Verification AI Agent. You just executed a background system command on behalf of the user.\n\n"
-            f"USER REQUEST:\n{user_message}\n\n"
-            f"COMMAND AND OUTPUT:\n{out[-3000:]}\n\n"
-            "Your job is to read the output of the command you just ran, and give the user a quick, natural summary "
-            "confirming whether the task succeeded, failed, or what the exact result was. "
-            "Speak directly to the user. Do not use any bash tags. Keep it concise."
-            f"{custom_instructions}"
-        )
-        async def _run_verification_bg(prompt_text, chat_id_to_notify):
-            try:
-                # Use default fallback model as requested, taking as much time as needed (up to 300s)
-                from config import OR_FALLBACK_MODEL
-                res = await asyncio.wait_for(
-                    asyncio.get_event_loop().run_in_executor(
-                        None,
-                        lambda: subprocess.run(
-                            [AGENTAPI_BIN, "--model", f"openrouter:{OR_FALLBACK_MODEL}", "--dangerously-skip-permissions", "--print", prompt_text],
-                            capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL
-                        )
-                    ),
-                    timeout=310
-                )
-                summary_text = res.stdout.strip()
-                if summary_text:
-                    await context.bot.send_message(chat_id=chat_id_to_notify, text=f"🤖 **Verification ({OR_FALLBACK_MODEL}):**\n{summary_text}", parse_mode="Markdown")
-            except Exception as e:
-                logger.error(f"Verification Agent timeout or error: {e}")
-
-        if context:
-            # Tell the user we are verifying in the background
-            _track_task(asyncio.create_task(_run_verification_bg(summary_prompt, chat_id)))
-        else:
-            # Fallback for CLI standalone mode
-            try:
-                from config import OR_FALLBACK_MODEL
-                summary_result = subprocess.run([AGENTAPI_BIN, "--model", f"openrouter:{OR_FALLBACK_MODEL}", "--dangerously-skip-permissions", "--print", summary_prompt], capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL)
-                summary_text = summary_result.stdout.strip()
-                if summary_text:
-                    out += f"\n\n🤖 **Verification:**\n{summary_text}"
-            except Exception as e:
-                logger.error(f"Summary agent error: {e}")
-
-    # Append turn to custom history file (with atomic write + rotation)
-    try:
-        with open(history_file, "a", encoding="utf-8") as f:
-            f.write(f"User: {user_message}\nModel: {out}\n\n")
-        # Rotate if file exceeds 50KB to prevent unbounded growth
-        if os.path.getsize(history_file) > 50000:
-            with open(history_file, "r", encoding="utf-8") as f:
-                content = f.read()
-            # Atomic write: write to temp then rename
-            import tempfile
-            fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(history_file), suffix='.tmp')
-            try:
-                with os.fdopen(fd, 'w', encoding="utf-8") as f:
-                    f.write(content[-40000:])  # Keep last 40KB
-                os.replace(tmp_path, history_file)
-                logger.info(f"Rotated history file: {os.path.basename(history_file)}")
-            except Exception:
-                try:
-                    os.unlink(tmp_path)
-                except Exception:
-                    pass
-    except Exception:
-        pass
-        
-    return out
 
 
 
 # ── Background Automation ──────────────────────────────────────────────────────
 
-import hashlib
-import sys
-STATE_FILE = "state.json"
-
-import pytz
-import datetime
-def is_sleep_window() -> bool:
-    """Returns True if the current time is between 1 AM and 7 AM Eastern Time."""
-    try:
-        et_tz = pytz.timezone('US/Eastern')
-        now_et = datetime.datetime.now(pytz.utc).astimezone(et_tz)
-        if 1 <= now_et.hour < 7:
-            return True
-        return False
-    except Exception:
-        return False
-
-def get_hash(text):
-    return hashlib.md5(text.encode('utf-8')).hexdigest()
-
-def load_state():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, "r") as f:
-            state = json.load(f)
-            if "pending_priorities" not in state:
-                state["pending_priorities"] = {}
-            return state
-    return {"seen_tasks": [], "seen_alerts": [], "pending_priorities": {}}
-
-def save_state(state):
-    """Atomic write: write to temp file then rename (prevents corruption on crash)."""
-    import tempfile
-    try:
-        fd, tmp_path = tempfile.mkstemp(dir=STATE_FILE.parent, suffix='.tmp')
-        with os.fdopen(fd, 'w') as f:
-            json.dump(state, f)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp_path, STATE_FILE)
-    except Exception as e:
-        logger.error(f"Failed to save state: {e}")
-        # Fallback to direct write (better than nothing)
-        with open(STATE_FILE, "w") as f:
-            json.dump(state, f)
+from bot.state import load_state, save_state, is_sleep_window, get_hash
 
 async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
     if watchdog_lock.locked():
@@ -755,7 +192,7 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(chat_id=chat_id, text=f"📝 **Auto-Reading Notes**: I noticed `{title}`. Automatically extracting the handwriting in the background to learn what you did today...")
                 
                 # Run it in a background thread to not block the event loop
-                loop = asyncio.get_event_loop()
+                loop = asyncio.get_running_loop()
                 def _extract():
                     import tempfile
                     from scrapers.google_scraper import download_drive_file
@@ -850,7 +287,7 @@ async def _check_updates_impl(context: ContextTypes.DEFAULT_TYPE):
     from scrapers.groupme_scraper import get_latest_messages
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
     from ai_processor import process_all_sources
-    from notion_client import add_task_to_notion, update_notion_task
+    from scrapers.notion_client import add_task_to_notion, update_notion_task
     
     logger.info("Background job: Scraping sources...")
     
@@ -1011,13 +448,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ── Concurrency Locks ─────────────────────────────────────────────────────────
-message_lock = asyncio.Lock()
+from bot.state import is_sleep_window, get_user_lock
 digest_lock = asyncio.Lock()  # prevents overlapping check_updates
 watchdog_lock = asyncio.Lock()  # prevents overlapping watchdog
 
 
 # ── Telegram handlers ──────────────────────────────────────────────────────────
 
+@require_auth
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_sleep_window():
         await update.message.reply_text("💤 I am currently in Sleep Mode optimizing my brain. I will be back online at 7 AM ET!")
@@ -1046,7 +484,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     try:
-        async with message_lock:
+        user_lock = get_user_lock(chat_id)
+        async with user_lock:
             reply = await send_to_antigravity_and_wait(user_text, chat_id, context, thinking_msg)
             
         log_event("message", {"preview": user_text[:50], "routed_to": "unknown"}, notify=False)
@@ -1085,206 +524,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    args = context.args
-    
-    FREE_ALIASES = {
-        "llama3.3": "openrouter:meta-llama/llama-3.3-70b-instruct:free",
-        "llama3.2": "openrouter:meta-llama/llama-3.2-3b-instruct:free",
-        "hermes": "openrouter:nousresearch/hermes-3-llama-3.1-405b:free",
-        "ultra": "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free",
-        "nemotron-super": "openrouter:nvidia/nemotron-3-super-120b-a12b:free",
-        "nemotron-safety": "openrouter:nvidia/nemotron-3.5-content-safety:free",
-        "nemotron-nano": "openrouter:nvidia/nemotron-3-nano-30b-a3b:free",
-        "nemotron-omni": "openrouter:nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-        "nemotron-vl": "openrouter:nvidia/nemotron-nano-12b-v2-vl:free",
-        "nemotron-9b": "openrouter:nvidia/nemotron-nano-9b-v2:free",
-        "nex": "openrouter:nex-agi/nex-n2-pro:free",
-        "laguna": "openrouter:poolside/laguna-m.1:free",
-        "laguna-xs": "openrouter:poolside/laguna-xs.2:free",
-        "gpt-oss": "openrouter:openai/gpt-oss-120b:free",
-        "gpt-oss-20b": "openrouter:openai/gpt-oss-20b:free",
-        "gemma": "openrouter:google/gemma-4-31b-it:free",
-        "gemma-26b": "openrouter:google/gemma-4-26b-a4b-it:free",
-        "cohere": "openrouter:cohere/north-mini-code:free",
-        "qwen-next": "openrouter:qwen/qwen3-next-80b-a3b-instruct:free",
-        "qwen-coder": "openrouter:qwen/qwen3-coder:free",
-        "lyria": "openrouter:google/lyria-3-pro-preview",
-        "lyria-clip": "openrouter:google/lyria-3-clip-preview",
-        "liquid": "openrouter:liquid/lfm-2.5-1.2b-thinking:free",
-        "liquid-instruct": "openrouter:liquid/lfm-2.5-1.2b-instruct:free",
-        "dolphin": "openrouter:cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
-        "free": "openrouter:openrouter/free"
-    }
-    valid_local = ["auto", "flash", "pro"]
-    
-    if not args:
-        current = user_models.get(chat_id, "auto")
-        display_current = current.replace("openrouter:", "") if current.startswith("openrouter:") else current
-        alias_list = " | ".join([f"`/model {k}`" for k in FREE_ALIASES.keys()])
-        await update.message.reply_text(
-            f"Current model: *{display_current}*\n\n"
-            f"*Smart Routing:* `/model auto` (Auto-detects PII and routes to Free models or Private models)\n"
-            f"*Private (G1) Models:* `/model flash` | `/model pro`\n"
-            f"*Free OpenRouter Models:* {alias_list}\n\n"
-            f"_(Note: OpenRouter endpoints are strictly hardcoded to the free tier to guarantee zero charges)_",
-            parse_mode="Markdown"
-        )
-        return
-        
-    requested = args[0].lower()
-    
-    # 1. Map alias to full OpenRouter model
-    is_safe_alias = False
-    if requested in FREE_ALIASES:
-        requested = FREE_ALIASES[requested]
-        is_safe_alias = True
-        
-    # 2. Check validity and ENFORCE safety for manual entries
-    if requested.startswith("openrouter:"):
-        if not is_safe_alias and not requested.endswith(":free"):
-            requested += ":free" # Force the free endpoint so it never costs money
-    elif requested not in valid_local:
-        await update.message.reply_text("❌ Invalid model choice. Type `/model` to see available options.")
-        return
-        
-    user_models[chat_id] = requested
-    
-    display_name = requested.replace("openrouter:", "") if requested.startswith("openrouter:") else requested
-    await update.message.reply_text(f"Model safely switched to *{display_name}* ✅", parse_mode="Markdown")
-
-
-async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    msg = await context.bot.send_message(chat_id=chat_id, text="⏳ Generating your summary digest... This might take a minute.")
-    
-    import sys
-    # sys.path already set at module level
-    from scrapers.canvas_scraper import get_all_canvas_data
-    from scrapers.groupme_scraper import get_latest_messages
-    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
-    from ai_processor import process_all_sources
-    from notion_client import add_task_to_notion
-    
-    canvas = get_all_canvas_data() or "No Canvas"
-    classroom = get_classroom_assignments() or "No Classroom"
-    gmail = get_unread_emails() or "No Gmail"
-    groupme = get_latest_messages("102851186") or "No GroupMe"
-    announcements = get_classroom_announcements() or "No Announcements"
-    docs = get_recent_google_docs() or "No Docs"
-    
-    try:
-        ai_result = await asyncio.to_thread(process_all_sources, canvas, classroom, gmail, groupme, announcements, docs)
-    except Exception as e:
-        logger.error(f"Error during AI digest generation: {e}")
-        await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"❌ The AI timed out or crashed while generating your digest: {e}")
-        return
-        
-    # Ask user before pushing tasks to Notion
-    import difflib
-    state = load_state()
-    new_tasks = []
-    seen_titles = state.setdefault("seen_tasks", [])
-    
-    for task in ai_result.get("tasks", []):
-        task_title = task.get("title", "").strip().lower()
-        if not task_title: continue
-        
-        is_duplicate = False
-        for seen in seen_titles:
-            if difflib.SequenceMatcher(None, task_title, seen).ratio() > 0.8:
-                is_duplicate = True
-                break
-                
-        if not is_duplicate:
-            new_tasks.append(task)
-            seen_titles.append(task_title)
-            
-    state["seen_tasks"] = seen_titles
-    save_state(state)
-    
-    digest = ai_result.get("digest", "Nothing to report right now!")
-    
-    if new_tasks:
-        tasks_str = ""
-        for i, task in enumerate(new_tasks, 1):
-            tasks_str += f"{i}. {task.get('title')} (Source: {task.get('source')})\n"
-        digest += f"\n\n🚨 **NEW TASKS DETECTED** 🚨\n{tasks_str}\nShould I add these to Notion? If yes, reply with their priority (high/medium/low) and progress. If I should ignore any of them, let me know so I can learn!"
-    if digest and digest != "Nothing to report right now!":
-        try:
-            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "w") as f:
-                f.write(digest)
-        except Exception:
-            pass
-            
-    await context.bot.delete_message(chat_id=chat_id, message_id=msg.message_id)
-    try:
-        await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}", parse_mode="Markdown")
-    except Exception:
-        await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}")
-        
-    # Ask to Compile Mega Study Guides
-    topics = ai_result.get("topics", [])
-    if topics:
-        topics_str = "\n".join([f"- {t}" for t in topics])
-        topic_msg = (
-            f"🧠 **I detected you have upcoming assignments/tests for the following topics:**\n"
-            f"{topics_str}\n\n"
-            f"Would you like me to compile a Mega Study Guide for any of these? (Just reply 'Build a guide for...') 📚"
-        )
-        try:
-            await context.bot.send_message(chat_id=chat_id, text=topic_msg, parse_mode="Markdown")
-        except Exception:
-            await context.bot.send_message(chat_id=chat_id, text=topic_msg)
-
-
-async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    if chat_id != config.SANEL_CHAT_ID:
-        await context.bot.send_message(chat_id=chat_id, text="❌ Unauthorized.")
-        return
-
-    cmd = " ".join(context.args)
-    if not cmd:
-        await context.bot.send_message(chat_id=chat_id, text="Usage: `/bash <command>`", parse_mode="Markdown")
-        return
-
-    msg = await context.bot.send_message(chat_id=chat_id, text=f"💻 Running: `{cmd}`...", parse_mode="Markdown")
-    output = run_bash_safely(cmd, chat_id=chat_id)
-    reply = "💻 **`" + cmd[:100] + "`**\n\n```\n" + output[:3800] + "\n```"
-    try:
-        await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=reply, parse_mode="Markdown")
-    except Exception:
-        await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=reply)
-
-async def priority_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    if len(context.args) != 2:
-        await context.bot.send_message(chat_id=chat_id, text="Usage: `/p <short_id> <high/medium/low>`", parse_mode="Markdown")
-        return
-        
-    short_id, priority = context.args[0], context.args[1].lower()
-    if priority not in ["high", "medium", "low"]:
-        await context.bot.send_message(chat_id=chat_id, text="Priority must be high, medium, or low.")
-        return
-
-    state = load_state()
-    page_id = state.get("pending_priorities", {}).get(short_id)
-    if not page_id:
-        await context.bot.send_message(chat_id=chat_id, text=f"❌ Could not find pending task with ID `{short_id}`.", parse_mode="Markdown")
-        return
-
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from notion_client import update_notion_task
-    
-    if update_notion_task(page_id, priority=priority):
-        del state["pending_priorities"][short_id]
-        save_state(state)
-        await context.bot.send_message(chat_id=chat_id, text=f"✅ Task priority updated to **{priority.capitalize()}** in Notion!", parse_mode="Markdown")
-    else:
-        await context.bot.send_message(chat_id=chat_id, text="❌ Failed to update Notion.")
-
+@require_auth
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Download voice message, transcribe locally, route through AI."""
     chat_id = update.effective_chat.id
@@ -1313,7 +553,8 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         # Route transcription through the AI
-        async with message_lock:
+        user_lock = get_user_lock(chat_id)
+        async with user_lock:
             reply = await send_to_antigravity_and_wait(transcription, chat_id, context, msg)
 
         try:
@@ -1335,12 +576,10 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
 
 
+@require_auth
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Downloads a photo sent to the bot, saves it, and asks the AI to process it."""
     chat_id = update.effective_chat.id
-    if chat_id != 8534649457:
-        await update.message.reply_text("❌ Unauthorized user.")
-        return
         
     msg = await update.message.reply_text("📸 Downloading image...")
     
@@ -1369,7 +608,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="🧠 Analyzing your question using the Knowledge Base & PDFs...")
         user_text = f"[I have uploaded a photo. Here is the exact text written in the photo:\n{ocr_text}]\n\nMy Question: {caption}"
         try:
-            async with message_lock:
+            user_lock = get_user_lock(chat_id)
+            async with user_lock:
                 reply = await send_to_antigravity_and_wait(user_text, chat_id, context, msg)
                 
             try:
@@ -1401,8 +641,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     
     from llm_router import call_openrouter
-    from config import OR_FREE_MODELS
-    
     try:
         extracted = call_openrouter(
             model="nvidia/nemotron-3-ultra-550b-a55b:free",
@@ -1415,9 +653,24 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info("Falling back to G1 Flash for photo extraction...")
         from ai_processor import call_agy
         import asyncio
-        extracted = await asyncio.to_thread(call_agy, prompt, 3600, "flash")
-
-        if extracted and "NO_ALERT" not in extracted.upper() and "UNSURE" not in extracted.upper():
+        try:
+            extracted = await asyncio.to_thread(call_agy, prompt, 3600, "flash")
+        except Exception as e:
+            reply = f"❌ Local LLM connection error: {e}"
+            extracted = None
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
+                f.write(f"\n--- Photo Upload (Raw OCR) ---\n{ocr_text}\n")
+                
+            # Add to the most recently active chat history so the user can ask follow-up questions!
+            import glob
+            history_files = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"chat_history_{chat_id}_*.txt"))
+            if history_files:
+                latest_file = max(history_files, key=os.path.getmtime)
+                with open(latest_file, "a") as f:
+                    f.write(f"User: [I just uploaded a photo. Here is the raw text extracted from it: {ocr_text}]\\nModel: (Image received. I am ready for questions about it.)\\n\\n")
+    
+    if extracted:
+        if "NO_ALERT" not in extracted.upper() and "UNSURE" not in extracted.upper():
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
                 f.write(f"\n--- Photo Upload ---\n{extracted}\n")
             reply = f"✅ Important text found and saved for the next digest!\n\n_Filtered preview:_\n{extracted}"
@@ -1426,24 +679,12 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if history_files:
                 latest_file = max(history_files, key=os.path.getmtime)
                 with open(latest_file, "a") as f:
-                    f.write(f"User: [I just uploaded a photo. Here is the raw text extracted from it: {ocr_text}]\nModel: (Image received. I am ready for questions about it.)\n\n")
+                    f.write(f"User: [I just uploaded a photo. Here is the raw text extracted from it: {ocr_text}]\\nModel: (Image received. I am ready for questions about it.)\\n\\n")
         else:
             # User specifically sent a photo, so it's important regardless of what the small model thinks.
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
                 f.write(f"\n--- Photo Upload (Raw OCR) ---\n{ocr_text}\n")
             reply = "⚠️ Local AI couldn't parse specific assignments, but I saved the raw text for the cloud AI to review!"
-    except Exception as e:
-        reply = f"❌ Local LLM connection error: {e}"
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "important_extracts.txt"), "a") as f:
-            f.write(f"\n--- Photo Upload (Raw OCR) ---\n{ocr_text}\n")
-            
-        # Add to the most recently active chat history so the user can ask follow-up questions!
-        import glob
-        history_files = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"chat_history_{chat_id}_*.txt"))
-        if history_files:
-            latest_file = max(history_files, key=os.path.getmtime)
-            with open(latest_file, "a") as f:
-                f.write(f"User: [I just uploaded a photo. Here is the raw text extracted from it: {ocr_text}]\nModel: (Image received. I am ready for questions about it.)\n\n")
         
     try:
         await context.bot.edit_message_text(
@@ -1453,114 +694,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.edit_message_text(
             chat_id=chat_id, message_id=msg.message_id, text=reply
         )
-
-async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    data = query.data
-    chat_id = query.message.chat_id
-
-    # ── Quick action commands ────────────────────────────────────────────
-    if data == "cmd:summary":
-        context.args = []
-        await summary_command(update, context)
-        return
-    elif data == "cmd:ping":
-        await query.edit_message_text(get_health_status(), parse_mode="Markdown")
-        return
-    elif data == "cmd:stats":
-        await query.edit_message_text(get_cost_summary(), parse_mode="Markdown")
-        return
-    elif data == "cmd:backup":
-        path = create_backup()
-        await query.edit_message_text(
-            f"✅ Backup created: `{os.path.basename(path)}`" if path else "❌ Backup failed"
-        )
-        return
-    elif data == "cmd:correlations":
-        await query.edit_message_text(get_correlation_summary(), parse_mode="Markdown")
-        return
-
-    # ── Digest topic guide builder ───────────────────────────────────────
-    if data.startswith("build_guide:"):
-            topic = data.split("build_guide:", 1)[1]
-            await context.bot.edit_message_text(
-                chat_id=chat_id, message_id=query.message.message_id,
-                text=f"🔨 Building Mega Study Guide for: **{topic}**... This will take a minute!"
-            )
-            try:
-                from scrapers.mega_study_builder import generate_mega_guide
-                loop = asyncio.get_event_loop()
-                # Track the executor task to prevent fire-and-forget
-                future = loop.run_in_executor(None, generate_mega_guide, topic)
-                # Wrap the future in an async function for proper tracking
-                async def wait_for_future():
-                    return await asyncio.wrap_future(future)
-                result = await _track_task(asyncio.create_task(wait_for_future()))
-                try:
-                    await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
-                except Exception:
-                    await context.bot.send_message(chat_id=chat_id, text=result)
-            except Exception as e:
-                await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
-            return
-    elif data == "digest_dismiss":
-        await query.edit_message_text("� Okay, I won't build a guide right now. Ask me anytime!")
-        return
-
-    # ── Task priority buttons ────────────────────────────────────────────
-    if data.startswith("task_prio:"):
-        parts = data.split(":")
-        if len(parts) == 3:
-            tid, prio = parts[1], parts[2]
-            try:
-                from notion_client import update_notion_task
-                state = load_state()
-                page_id = state.get("pending_priorities", {}).get(tid)
-                if page_id and update_notion_task(page_id, priority=prio):
-                    await query.edit_message_text(f"✅ Task `{tid}` priority set to **{prio}**")
-                else:
-                    await query.edit_message_text(f"❌ Could not update `{tid}`")
-            except Exception as e:
-                await query.edit_message_text(f"❌ Error: {e}")
-        return
-    elif data == "task_ignore_all":
-        await query.edit_message_text("✅ All tasks ignored.")
-        return
-
-    # ── Photo response buttons ───────────────────────────────────────────
-    if data == "photo:grade":
-        await query.edit_message_text("� To grade a practice test, send a photo of your completed problems with the topic as a caption (e.g. 'SAT Math')")
-        return
-    elif data == "photo:save":
-        await query.edit_message_text("✅ Got it — I'll save any photo text I see to your extracts.")
-        return
-    elif data == "photo:ask":
-        await query.edit_message_text("💬 Ask me anything! Just reply to the photo text with your question.")
-        return
-
-    # ── Legacy: build_guide_ (drive file) ────────────────────────────────
-    if data.startswith("build_guide_"):
-        file_id = data.split("build_guide_")[1]
-        await context.bot.edit_message_text(
-            chat_id=chat_id, message_id=query.message.message_id,
-            text="⏳ Downloading PDF, reading handwriting via Gemini Vision, and building Mega Study Guide... This will take a minute!"
-        )
-        loop = asyncio.get_event_loop()
-        try:
-            from scrapers.mega_study_builder import build_guide_for_drive_file
-            # Track the executor task to prevent fire-and-forget
-            future = loop.run_in_executor(None, build_guide_for_drive_file, file_id, "XA_MWF Notes")
-            # Wrap the future in an async function for proper tracking
-            async def wait_for_future():
-                return await asyncio.wrap_future(future)
-            result = await _track_task(asyncio.create_task(wait_for_future()))
-            try:
-                await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
-            except Exception:
-                await context.bot.send_message(chat_id=chat_id, text=result)
-        except Exception as e:
-            await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
 
 async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
     chat_id = context.job.chat_id
@@ -1587,12 +720,16 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
         except Exception: pass
         await pre_cache_web()
         
+        from config import BASE_DIR
+        python_bin = sys.executable
+        builder_script = os.path.join(BASE_DIR, 'run_builder.py')
+        
         # 4. Auto-Generate SAT Guides
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Web Pre-cached.\n4️⃣ Building Separated SAT Study Guides (Math, Reading, Writing)...", parse_mode="Markdown")
         except Exception: pass
-        await asyncio.to_thread(subprocess.run, ['/home/sanel/personal-assistant-bot/venv/bin/python', '/home/sanel/personal-assistant-bot/run_builder.py', 'SAT Math and Geometry Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        await asyncio.to_thread(subprocess.run, ['/home/sanel/personal-assistant-bot/venv/bin/python', '/home/sanel/personal-assistant-bot/run_builder.py', 'SAT Reading Comprehension Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        await asyncio.to_thread(subprocess.run, ['/home/sanel/personal-assistant-bot/venv/bin/python', '/home/sanel/personal-assistant-bot/run_builder.py', 'SAT Writing and Grammar Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        await asyncio.to_thread(subprocess.run, [python_bin, builder_script, 'SAT Math and Geometry Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        await asyncio.to_thread(subprocess.run, [python_bin, builder_script, 'SAT Reading Comprehension Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        await asyncio.to_thread(subprocess.run, [python_bin, builder_script, 'SAT Writing and Grammar Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
         # 5. Dynamic Daily Topic Guide
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ SAT Guide Built.\n5️⃣ Analyzing today's notes to build a dynamic subject guide...", parse_mode="Markdown")
@@ -1609,7 +746,8 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
                 if not dynamic_topic or len(dynamic_topic) > 50:
                     dynamic_topic = "General Academic Concepts"
                     
-        await asyncio.to_thread(subprocess.run, ['/home/sanel/personal-assistant-bot/venv/bin/python', '/home/sanel/personal-assistant-bot/run_builder.py', dynamic_topic], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        await asyncio.to_thread(subprocess.run, [python_bin, builder_script, dynamic_topic], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
         
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"💤 **Sleep Cycle Complete:**\n✅ PDFs Processed\n✅ Memory Consolidated\n✅ Web Pre-cached\n✅ SAT Guide Updated\n✅ '{dynamic_topic}' Guide Generated!\n\nGood night! 🌙", parse_mode="Markdown")
         except Exception: pass
@@ -1619,229 +757,6 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
 
 # ── NEW COMMAND HANDLERS ──────────────────────────────────────────────────────
 
-async def ping_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Health check: uptime, disk, last digest, queue size, file sizes."""
-    await update.message.reply_text(get_health_status(), parse_mode="Markdown")
-
-async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Cost dashboard: LLM usage, tokens, estimated cost."""
-    await update.message.reply_text(get_cost_summary(), parse_mode="Markdown")
-
-async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Create a backup now or list available backups."""
-    msg = await update.message.reply_text("� Creating backup...")
-    path = create_backup()
-    if path:
-        await context.bot.edit_message_text(
-            chat_id=update.effective_chat.id, message_id=msg.message_id,
-            text=f"✅ Backup created: `{os.path.basename(path)}`"
-        )
-    else:
-        await context.bot.edit_message_text(
-            chat_id=update.effective_chat.id, message_id=msg.message_id,
-            text="❌ Backup failed. Check logs."
-        )
-
-async def restore_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """List or restore from backups. Usage: /restore [list|dry-run <path>]"""
-    args = context.args
-    if not args or args[0] == "list":
-        backups = list_backups()
-        if not backups:
-            await update.message.reply_text("No backups found.")
-            return
-        lines = ["📦 **Available backups:**"]
-        for b in backups:
-            lines.append(f"  `{b['date']}` — {b['size_mb']}MB")
-        lines.append("\nUse `/restore dry-run <path>` to preview restore.")
-        await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
-    elif args[0] == "dry-run" and len(args) > 1:
-        result = restore_backup(args[1], dry_run=True)
-        await update.message.reply_text(result, parse_mode="Markdown")
-
-async def correlations_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show cross-source correlation stats."""
-    await update.message.reply_text(get_correlation_summary(), parse_mode="Markdown")
-
-
-async def classroom_pdfs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Download PDFs from Google Classroom assignments."""
-    if update.effective_chat.id != SANEL_CHAT_ID:
-        await update.message.reply_text("Unauthorized.")
-        return
-
-    msg = await update.message.reply_text("📥 Downloading Classroom PDFs...")
-    try:
-        from scrapers.google_scraper import download_classroom_pdfs
-        result = download_classroom_pdfs("classroom_pdfs")
-        await context.bot.edit_message_text(
-            chat_id=update.effective_chat.id, message_id=msg.message_id,
-            text=result
-        )
-    except Exception as e:
-        await context.bot.edit_message_text(
-            chat_id=update.effective_chat.id, message_id=msg.message_id,
-            text=f"❌ Error downloading PDFs: {e}"
-        )
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show all available commands organized by category."""
-    help_text = (
-        "🤖 **Antigravity Bot Commands**\n\n"
-        "**Core & Assistant**\n"
-        "• `/help` - Show this menu\n"
-        "• `/summary` - Manual data digest trigger\n"
-        "• `/models` - List & switch AI models\n"
-        "• `/bash <cmd>` - Run bash commands directly\n"
-        "• `/p <num>` - Adjust bot priority queue\n\n"
-        "**Server Management**\n"
-        "• `/server` - Interactive Server Dashboard\n"
-        "• `/ping` - Health check & uptime stats\n"
-        "• `/stats` - Token & LLM cost usage dashboard\n\n"
-        "**Data & Memory**\n"
-        "• `/backup` - Create an immediate brain backup\n"
-        "• `/restore` - List & restore backups\n"
-        "• `/correlations` - Cross-source data correlation stats\n"
-        "• `/classroom` - Download PDFs from Google Classroom"
-    )
-    await update.message.reply_text(help_text, parse_mode="Markdown")
-
-async def _get_server_overview():
-    try:
-        import subprocess
-        res = subprocess.check_output("uptime", shell=True, text=True).strip()
-        return f"🖥️ **Server Overview**\n`{res}`"
-    except Exception as e: return str(e)
-
-async def _get_mc_status():
-    try:
-        import subprocess
-        res = subprocess.check_output("systemctl is-active minecraft || echo 'inactive'", shell=True, text=True).strip()
-        return f"⛏️ **Minecraft Server**\nStatus: `{res}`"
-    except Exception as e: return str(e)
-
-async def _get_embed_status():
-    try:
-        import subprocess
-        res = subprocess.check_output("tail -n 10 /tmp/embed_build4.log || echo 'No log found'", shell=True, text=True).strip()
-        return f"🧠 **Embedding Progress**\n```\n{res}\n```"
-    except Exception as e: return str(e)
-
-async def _get_bot_status():
-    try:
-        import subprocess
-        res = subprocess.check_output("systemctl status antigravity-bot | head -n 5", shell=True, text=True).strip()
-        return f"🤖 **Bot Service**\n```\n{res}\n```"
-    except Exception as e: return str(e)
-
-async def _get_mc_log():
-    try:
-        import subprocess
-        res = subprocess.check_output("journalctl -u minecraft -n 10 --no-pager", shell=True, text=True).strip()
-        return f"📜 **MC Logs**\n```\n{res}\n```"
-    except Exception as e: return str(e)
-
-async def _get_ram_status():
-    try:
-        import subprocess
-        res = subprocess.check_output("free -h", shell=True, text=True).strip()
-        return f"💾 **RAM Usage**\n```\n{res}\n```"
-    except Exception as e: return str(e)
-
-async def _get_services_status():
-    try:
-        import subprocess
-        res = subprocess.check_output("systemctl list-units --type=service --state=running | head -n 10", shell=True, text=True).strip()
-        return f"⚙️ **Services**\n```\n{res}\n```"
-    except Exception as e: return str(e)
-
-async def _get_activity_feed():
-    from activity_log import get_recent_events, format_events
-    events = get_recent_events(10)
-    return f"📈 **Activity Feed**\n{format_events(events)}"
-
-async def _get_bot_log():
-    try:
-        import subprocess
-        res = subprocess.check_output("journalctl -u antigravity-bot -n 10 --no-pager", shell=True, text=True).strip()
-        return f"🤖 **Bot Logs**\n```\n{res}\n```"
-    except Exception as e: return str(e)
-
-async def _mc_start():
-    try:
-        import subprocess
-        subprocess.check_output("sudo systemctl start minecraft", shell=True)
-        return "✅ Minecraft server starting..."
-    except Exception as e: return str(e)
-
-async def _mc_stop():
-    try:
-        import subprocess
-        subprocess.check_output("sudo systemctl stop minecraft", shell=True)
-        return "🛑 Minecraft server stopping..."
-    except Exception as e: return str(e)
-
-async def server_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    args = context.args
-    if not args:
-        help_txt = (
-            "🎛️ **Server Dashboard**\n"
-            "Usage: `/server <module>`\n\n"
-            "Modules:\n"
-            "• `overview` - Uptime & load\n"
-            "• `ram` - Memory usage\n"
-            "• `mc` - Minecraft status\n"
-            "• `mcstart` / `mcstop` - Start/Stop MC\n"
-            "• `mclog` - Minecraft latest logs\n"
-            "• `bot` - Bot service status\n"
-            "• `botlog` - Bot latest logs\n"
-            "• `embed` - Embedding job status\n"
-            "• `services` - Top running services\n"
-            "• `activity` - Recent bot activity feed"
-        )
-        await update.message.reply_text(help_txt, parse_mode="Markdown")
-        return
-        
-    cmd = args[0].lower()
-    mapping = {
-        "overview": _get_server_overview,
-        "mc": _get_mc_status,
-        "embed": _get_embed_status,
-        "bot": _get_bot_status,
-        "mclog": _get_mc_log,
-        "ram": _get_ram_status,
-        "services": _get_services_status,
-        "activity": _get_activity_feed,
-        "botlog": _get_bot_log,
-        "mcstart": _mc_start,
-        "mcstop": _mc_stop
-    }
-    
-    if cmd in mapping:
-        result = await mapping[cmd]()
-        await update.message.reply_text(result, parse_mode="Markdown")
-    else:
-        await update.message.reply_text(f"❌ Unknown module: {cmd}")
-
-# ── NEW: Import unified modules ───────────────────────────────────────────────
-import config
-from llm_router import call_openrouter, get_cost_summary, is_valid_response, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL
-from utils import (
-    run_bash_safely, enforce_all_rotations, create_backup,
-    get_health_status, get_correlation_summary, correlate_items,
-    restore_backup, list_backups,
-)
-from inline_keyboards import (
-    get_new_tasks_keyboard, get_digest_topic_keyboard,
-    get_study_guide_keyboard, get_photo_response_keyboard,
-    get_quick_actions_keyboard,
-)
-from voice_handler import transcribe_voice
-
-# Track bot start time for /ping
-BOT_START_TIME = time.time()
-
-# ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     if not TELEGRAM_BOT_TOKEN or TELEGRAM_BOT_TOKEN == "your_telegram_bot_token_here":
         print("Please set TELEGRAM_BOT_TOKEN in .env")
@@ -1863,7 +778,7 @@ if __name__ == "__main__":
         from scrapers.compile_context import compile_bot_context
         asyncio.get_event_loop().run_until_complete(compile_bot_context())
     except Exception as e:
-        logger.warning(f"Initial context compile failed: {e}")
+        logger.error(f"Failed to pre-compile bot context: {e}")
     
     import time as _time
     try:
@@ -1921,16 +836,7 @@ if __name__ == "__main__":
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Graceful shutdown on SIGTERM (systemctl stop)
-    import signal as _signal
-    _shutdown_event = asyncio.Event()
 
-    def _shutdown_handler(signum, frame):
-        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
-        _shutdown_event.set()
-
-    _signal.signal(_signal.SIGTERM, _shutdown_handler)
-    _signal.signal(_signal.SIGINT, _shutdown_handler)
 
     print("🤖 Antigravity Telegram bridge is running...")
 

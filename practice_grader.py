@@ -97,14 +97,14 @@ def _safe_parse_json(text: str) -> Optional[list]:
     # Try direct parse
     try:
         return json.loads(text)
-    except:
+    except Exception:
         pass
     # Try to find JSON array in text
     match = re.search(r'\[[\s\S]*?\]', text)
     if match:
         try:
             return json.loads(match.group())
-        except:
+        except Exception:
             pass
     return None
 
@@ -170,8 +170,8 @@ def _grade_problems(problems: list, answer_key: dict) -> list:
             result["status"] = "review"
         else:
             # Normalize for comparison
-            norm_user = user_ans.lower().strip().replace(" ", "").replace("=", "").replace("x", "")
-            norm_correct = str(correct).lower().strip().replace(" ", "").replace("=", "").replace("x", "")
+            norm_user = user_ans.lower().strip().replace(" ", "").replace("=", "")
+            norm_correct = str(correct).lower().strip().replace(" ", "").replace("=", "")
             result["status"] = "correct" if norm_user == norm_correct else "wrong"
 
         results.append(result)

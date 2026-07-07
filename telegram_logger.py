@@ -8,8 +8,9 @@ load_dotenv()
 class TelegramHandler(logging.Handler):
     def __init__(self):
         super().__init__()
+        from config import SANEL_CHAT_ID
         self.token = os.getenv("TELEGRAM_BOT_TOKEN")
-        self.chat_id = "8534649457" # Discovered from history files
+        self.chat_id = SANEL_CHAT_ID
 
     def emit(self, record):
         if not self.token or not self.chat_id:
@@ -19,7 +20,8 @@ class TelegramHandler(logging.Handler):
         if record.name.startswith("urllib3") or record.name.startswith("httpx") or record.name.startswith("telegram") or record.name.startswith("apscheduler"):
             return
             
-        log_entry = self.format(record)
+        from utils import scrub_pii
+        log_entry = scrub_pii(self.format(record))
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         payload = {
             "chat_id": self.chat_id, 
@@ -29,7 +31,7 @@ class TelegramHandler(logging.Handler):
         }
         try:
             requests.post(url, json=payload, timeout=2)
-        except:
+        except Exception:
             pass
 
 def setup_telegram_logging():
