@@ -21,7 +21,7 @@ import httpx
 import requests
 
 from config import (
-    BASE_DIR, CACHE_DIR, ARCHIVE_DIR, BACKUP_DIR, BACKUP_DIR,
+    BASE_DIR, CACHE_DIR, ARCHIVE_DIR, BACKUP_DIR,
     STATE_FILE, CURATED_BRAIN_FILE, MEGA_INDEX_FILE,
     COMBINED_SUMMARIES_FILE, CORRELATION_GRAPH_FILE,
     MAX_COMBINED_SUMMARIES_CHARS, MAX_MEGA_INDEX_CHARS,
@@ -369,6 +369,10 @@ _CC_RE = _re.compile(r'\b(?:\d{4}[-\s]?){3}\d{4}\b')
 _DOB_RE = _re.compile(r'\b(?:0[1-9]|1[0-2])[/-](?:0[1-9]|[12]\d|3[01])[/-](?:19|20)\d{2}\b')
 # Student ID patterns
 _STUDENT_ID_RE = _re.compile(r'\b(?:student\s*id|sid|id\s*#?)\s*:?\s*\d{4,10}\b', _re.IGNORECASE)
+# IP Addresses (IPv4)
+_IP_RE = _re.compile(r'\b\d{1,3}(?:\.\d{1,3}){3}\b')
+# Home directories
+_HOME_DIR_RE = _re.compile(r'/home/[a-zA-Z0-9_-]+/?')
 
 # Known PII-safe replacement markers
 _PII_REPLACEMENTS = {
@@ -378,6 +382,8 @@ _PII_REPLACEMENTS = {
     'cc': '[CARD]',
     'dob': '[DATE]',
     'student_id': '[ID]',
+    'ip': '[IP_ADDRESS]',
+    'home_dir': '[HOME_DIR]',
 }
 
 
@@ -401,6 +407,8 @@ def scrub_pii(text: str, aggressive: bool = False) -> str:
     text = _CC_RE.sub(_PII_REPLACEMENTS['cc'], text)
     text = _DOB_RE.sub(_PII_REPLACEMENTS['dob'], text)
     text = _STUDENT_ID_RE.sub(_PII_REPLACEMENTS['student_id'], text)
+    text = _IP_RE.sub(_PII_REPLACEMENTS['ip'], text)
+    text = _HOME_DIR_RE.sub(_PII_REPLACEMENTS['home_dir'], text)
 
     if aggressive:
         # Also scrub proper names (simple heuristic: capitalized words not at sentence start)

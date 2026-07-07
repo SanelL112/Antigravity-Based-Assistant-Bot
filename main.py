@@ -16,7 +16,6 @@ import subprocess
 import sys
 import datetime
 import pytz
-from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
 from bot.security import require_auth
@@ -32,7 +31,6 @@ from bot.runtime import _track_task, _cleanup_background_tasks
 atexit.register(_cleanup_background_tasks)
 
 # ── Config ─────────────────────────────────────────────────────────────────────
-load_dotenv()
 TELEGRAM_BOT_TOKEN  = os.getenv("TELEGRAM_BOT_TOKEN")
 CONVERSATION_ID     = os.getenv("CONVERSATION_ID")
 AGENTAPI_BIN        = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")

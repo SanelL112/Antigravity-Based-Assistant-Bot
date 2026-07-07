@@ -417,49 +417,60 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def _get_server_overview():
     try:
         import subprocess
-        res = subprocess.check_output("uptime", shell=True, text=True).strip()
+        res = subprocess.check_output(["uptime"], text=True).strip()
         return f"🖥️ **Server Overview**\n`{res}`"
     except Exception as e: return str(e)
 
 async def _get_mc_status():
     try:
         import subprocess
-        res = subprocess.check_output("systemctl is-active minecraft || echo 'inactive'", shell=True, text=True).strip()
+        try:
+            res = subprocess.check_output(["systemctl", "is-active", "minecraft"], text=True).strip()
+        except subprocess.CalledProcessError:
+            res = "inactive"
         return f"⛏️ **Minecraft Server**\nStatus: `{res}`"
     except Exception as e: return str(e)
 
 async def _get_embed_status():
     try:
-        import subprocess
-        res = subprocess.check_output("tail -n 10 /tmp/embed_build4.log || echo 'No log found'", shell=True, text=True).strip()
+        import os
+        log_path = "/tmp/embed_build4.log"
+        if os.path.exists(log_path):
+            with open(log_path, "r") as f:
+                lines = f.readlines()
+            res = "".join(lines[-10:]).strip()
+        else:
+            res = "No log found"
         return f"🧠 **Embedding Progress**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
 async def _get_bot_status():
     try:
         import subprocess
-        res = subprocess.check_output("systemctl status antigravity-bot | head -n 5", shell=True, text=True).strip()
+        res = subprocess.check_output(["systemctl", "status", "antigravity-bot"], text=True)
+        res = "\n".join(res.splitlines()[:5]).strip()
         return f"🤖 **Bot Service**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
 async def _get_mc_log():
     try:
         import subprocess
-        res = subprocess.check_output("journalctl -u minecraft -n 10 --no-pager", shell=True, text=True).strip()
+        res = subprocess.check_output(["journalctl", "-u", "minecraft", "-n", "10", "--no-pager"], text=True).strip()
         return f"📜 **MC Logs**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
 async def _get_ram_status():
     try:
         import subprocess
-        res = subprocess.check_output("free -h", shell=True, text=True).strip()
+        res = subprocess.check_output(["free", "-h"], text=True).strip()
         return f"💾 **RAM Usage**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
 async def _get_services_status():
     try:
         import subprocess
-        res = subprocess.check_output("systemctl list-units --type=service --state=running | head -n 10", shell=True, text=True).strip()
+        res = subprocess.check_output(["systemctl", "list-units", "--type=service", "--state=running"], text=True)
+        res = "\n".join(res.splitlines()[:10]).strip()
         return f"⚙️ **Services**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
@@ -471,21 +482,21 @@ async def _get_activity_feed():
 async def _get_bot_log():
     try:
         import subprocess
-        res = subprocess.check_output("journalctl -u antigravity-bot -n 10 --no-pager", shell=True, text=True).strip()
+        res = subprocess.check_output(["journalctl", "-u", "antigravity-bot", "-n", "10", "--no-pager"], text=True).strip()
         return f"🤖 **Bot Logs**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
 async def _mc_start():
     try:
         import subprocess
-        subprocess.check_output("sudo systemctl start minecraft", shell=True)
+        subprocess.check_output(["sudo", "systemctl", "start", "minecraft"])
         return "✅ Minecraft server starting..."
     except Exception as e: return str(e)
 
 async def _mc_stop():
     try:
         import subprocess
-        subprocess.check_output("sudo systemctl stop minecraft", shell=True)
+        subprocess.check_output(["sudo", "systemctl", "stop", "minecraft"])
         return "🛑 Minecraft server stopping..."
     except Exception as e: return str(e)
 
