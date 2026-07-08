@@ -22,7 +22,7 @@ def rescue():
     drive = build("drive", "v3", credentials=creds)
     classroom = build("classroom", "v1", credentials=creds)
     
-    thirty_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=30)).isoformat() + "Z"
+    thirty_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)).isoformat().replace("+00:00", "Z")
     
     output = "\n\n## Exhaustive Raw Document Index (Added by System)\n\n### Google Docs & Shared Files\n"
     

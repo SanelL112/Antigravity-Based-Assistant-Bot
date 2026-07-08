@@ -49,7 +49,7 @@ def export_all_google_docs():
     drive_service = build('drive', 'v3', credentials=creds, cache_discovery=False)
     docs_service = build('docs', 'v1', credentials=creds, cache_discovery=False)
     
-    thirty_days_ago = (datetime.datetime.utcnow() - datetime.timedelta(days=30)).isoformat() + "Z"
+    thirty_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)).isoformat().replace("+00:00", "Z")
     query = f"mimeType='application/vnd.google-apps.document' and modifiedTime > '{thirty_days_ago}' and trashed=false"
     page_token = None
     state = load_state()

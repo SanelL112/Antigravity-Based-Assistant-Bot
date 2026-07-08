@@ -142,8 +142,8 @@ def get_classroom_assignments():
             return "No active Google Classroom courses found."
         
         import datetime
-        cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=30)
-            
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)
+
         result = ["🏫 **Google Classroom Assignments:**"]
         for course in courses:
             try:
@@ -177,7 +177,7 @@ def get_classroom_assignments():
                     if update_time:
                         try:
                             updated = datetime.datetime.fromisoformat(update_time.replace('Z', '+00:00'))
-                            if updated.replace(tzinfo=None) < cutoff:
+                            if updated < cutoff:  # aware vs aware
                                 continue
                         except Exception:
                             pass
@@ -259,7 +259,7 @@ def get_recent_google_docs():
         docs_service = build('docs', 'v1', credentials=creds, cache_discovery=False)
 
         import datetime
-        four_hours_ago = (datetime.datetime.utcnow() - datetime.timedelta(hours=4)).isoformat() + "Z"
+        four_hours_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=4)).isoformat().replace("+00:00", "Z")
         
         # Search for Google Docs modified in the last 4 hours
         query = f"mimeType='application/vnd.google-apps.document' and modifiedTime > '{four_hours_ago}' and trashed=false"
@@ -393,7 +393,7 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
             return "No active Google Classroom courses found."
 
         import datetime
-        cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=30)
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)
 
         for course in courses:
             try:
@@ -411,7 +411,7 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
                     if update_time:
                         try:
                             updated = datetime.datetime.fromisoformat(update_time.replace('Z', '+00:00'))
-                            if updated.replace(tzinfo=None) < cutoff:
+                            if updated < cutoff:  # aware vs aware
                                 skipped += 1
                                 continue
                         except Exception:

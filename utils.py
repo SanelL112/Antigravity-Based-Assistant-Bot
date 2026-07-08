@@ -343,8 +343,8 @@ def run_bash_safely(cmd: str, chat_id: int = 0, timeout: int = 60) -> str:
 def _audit_log(cmd: str, chat_id: int, status: str):
     """Write to audit log for accountability."""
     try:
-        import pytz
-        et = pytz.timezone("US/Eastern")
+        from zoneinfo import ZoneInfo
+        et = ZoneInfo("America/New_York")
         ts = datetime.now(et).strftime("%Y-%m-%d %H:%M:%S %Z")
     except Exception:
         ts = datetime.now().isoformat()

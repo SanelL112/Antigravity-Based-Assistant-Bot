@@ -25,9 +25,9 @@ def is_sleep_window() -> bool:
     """Returns True if current time is between 1 AM and 7 AM Eastern Time."""
     try:
         import datetime
-        import pytz
-        et_tz = pytz.timezone('US/Eastern')
-        now_et = datetime.datetime.now(pytz.utc).astimezone(et_tz)
+        from zoneinfo import ZoneInfo
+        et_tz = ZoneInfo('America/New_York')
+        now_et = datetime.datetime.now(datetime.timezone.utc).astimezone(et_tz)
         return 1 <= now_et.hour < 7
     except Exception:
         return False

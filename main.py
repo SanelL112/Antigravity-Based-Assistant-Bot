@@ -15,7 +15,7 @@ import asyncio
 import subprocess
 import sys
 import datetime
-import pytz
+from zoneinfo import ZoneInfo
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
 from bot.security import require_auth
@@ -782,7 +782,7 @@ if __name__ == "__main__":
     # Daily backup at 3 AM ET
     job_queue.run_daily(
         lambda ctx: create_backup(),
-        time=datetime.time(hour=3, minute=0, tzinfo=pytz.timezone('US/Eastern')),
+        time=datetime.time(hour=3, minute=0, tzinfo=ZoneInfo('America/New_York')),
         chat_id=SANEL_CHAT_ID, name="daily_backup"
     )
     
@@ -797,10 +797,10 @@ if __name__ == "__main__":
     job_queue.run_repeating(watchdog_check, interval=config.WATCHDOG_INTERVAL_SECONDS, first=1800, chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_watchdog")
     
     # Run the offline Llama PDF processor every night at 2:00 AM ET
-    job_queue.run_daily(nightly_wrapper, time=datetime.time(hour=1, minute=0, tzinfo=pytz.timezone('US/Eastern')), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_nightly")
+    job_queue.run_daily(nightly_wrapper, time=datetime.time(hour=1, minute=0, tzinfo=ZoneInfo('America/New_York')), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_nightly")
     
     # Run the Morning Digest every morning at 7:00 AM ET
-    job_queue.run_daily(morning_wrapper, time=datetime.time(hour=7, minute=0, tzinfo=pytz.timezone('US/Eastern')), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_morning")
+    job_queue.run_daily(morning_wrapper, time=datetime.time(hour=7, minute=0, tzinfo=ZoneInfo('America/New_York')), chat_id=SANEL_CHAT_ID, name=f"{SANEL_CHAT_ID}_morning")
     
     from telegram.ext import CallbackQueryHandler
     app.add_handler(CommandHandler("start", start))
