@@ -6,7 +6,6 @@ google-auth-httplib2
 google-auth-oauthlib
 httpx
 requests
-pytz
 pytesseract
 Pillow
 numpy
