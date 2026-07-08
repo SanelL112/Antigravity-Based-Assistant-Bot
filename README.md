@@ -1,48 +1,65 @@
 # Personal Assistant Bot (Local AI Ecosystem)
 
-Welcome to the Personal Assistant Bot! This is a highly integrated AI assistant that acts as an autonomous ecosystem. It continuously scrapes, indexes, and monitors your digital life to provide proactive assistance, massive study guides, and daily digests.
+Welcome to the Personal Assistant Bot! This is a highly integrated, intelligent assistant designed to act as an autonomous ecosystem for a home server environment. It seamlessly manages academic data, serves as a continuous knowledge indexer, and provides robust personal assistance directly through Telegram.
 
 ## Core Features
 
-- **Telegram Interface**: Interact with the bot natively through Telegram. Ask questions, upload images (for OCR/homework help), and receive push notifications.
-- **OpenRouter & Hybrid Processing**: Uses OpenRouter (Owl-Alpha / Flash) for incredibly powerful reasoning and multi-stage document generation, with local processing fallbacks.
-- **Syncthing & Obsidian Integration**: Completely integrated with Syncthing. All generated master study guides and brain logs are strictly deposited into an isolated `study_guides/` folder that magically beams directly into your local Obsidian Vault.
-- **Continuous Knowledge Indexing**: 
-  - Automatically scrapes Google Classroom, Canvas, Google Docs, and Gmail.
-  - OCRs handwritten notes and automatically weaves them into your existing study guides.
-- **Nightly Delta-Update Generation**: Scrapes daily school notes and uses lightweight AI calls to append new knowledge to existing massive `.md` textbooks without wasting tokens rebuilding them from scratch.
-- **Morning Digest**: Sends a scheduled daily briefing (7:00 AM ET) summarizing upcoming assignments, unread emails, and events.
+- **Telegram Interface**: Interact with the bot natively through Telegram. Ask questions, run commands, upload images for OCR and homework help, and receive push notifications or daily digests.
+- **3-Tier Security Model for LLM Routing**: A strict privacy-first pipeline ensures sensitive personal data is protected:
+  - **PII Filter**: Every message is scanned by a local `agy flash` model to detect Personally Identifiable Information (PII).
+  - **Local Processing**: Any message containing PII is strictly routed to local LLMs (e.g., Ollama Qwen/Llama, Agy) and never touches the cloud.
+  - **Cloud Processing (OpenRouter)**: Safe, non-sensitive complex queries or academic tasks are routed to OpenRouter models (like Llama 3.3 70B or Nemotron 3 Ultra) for powerful reasoning.
+- **Semantic Retrieval System**: Uses Ollama (`nomic-embed-text`) to build a semantic vector index from all your knowledge sources (study guides, historical data, classroom PDFs). At query time, the bot retrieves the most relevant context using cosine similarity, giving it a deep "memory" of your specific content.
+- **Continuous Knowledge Indexing**: Automatically scrapes data from Google Classroom, Canvas, Google Docs, and Gmail. It can process downloaded Classroom PDFs and OCR handwritten notes to weave them into your overall knowledge base.
+- **Syncthing & Obsidian Integration**: Completely integrated with Syncthing. All generated master study guides and knowledge logs are explicitly saved into a dedicated `study_guides/` folder, which syncs directly into your local Obsidian Vault.
+- **Nightly Delta-Updates**: Every night, the bot runs a pipeline to append new knowledge and daily school topics to your existing massive `.md` textbooks. This append-only "delta" logic prevents token waste and avoids rebuilding huge guides from scratch.
 
 ## Architecture & Ecosystem
 
-The system is broken down into several asynchronous pipelines:
+The system operates across several distinct, asynchronous pipelines:
 
-1. **The Telegram Bot (`main.py`)**: The central hub that receives messages, handles OCR, and responds to queries.
-2. **The Scrapers (`scrapers/`)**: 
-   - `google_scraper.py` & `canvas_scraper.py`: Fetches documents, assignments, and announcements.
-   - `extract_notes.py`: The OCR pipeline for decoding handwritten math and theory.
-3. **The Nightly Brain (`nightly_processor.py` & `overnight_researcher.py`)**: Runs offline to chunk massive amounts of text, extract dynamic school topics you learned that day, and inject them into `curated_brain.md` and the SAT Master Guides.
-4. **Mega Study Builder (`mega_study_builder.py`)**: A sprawling 10-chapter Editor-in-Chief pipeline that builds 50-page textbooks dynamically by searching DuckDuckGo and YouTube transcripts.
+1. **The Telegram Hub (`main.py`)**: The central entry point for the bot. It hosts the `python-telegram-bot` instance, handles commands, routes incoming messages through the PII filter, and manages photo/voice inputs.
+2. **The LLM Router (`llm_router.py`)**: A unified interface that determines whether a prompt should go to a local Ollama instance, a local Agy model, or out to OpenRouter, ensuring the privacy rules are followed.
+3. **The Scrapers (`scrapers/`)**:
+   - `google_scraper.py` & `canvas_scraper.py`: Fetches documents, assignments, emails, and announcements.
+   - `extract_notes.py`: The OCR pipeline for decoding handwritten notes and downloaded PDFs.
+4. **The Nightly Brain (`scrapers/memory_consolidation.py` & `nightly_processor.py`)**: Runs offline in the early hours (e.g., 1:00 AM / 2:00 AM) to process the day's scraped data, update the `curated_brain.md`, run the OCR pipeline, and build the semantic vector index.
+5. **Mega Study Builder (`mega_study_builder.py`)**: A multi-stage pipeline that builds comprehensive, chapter-based textbooks dynamically using web sources and transcripts.
+
+## Data Sources (The Brain)
+
+The system doesn't rely on a traditional database. Instead, it uses markdown and JSON files:
+- `knowledge_base/`: Core subject guides.
+- `study_guides/`: Auto-generated ACT/SAT study guides and the `curated_brain.md` file (which syncs to Obsidian).
+- `mega_index.md`: A historical catalog of user data.
+- `scrapers/source_cache/`: Temporary storage for daily scraped digests.
+- `embedding_data/`: The semantic vector index (`embedding_index.npz`) built by Ollama.
 
 ## Setup Instructions
 
-1. **Requirements**:
+1. **Prerequisites**:
    - Python 3.10+
    - Tesseract OCR (`sudo apt install tesseract-ocr`)
+   - [Ollama](https://ollama.com/) (Must be installed and running on port 11434)
    - Syncthing configured to point to `/home/sanel/personal-assistant-bot/study_guides/`
-2. **Environment Variables (`.env`)**:
+
+2. **Environment Variables**:
+   Create a `.env` file in the root directory:
    ```env
    TELEGRAM_BOT_TOKEN=your_telegram_bot_token
    OPENROUTER_API_KEY=your_openrouter_token
    CANVAS_API_URL=https://canvas.instructure.com
    CANVAS_API_TOKEN=your_canvas_token
    ```
+
 3. **Google API Credentials**:
-   Place your `credentials.json` in the root directory to generate a `token.json` file.
+   Place your `credentials.json` in the root directory to generate a `token.json` file for Google Workspace integration (Classroom, Drive, Gmail).
+
 4. **Running the Bot**:
-   The bot is designed to run continuously as a systemd service (`bot.service`).
+   The bot is designed to run continuously on a server, typically managed as a systemd service (`bot.service`). Ollama must be running in the background for embedding and local queries.
 
-## Background Jobs
+## Server Constraints & Considerations
 
-- `Midnight/2:00 AM`: Runs memory consolidation, downloads new Classroom PDFs, OCRs them, and executes the delta-append logic to upgrade the `study_guides/` folder.
-- `07:00 AM`: Generates and sends the Morning Digest to Telegram.
+- **Hardware**: Designed for a home server environment (e.g., i5 CPU, ~6GB RAM). Heavy ML tasks (like embedding with Ollama) are run on the CPU and may take time, which is why intensive tasks are scheduled as nightly batch jobs.
+- **Data Privacy**: Always ensure the local routing logic in `main.py` and `llm_router.py` remains intact to prevent accidental PII leakage to cloud providers.
+- **Syncthing Pipeline**: Temporary files or cache data must be saved to `scrapers/source_cache/` rather than `study_guides/` to prevent cluttering the user's Obsidian Vault.
