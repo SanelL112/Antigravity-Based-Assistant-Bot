@@ -68,12 +68,12 @@ def patch_utils():
 
     cmd_lower = cmd_stripped.lower()
     dangerous_patterns = [
-        r'rm\\s+-rf\\s+/', r'dd\\s+if=', r':\\(\\)\\{', r'fork bomb',
-        r'>\\s*/dev/', r'>\\s*/proc/', r'>\\s*/sys/', r'chmod\\s+-r\\s+777\\s+/',
-        r'curl.*\\|.*bash', r'wget.*\\|.*sh',
-        r'systemctl\\s+(start|stop|restart|enable|disable)',
-        r'tar\\s+--checkpoint', r'__import__', r'importlib',
-        r'exec\\(', r'eval\\(', r'os\\.system', r'subprocess\\.'
+        'rm\\s+-rf\\s+/', 'dd\\s+if=', ':\\(\\)\\{', 'fork bomb',
+        '>\\s*/dev/', '>\\s*/proc/', '>\\s*/sys/', 'chmod\\s+-r\\s+777\\s+/',
+        'curl.*\\|.*bash', 'wget.*\\|.*sh',
+        'systemctl\\s+(start|stop|restart|enable|disable)',
+        'tar\\s+--checkpoint', '__import__', 'importlib',
+        'exec\\(', 'eval\\(', 'os\\.system', 'subprocess\\.'
     ]
     for pat in dangerous_patterns:
         if re.search(pat, cmd_lower):
