@@ -9317,3 +9317,215 @@ Vertex: $(3, -8)$, Axis: $x = 3$
 
 5. **Time Management**: Circles and triangles often appear in the latter half of modules. Flag and return if you're spending >2 minutes.
 ---
+
+## 📅 Update: 2026-07-08 - New Concepts from Summer SAT/ACT Class (Days 12-13)
+
+### 🔵 CIRCLES: Complete Review with New Practice
+
+From 19_Circles.pdf and SAT Geometry Problems.pdf — these topics appear in **every** SAT Math module (~2-3 questions).
+
+#### Circle Equation Forms
+
+| Form | Equation | Center | Radius |
+|------|----------|--------|--------|
+| **Standard** | $(x - h)^2 + (y - k)^2 = r^2$ | $(h, k)$ | $r$ |
+| **General** | $x^2 + y^2 + Dx + Ey + F = 0$ | $(-D/2, -E/2)$ | $\sqrt{(D/2)^2 + (E/2)^2 - F}$ |
+
+**Completing the Square to Find Center/Radius**:
+$$x^2 + y^2 - 6x + 8y - 11 = 0$$
+$$(x^2 - 6x + 9) + (y^2 + 8y + 16) = 11 + 9 + 16$$
+$$(x - 3)^2 + (y + 4)^2 = 36$$
+Center: $(3, -4)$, Radius: $6$
+
+#### Arc Length & Sector Area
+
+| Measure | Formula (degrees) | Formula (radians) |
+|---------|-------------------|-------------------|
+| **Arc Length** | $\frac{\theta}{360} \times 2\pi r$ | $r\theta$ |
+| **Sector Area** | $\frac{\theta}{360} \times \pi r^2$ | $\frac{1}{2}r^2\theta$ |
+
+**SAT Trap**: $\theta$ must be in **radians** for $r\theta$ and $\frac{1}{2}r^2\theta$. Convert: $\text{rad} = \text{deg} \times \frac{\pi}{180}$.
+
+#### Key Circle Theorems (Must Know)
+
+| Theorem | Statement | Diagram Clue |
+|---------|-----------|--------------|
+| **Central Angle** | Arc measure = Central angle measure | Angle at center |
+| **Inscribed Angle** | Inscribed $\angle = \frac{1}{2}$ intercepted arc | Angle on circle |
+| **Inscribed in Semicircle** | Angle inscribed in semicircle = $90^\circ$ | Diameter as chord |
+| **Tangent-Radius** | Tangent $\perp$ radius at point of tangency | Right angle at tangent |
+| **Two Tangents** | Tangents from same external point are congruent | Equal segments |
+| **Chord-Chord** | Products of segments equal: $ab = cd$ | Intersecting chords |
+| **Secant-Secant** | $(\text{whole})(\text{ext}) = (\text{whole})(\text{ext})$ | Two secants |
+| **Secant-Tangent** | $(\text{tangent})^2 = (\text{whole secant})(\text{ext})$ | Tangent + secant |
+
+#### Angles Formed by Intersections
+
+| Configuration | Angle Formula |
+|---------------|---------------|
+| **Two chords inside** | $\frac{1}{2}(\text{arc}_1 + \text{arc}_2)$ |
+| **Two secants outside** | $\frac{1}{2}(\text{far arc} - \text{near arc})$ |
+| **Two tangents outside** | $\frac{1}{2}(\text{major arc} - \text{minor arc})$ |
+| **Secant-tangent outside** | $\frac{1}{2}(\text{far arc} - \text{near arc})$ |
+| **Chord-tangent on circle** | $\frac{1}{2}(\text{intercepted arc})$ |
+
+#### Circle on Coordinate Plane
+
+- **Distance from center to point** = radius (or check if point is on/inside/outside)
+- **Tangent line slope** = negative reciprocal of radius slope
+- **Circle through 3 points** → find perpendicular bisectors of 2 chords → intersection = center
+
+---
+
+### 📊 STATISTICS & DATA ANALYSIS: Advanced Topics
+
+From 8_Statistics.pdf — ~7 questions per test (15% of Math).
+
+#### Measures of Center — Deep Dive
+
+| Measure | Calculation | Resistant to Outliers? | When to Use |
+|---------|-------------|------------------------|-------------|
+| **Mean** | $\frac{\sum x}{n}$ | No | Symmetric data |
+| **Median** | Middle value (or avg of 2 middle) | Yes | Skewed data, outliers |
+| **Mode** | Most frequent | Yes | Categorical data |
+
+**SAT Pattern**: "If the highest value increases, what happens to mean vs median?"
+- Mean increases, median unchanged (resistant)
+
+#### Standard Deviation (Conceptual Only — No Calculation)
+
+- **SD** = "typical distance from mean"
+- **Small SD** → data clustered near mean
+- **Large SD** → data spread out
+- **Adding constant** to all values: SD unchanged
+- **Multiplying by constant** $k$: SD multiplied by $|k|$
+
+**Comparing Data Sets**: Look at spread visually (dot plots, histograms). Wider = larger SD.
+
+#### Two-Way Tables & Conditional Probability
+
+| | Category A | Category B | Total |
+|---|---|---|---|
+| **Group X** | $a$ | $b$ | $a+b$ |
+| **Group Y** | $c$ | $d$ | $c+d$ |
+| **Total** | $a+c$ | $b+d$ | $n$ |
+
+**Key Formulas**:
+- $P(\text{A}) = \frac{a+c}{n}$
+- $P(\text{A}|\text{X}) = \frac{a}{a+b}$ (Given X, probability of A)
+- $P(\text{X}|\text{A}) = \frac{a}{a+c}$ (Given A, probability of X)
+
+**SAT Trap**: $P(\text{A}|\text{X}) \neq P(\text{X}|\text{A})$. Read "given" carefully!
+
+#### Sampling & Margin of Error
+
+- **Random Sample**: Every member of population has equal chance
+- **Margin of Error**: $\approx \frac{1}{\sqrt{n}}$ (conceptual)
+- **Larger sample** → smaller margin of error
+- **Confidence Interval**: Sample stat ± margin of error
+
+**SAT Question**: "A survey of 400 voters found 52% support. Margin of error 5%. What interval?"
+→ $52\% \pm 5\% = [47\%, 57\%]$
+
+#### Correlation vs. Causation
+
+- **Correlation**: Variables move together (positive/negative/none)
+- **Causation**: One variable **causes** change in another
+- **SAT Rule**: Observational study $\not\Rightarrow$ causation. Only **randomized experiment** $\Rightarrow$ causation.
+- **Lurking Variable**: Third variable affecting both (e.g., ice cream sales and drowning — both caused by hot weather)
+
+---
+
+### 🔺 TRIANGLES: Special Right, Similarity, Coordinates
+
+From 16_Lines and Angles.pdf, 17_Triangles.pdf, SAT Geometry Problems.pdf.
+
+#### Special Right Triangles (RATIO MEMORIZATION)
+
+| Triangle | Short Leg | Long Leg | Hypotenuse | Angles |
+|----------|-----------|----------|------------|--------|
+| **45-45-90** | $x$ | $x$ | $x\sqrt{2}$ | $45, 45, 90$ |
+| **30-60-90** | $x$ | $x\sqrt{3}$ | $2x$ | $30, 60, 90$ |
+
+**If given...** | **Find short leg** | **Find long leg** | **Find hypotenuse**
+---|---|---|---
+Short leg $x$ | $x$ | $x\sqrt{3}$ | $2x$
+Long leg $L$ | $L/\sqrt{3}$ | $L$ | $2L/\sqrt{3}$
+Hypotenuse $H$ | $H/2$ | $H\sqrt{3}/2$ | $H$
+
+#### Similar Triangles — Identification & Uses
+
+**AA Criterion**: Two angles congruent → triangles similar.
+
+**Common SAT Similarity Setups**:
+1. **Parallel lines cut by transversals** → corresponding angles equal
+2. **Altitude to hypotenuse** → 3 similar right triangles
+3. **Shared angle + right angle** → AA similarity
+4. **Midsegment** → small triangle $\sim$ large (scale factor $1/2$)
+
+**Scale Factor $k$**:
+- Sides: $k$
+- Perimeters: $k$
+- Areas: $k^2$
+- Altitudes/Medians/Angle bisectors: $k$
+
+#### Triangle Inequality — Integer Counting
+
+**Problem**: Sides are $7$ and $12$. How many **integer** values for third side?
+
+**Solution**: $|12-7| < x < 12+7 \rightarrow 5 < x < 19$
+Integers: $6, 7, ..., 18$ = $13$ values.
+
+**Formula**: If $a < b$, number of integer third sides = $(a+b-1) - (b-a+1) + 1 = 2a - 1$
+
+For $a=7$: $2(7)-1 = 13$. ✓
+
+#### Coordinate Geometry with Triangles
+
+| Need | Formula |
+|------|---------|
+| **Side length** | $\sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}$ |
+| **Right angle check** | $m_1 \cdot m_2 = -1$ (slopes) |
+| **Area** | $\frac{1}{2}|x_1(y_2-y_3) + x_2(y_3-y_1) + x_3(y_1-y_2)|$ |
+| **Centroid** | $\left(\frac{x_1+x_2+x_3}{3}, \frac{y_1+y_2+y_3}{3}\right)$ |
+| **Circumcenter (right $\triangle$)** | Midpoint of hypotenuse |
+
+---
+
+### 📝 NEW PRACTICE SET (July 8 Update)
+
+**Circles:**
+1. Circle: $x^2 + y^2 - 4x + 10y - 7 = 0$. Center? Radius?
+2. Circle radius $8$, central angle $\frac{2\pi}{3}$ rad. Arc length? Sector area?
+3. Inscribed angle $40^\circ$. Intercepted arc measure?
+4. Tangent from external point $P$, $PA = 12$, radius $= 5$. Distance $PO$?
+
+**Statistics:**
+5. Data: $\{2, 4, 6, 8, 50\}$. Mean? Median? What happens to mean if $50 \to 100$?
+6. Two-way table: 100 students. 60% girls. 70% of girls take AP, 40% of boys take AP. $P(\text{girl}|\text{takes AP})$?
+
+**Triangles:**
+7. $\triangle ABC \sim \triangle DEF$. $AB=5, BC=12, AC=13$. $DE=10$. Find $EF, DF, \text{Area}_{DEF}$.
+8. Right triangle: altitude to hypotenuse divides it into $3$ and $12$. Find legs.
+9. Vertices: $(0,0), (6,0), (0,8)$. Right? Area? Circumcenter? Centroid?
+10. 30-60-90: long leg = $9\sqrt{3}$. Find hypotenuse and area.
+
+**Quadratics:**
+11. $2x^2 - 5x - 12 = 0$. Factor and solve.
+12. $y = 3(x-2)^2 - 7$. Vertex? Opens up/down? y-intercept?
+13. Roots sum to $4$, product $-21$. Quadratic with $a=1$?
+
+---
+
+### 💡 KEY STRATEGIES FOR NEW MATERIAL
+
+1. **Circles**: Complete the square for general form. Memorize angle theorems (inscribed = ½ arc, tangent ⊥ radius). For coordinate circles, use distance formula.
+
+2. **Statistics**: Mean ≠ Median when skewed. SD = spread. Two-way tables: "given" = condition = row/col total as denominator. No causation from observational studies.
+
+3. **Triangles**: 30-60-90 and 45-45-90 ratios are faster than trig. Altitude to hypotenuse → 3 similar triangles. Coordinate: slopes for right angles, shoelace for area.
+
+4. **Quadratics**: AC method for $a \neq 1$. Vertex form for max/min. Desmos for verification. Sum/product of roots = Vieta's formulas.
+
+5. **Time Management**: Circles/triangles cluster in second half of modules. Grid-ins often geometry. Flag >2 min, return with fresh eyes.
+---

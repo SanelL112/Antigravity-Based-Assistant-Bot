@@ -442,6 +442,380 @@ Digital SAT Reading/Writing: **64 minutes, 54 questions** (2 modules of 32 min, 
 7. **Time**: ~71 sec/q average. Fast on vocab/conventions, invest time on cross-text/synthesis.
 ---
 
+## 📅 Update: 2026-07-08 - New Concepts from Summer SAT/ACT Class (Days 12-13)
+
+### 🔍 INFERENCES: Advanced "Must Be True" Mastery
+
+From Inferences_L2/L3.pdf — **#1 most tested skill** on Digital SAT Reading/Writing.
+
+#### The Inference Hierarchy (Strongest to Weakest)
+
+| Level | Type | Strength | Example Language |
+|-------|------|----------|------------------|
+| **1. Logical Necessity** | Direct deduction from text | **Must be true** | "It follows that..." "Therefore..." |
+| **2. Strong Implication** | Author's clear suggestion | Very likely true | "The author implies..." "The passage suggests..." |
+| **3. Reasonable Inference** | Supported but not forced | Could be true | "Based on the passage, which is most likely..." |
+
+**SAT Rule**: Only Level 1 & 2 are correct answers. Level 3 = trap!
+
+#### Advanced Inference Types
+
+**Type A: Quantitative Inference**
+- Text: "Revenue increased 15% while costs decreased 5%."
+- Inference: Profit margin improved. (Must be true)
+
+**Type B: Causal Inference**
+- Text: "After the policy change, errors dropped 40%."
+- Inference: Policy change *likely contributed* to reduction. (Strong implication, NOT must be true — could be coincidence)
+
+**Type C: Scope Inference**
+- Text: "In the 1920s, urban women gained voting rights."
+- Inference: Rural women's status not addressed. (Cannot infer about rural)
+
+**Type D: Attitude/Tone Inference**
+- Text: "The proposal, though ambitious, failed to address core issues."
+- Inference: Author views proposal as **well-intentioned but insufficient**. (Tone = critical but not dismissive)
+
+#### The "NOT Inference" Trap
+
+| Text Says | Common Wrong Inference | Why Wrong |
+|-----------|------------------------|-----------|
+| "Some A are B" | "All A are B" | Quantifier shift |
+| "X correlates with Y" | "X causes Y" | Correlation ≠ causation |
+| "Author criticizes X" | "Author opposes X entirely" | May support parts |
+| "Study found no effect" | "Effect does not exist" | Absence of evidence ≠ evidence of absence |
+
+---
+
+### 🔄 CROSS-TEXT ANALYSIS: Paired Passages Deep Dive
+
+From Cross_Text_L2/L3.pdf — **appears in every module**, usually 2-3 questions.
+
+#### The ICC Process (Expanded)
+
+**I — Identify Each Author's Position**
+```
+Passage 1:
+- Central Claim: ________________
+- Tone: ________________
+- Evidence Type: ________________ (data, anecdote, authority, logic)
+
+Passage 2:
+- Central Claim: ________________
+- Tone: ________________
+- Evidence Type: ________________
+```
+
+**C — Compare Systematically**
+| Dimension | Passage 1 | Passage 2 | Relationship |
+|-----------|-----------|-----------|--------------|
+| **Main Claim** | | | Agree / Disagree / Qualify / Extend |
+| **Evidence** | | | Same / Different / Contradictory |
+| **Scope** | | | Same / Narrower / Broader |
+| **Tone** | | | Same / More objective / More urgent |
+| **Solution/Focus** | | | Same / Different aspect / Opposite |
+
+**C — Classify the Relationship (Precise Vocabulary)**
+
+| Relationship | Precise Description | SAT Answer Phrasing |
+|--------------|---------------------|---------------------|
+| **Direct Contradiction** | Claims cannot both be true | "directly contradicts," "fundamentally opposes" |
+| **Qualified Agreement** | Agree on X, disagree on Y | "agrees that... but argues that..." |
+| **Different Evidence, Same Conclusion** | Same claim, different support | "supports the same conclusion using different evidence" |
+| **Extension/Elaboration** | P2 builds on P1 | "extends," "elaborates on," "provides additional support for" |
+| **Different Focus** | P1: causes, P2: solutions | "focuses on a different aspect of the issue" |
+| **Concession** | P2 acknowledges P1's point but... | "concedes that... however..." |
+
+#### Cross-Text Question Stems Decoded
+
+| Stem | What It's Asking |
+|------|------------------|
+| "How would Author 2 most likely respond to Author 1's claim that...?" | Predict P2's reaction based on P2's position |
+| "Which best describes the relationship between the passages?" | Classify using table above |
+| "Both passages suggest that..." | Find common ground (intersection) |
+| "The passages differ in their..." | Identify specific point of divergence |
+| "Which statement would both authors most likely agree with?" | Must be supported by BOTH |
+| "Author 1 mentions X primarily to..." | Function of detail in P1's argument |
+
+---
+
+### 🎯 RHETORICAL SYNTHESIS: Bullet Points → Coherent Output
+
+From Rhetorical_Synthesis_L3.pdf — **new Digital SAT question type**.
+
+#### The 4-Step GOAL Framework
+
+```
+1. GOAL: Read the prompt FIRST. What is the output supposed to DO?
+   - Emphasize contrast? Summarize? Recommend? Illustrate? Explain cause-effect?
+
+2. GROUP: Categorize the notes.
+   - Similar points together
+   - Contrasting points paired
+   - Cause → Effect chains
+   - Data points vs. interpretations
+
+3. GATHER: Select relevant notes for the goal.
+   - Some notes are DISTRACTORS (irrelevant to the specific goal)
+   - Only use notes that DIRECTLY serve the goal
+
+4. GENERATE: Evaluate answer choices.
+   - Does it DO what the goal asks?
+   - Does it use ONLY provided notes?
+   - Is it concise and accurate?
+```
+
+#### Goal Types & Winning Patterns
+
+| Goal Type | Key Phrases in Correct Answer | Trap Answers |
+|-----------|-------------------------------|--------------|
+| **Emphasize contrast** | "However," "In contrast," "While X..., Y..." | Only similarities listed |
+| **Summarize finding** | Concise, includes key result + context | Adds interpretation not in notes |
+| **Make recommendation** | "Should," "recommended," action-oriented | Only states facts without action |
+| **Illustrate a point** | Specific example from notes | Vague generalization |
+| **Show cause/effect** | "Because," "led to," "resulted in" | Mere correlation |
+| **Explain significance** | "This matters because...," "implications include..." | Just restates finding |
+
+#### New Practice (July 8)
+
+**Goal**: Explain why the results were unexpected given the initial hypothesis.
+
+**Notes**:
+- Hypothesis: Increased screen time would reduce sleep duration
+- Study: 500 teens, 6 months
+- Finding: Teens with 4+ hrs screen time: 7.2 hrs sleep
+- Finding: Teens with <1 hr screen time: 6.8 hrs sleep
+- Researchers: "Counterintuitive — warrants further investigation"
+
+**Correct Pattern**: "Contrary to the hypothesis that screen time reduces sleep, teens with 4+ hours of screen time actually slept more (7.2 hrs) than those with <1 hour (6.8 hrs), a finding the researchers called counterintuitive."
+
+**Wrong Patterns**:
+- Only states hypothesis (doesn't address unexpected nature)
+- Only states findings (doesn't contrast with expectation)
+- Adds causal claim "screen time improves sleep" (not in notes)
+
+---
+
+### 📖 CENTRAL IDEA: Topic + Claim + Significance (Advanced)
+
+From Central_Idea_L2/L3.pdf, Text_Struc_Pur_L2.pdf.
+
+#### The Central Idea Formula (Rigorous)
+
+**Central Idea = Topic + Author's Specific Claim + Why It Matters**
+
+| Component | Question to Ask | Example |
+|-----------|-----------------|---------|
+| **Topic** | What is the subject? | Urban heat islands |
+| **Claim** | What is the author's stance? | Caused by human materials, mitigable by design |
+| **Significance** | Why does the author think this matters? | Health risks, climate resilience, equity |
+
+**Complete Central Idea**: "Urban heat islands, caused by heat-absorbing materials and lack of vegetation, pose significant health risks but can be mitigated through design changes like green roofs and reflective surfaces."
+
+#### Distractor Types for Central Idea Questions
+
+| Distractor Type | Example | Why Wrong |
+|-----------------|---------|-----------|
+| **Too Narrow** (Detail) | "Green roofs reduce building temperatures" | Detail, not main point |
+| **Too Broad** (Topic Only) | "Cities are hotter than rural areas" | Missing claim + significance |
+| **Wrong Claim** | "Urban heat islands are caused by car exhaust" | Contradicts passage |
+| **Author's Purpose ≠ Central Idea** | "To persuade cities to adopt green roofs" | Purpose ≠ central idea |
+
+#### Text Structure & Purpose Mapping
+
+| Structure | Purpose | Signal Phrases | SAT Stem |
+|-----------|---------|----------------|----------|
+| **Problem-Solution** | Propose fix for issue | "challenge," "solution," "address," "resolve" | "The passage primarily serves to..." |
+| **Cause-Effect** | Explain why → results | "because," "led to," "resulted in" | "The author explains X by..." |
+| **Compare-Contrast** | Similarities/differences | "similarly," "however," "in contrast" | "The structure is best described as..." |
+| **Claim-Evidence** | Assertion → support | "for example," "evidence shows" | "The author supports the claim by..." |
+| **Refutation** | Counterargument → rebuttal | "critics argue," "however," "overlooks" | "The author mentions X primarily to..." |
+
+#### Purpose Questions: Function, Not Content
+
+- **Content** = *What* the passage says (details, examples)
+- **Function** = *Why* the author includes it (illustrate, refute, qualify, concede, emphasize)
+
+**Right Answer**: "To illustrate the limitations of the proposed solution"
+**Wrong Answer**: "To describe the three types of green roofs"
+
+---
+
+### 📝 EVIDENCE QUESTIONS: The "Best Support" Standard (Refined)
+
+From Evidence_L2 (3)/(4).pdf.
+
+#### The Backwards Method (Step-by-Step)
+
+1. **Answer Q1 first** (or tentatively mark your choice)
+2. **For Q2**: Test each choice: *"If this quote is the evidence, does it PROVE my Q1 answer?"*
+3. **The correct evidence** directly and specifically supports the Q1 answer
+4. **If no evidence fits** → your Q1 answer is wrong. Reconsider.
+
+#### Evidence Strength Hierarchy
+
+| Strength | Type | Example |
+|----------|------|---------|
+| **Strongest** | Direct quote with exact language | "The policy failed to reduce emissions" |
+| **Strong** | Close paraphrase of key claim | "The policy did not lower emissions" |
+| **Medium** | Data/statistic from passage | "Emissions fell only 2% over 5 years" |
+| **Weak** | Example/illustration | "In City X, the policy had little effect" |
+| **Trap** | Related but doesn't prove Q1 | "The policy was controversial" |
+
+#### Common Evidence Traps (Expanded)
+
+| Trap | Description | Example |
+|------|-------------|---------|
+| **Too Broad** | Supports general topic, not specific Q1 answer | Q1: "Policy failed." Evidence: "Environmental policy is complex." |
+| **Wrong Scope** | From different paragraph/section | Q1 about conclusion. Evidence from intro. |
+| **Reverse Support** | Actually contradicts or is irrelevant | Evidence shows policy worked; Q1 says it failed. |
+| **Inference as Evidence** | Requires inference to connect | Evidence: "Temperatures rose." Q1: "Policy failed." (Need link) |
+
+---
+
+### 🧠 VOCAB IN CONTEXT: High-Yield Words & Substitution Mastery
+
+From Vocab Quizzes 18-20 (new this week) + SAT high-frequency list.
+
+#### The Substitution Technique (Rigorous)
+
+```
+1. COVER the answer choices.
+2. READ the sentence with the target word.
+3. PREDICT your own word/phrase that fits.
+4. MATCH to closest answer choice.
+5. VERIFY: Plug choice back — does sentence make sense?
+```
+
+#### Context Clue Types (with Signals)
+
+| Clue Type | Signals | Example |
+|-----------|---------|---------|
+| **Contrast** | but, however, unlike, despite, although, whereas | "Unlike his gregarious brother, he was ___" → reserved |
+| **Cause/Effect** | because, since, therefore, consequently, as a result | "The storm was ___; therefore, flights were canceled" → severe |
+| **Definition/Restatement** | is, means, refers to, or, in other words | "The arbiter, or neutral judge, decided" → neutral judge |
+| **Example** | for example, such as, including, like | "Celestial bodies, such as stars and planets..." → stars/planets |
+| **Tone/Mood** | Overall passage feeling | Positive/negative/neutral |
+| **Word Structure** | Prefix/root/suffix | "benevolent" → bene (good) + volent (wishing) |
+
+#### High-Yield SAT Vocab (Vocab 18-20 + Frequency Analysis)
+
+| Word | Common SAT Meaning | Memory Hook | Contrast Clue |
+|------|-------------------|-------------|---------------|
+| **Ambivalent** | Having mixed feelings | "Ambi-" = both | "Both excited and terrified" |
+| **Candid** | Honest, frank | "Candid camera" = unposed | Contrast: "evasive" |
+| **Disparate** | Distinctly different | "Dis-" = apart | "Unlike," "differed" |
+| **Ephemeral** | Short-lived, fleeting | "Ephemeral" = one day (mayfly) | "Brief," "temporary" |
+| **Equivocal** | Ambiguous, unclear | "Equi-" = equal (voice) → vague | "Uncertain," "vague" |
+| **Fastidious** | Very attentive to detail | "Fast" = fixed, firm | "Meticulous," "particular" |
+| **Gregarious** | Sociable, outgoing | "Greg-" = flock | Contrast: "solitary" |
+| **Incisive** | Sharp, penetrating (analysis) | "Incise" = cut into | "Keen," "perceptive" |
+| **Lucid** | Clear, easy to understand | "Lucid" = light (lumen) | Contrast: "confusing" |
+| **Myriad** | Countless, very many | "Myriad" = 10,000 (Greek) | "Numerous," "countless" |
+| **Pragmatic** | Practical, realistic | "Pragma" = deed, action | Contrast: "idealistic" |
+| **Ubiquitous** | Present everywhere | "Ubi-" = everywhere | "Everywhere," "omnipresent" |
+
+#### July 8 Practice Set
+
+1. "The scientist's ___ approach to data collection ensured that no variable went unmeasured."
+   - A) haphazard B) fastidious C) cursory D) indifferent → **B** (context: "ensured no variable went unmeasured")
+
+2. "Unlike the ___ crowds at the festival, the museum was nearly empty."
+   - A) sparse B) gregarious C) ephemeral D) ubiquitous → **B** (contrast: "unlike," "nearly empty")
+
+3. "The CEO's ___ remarks left the board uncertain about the company's direction."
+   - A) lucid B) incisive C) equivocal D) pragmatic → **C** (context: "left uncertain" = ambiguous)
+
+4. "The trend was ___; by next week, no one remembered it."
+   - A) ephemeral B) ubiquitous C) myriad D) disparate → **A** (context: "no one remembered it" = short-lived)
+
+5. "She offered a ___ analysis that cut through months of confusion."
+   - A) candid B) incisive C) pragmatic D) ambivalent → **B** (context: "cut through confusion" = sharp analysis)
+
+---
+
+### ⏱️ TIME MANAGEMENT: Reading/Writing Precision
+
+**Digital SAT Reading/Writing**: 64 minutes, 54 questions (2 modules × 32 min, 27 q)
+
+| Question Type | Target Time | Strategy |
+|---------------|-------------|----------|
+| Vocab in Context | 30-45 sec | Substitution method |
+| Central Idea / Purpose | 45-60 sec | Find thesis, match function |
+| Command of Evidence | 45-60 sec | Work backwards from Q1 |
+| Inferences | 60-90 sec | Must Be True test |
+| Cross-Text | 90-120 sec | 3-pass ICC method |
+| Rhetorical Synthesis | 60-90 sec | Goal-first evaluation |
+| Standard English Conventions | 30-45 sec | Grammar rules + ear test |
+
+#### Module Strategy (Updated)
+
+- **Module 1 (Gatekeeper)**: Accuracy focus — determines Module 2 difficulty. **Don't rush.** Every correct answer = higher score ceiling.
+- **Module 2 (Scorer)**: If hard module → slightly faster pace but **never sacrifice accuracy on easy/medium**.
+- **Flag Threshold**: >90 sec on any question → flag and move on.
+- **Final 5 min**: Return to flagged, then guess on remaining (no penalty).
+
+---
+
+### 📝 NEW PRACTICE SET (July 8 Update)
+
+**Inferences:**
+1. Passage: "The new traffic policy reduced average commute times by 12%. However, public transit ridership declined 8% over the same period." What can be inferred?
+   - A) The policy caused the ridership decline
+   - B) Reduced commute times made driving more attractive relative to transit
+   - C) The policy was a failure
+   - D) Public transit is inefficient
+
+**Cross-Text:**
+2. Passage 1: Argues that AI will create more jobs than it destroys by enabling new industries.
+   Passage 2: Presents data showing 30% of current jobs at high automation risk, with retraining programs underfunded.
+   Relationship?
+   - A) Direct contradiction
+   - B) Different aspects of the same phenomenon
+   - C) Passage 2 refutes Passage 1's methodology
+   - D) Passage 1 provides evidence for Passage 2
+
+**Rhetorical Synthesis:**
+3. Goal: Emphasize the contrast between expectation and reality
+   Notes: Predicted 5% growth, actual 2% decline; economists "surprised"; "contradicts decade-long trend"
+   Best answer uses: "contrary to expectations," "surprisingly," "defied predictions"
+
+**Central Idea:**
+4. Passage describes: Causes of coral bleaching (warming, acidification), effects (ecosystem collapse, fisheries loss), solutions (marine protected areas, emission reduction).
+   Central idea?
+   - A) Coral reefs are dying
+   - B) Coral bleaching, driven by climate change, threatens marine ecosystems but can be addressed through conservation and emission cuts
+   - C) Marine protected areas are the best solution
+   - D) Ocean warming causes coral bleaching
+
+**Evidence:**
+5. Q1: The author implies the technology is not yet ready for widespread adoption.
+   Q2: Which choice provides the best evidence?
+   - Find lines mentioning limitations, "early stages," "further development needed"
+
+**Vocab:**
+6. "The committee's ___ approach meant that every proposal was scrutinized in detail."
+   A) cursory B) fastidious C) pragmatic D) ubiquitous → **B** (context: "every proposal scrutinized in detail")
+
+---
+
+### 💡 KEY STRATEGIES FOR NEW READING MATERIAL (July 8)
+
+1. **Inferences**: "Must Be True" = logically forced. "Could Be True" = trap. Quantitative/causal/scope/attitude subtypes.
+
+2. **Cross-Text**: ICC = Identify claim/tone/evidence, Compare systematically, Classify with precise vocabulary (qualified agreement ≠ direct contradiction).
+
+3. **Rhetorical Synthesis**: GOAL first → Group notes → Gather relevant → Generate. Distractors = notes irrelevant to specific goal.
+
+4. **Central Idea**: Topic + Claim + Significance. Avoid too narrow (detail), too broad (topic only), wrong claim, purpose confusion.
+
+5. **Evidence**: Work backwards. Evidence must DIRECTLY prove Q1. Hierarchy: direct quote > paraphrase > data > example > trap.
+
+6. **Vocab**: Substitution method + 12 high-yield words (ambivalent, candid, disparate, ephemeral, equivocal, fastidious, gregarious, incisive, lucid, myriad, pragmatic, ubiquitous). Context clues: contrast, cause/effect, definition, example, tone, structure.
+
+7. **Time**: Module 1 = accuracy (sets ceiling). Flag >90 sec. Final 5 min = flagged + guesses. ~71 sec avg but invest in cross-text/synthesis.
+---
+
 ## 📅 Update: 2026-07-06 - New Concepts from Summer SAT/ACT Class (Days 10-12)
 
 ### 🔍 INFERENCES: Mastering What Must Be True (Deep Dive)

@@ -517,6 +517,383 @@ From Standard English Conventions 3 (10_W, 11_W).
 7. **Process of Elimination**: On "which is best" questions, eliminate grammar errors first, then choose most concise correct version.
 ---
 
+## 📅 Update: 2026-07-08 - New Concepts from Summer SAT/ACT Class (Days 12-13)
+
+### ⏰ VERB TENSES: Advanced Sequences & Traps
+
+From 13_Tenses.pdf, 13_(Ans) Tenses.pdf — deeper College Panda Chapter 15 coverage.
+
+#### Perfect Progressive Forms (Full System)
+
+| Tense | Form | Use | Signal Words |
+|-------|------|-----|--------------|
+| **Present Perfect Progressive** | has/have been + -ing | Started past, continuing now | "since 2010," "for 5 years," "recently," "lately" |
+| **Past Perfect Progressive** | had been + -ing | Ongoing before another past event | "before," "by the time," "when" |
+| **Future Perfect Progressive** | will have been + -ing | Ongoing up to a future point | "by [future time]," "by the time [future event]" |
+
+**SAT Trap**: "has been doing" ≠ "has done"
+- "She has been studying" = started past, still studying (or just finished)
+- "She has studied" = completed action, present relevance
+
+#### Conditional Tense Sequences (Complete)
+
+| Type | If-Clause | Main Clause | Name | Example |
+|------|-----------|-------------|------|---------|
+| **Zero** (Fact) | Present | Present | General truth | "If water boils, it turns to steam." |
+| **First** (Real Future) | Present | will + base | Real possibility | "If it rains, I will stay home." |
+| **Second** (Unreal Present) | Past | would + base | Hypothetical now | "If I were rich, I would travel." |
+| **Third** (Unreal Past) | Past Perfect | would have + V3 | Hypothetical past | "If I had known, I would have come." |
+| **Mixed** (Past→Present) | Past Perfect | would + base | Past cause, present result | "If I had studied, I would be ready." |
+
+**Key Rule**: Never use "would" in the if-clause!
+- ✗ "If I would know, I would tell you."
+- ✓ "If I knew, I would tell you."
+
+#### Reported Speech Tense Backshifting
+
+| Direct Speech | Reported Speech | Rule |
+|---------------|-----------------|------|
+| Present Simple | Past Simple | "I like it" → He said he liked it |
+| Present Continuous | Past Continuous | "I am reading" → He said he was reading |
+| Present Perfect | Past Perfect | "I have finished" → He said he had finished |
+| Past Simple | Past Perfect | "I finished" → He said he had finished |
+| will | would | "I will go" → He said he would go |
+| can | could | "I can swim" → He said he could swim |
+| may | might | "It may rain" → He said it might rain |
+
+**Exception**: Universal truths don't backshift
+- "The Earth is round" → He said the Earth **is** round. (Not "was")
+
+#### Tense Selection Algorithm (5-Step)
+
+1. **Find ALL time markers** in the sentence (explicit + implied)
+2. **Identify the anchor tense** (usually the first/main verb)
+3. **Check for conditional/if-clauses** → apply conditional sequence
+4. **Check for reported speech** → apply backshifting
+5. **Ensure consistency** — all verbs align logically with timeline
+
+---
+
+### 🎯 SUBJECT-VERB AGREEMENT: The Hardest Traps
+
+From 4_(Ans) Subject Verb Agreement.pdf + new SAT patterns.
+
+#### Trap 8: "There is/There are" with Compound Subjects
+
+| Pattern | Verb | Example |
+|---------|------|---------|
+| **There + be + singular, singular...** | **is** (or matches first) | "There is a pen and a pencil on the desk." |
+| **There + be + plural...** | **are** | "There are pens and pencils on the desk." |
+
+**SAT Rule**: In formal writing, verb often matches **first** subject. But "there are a pen and a pencil" also accepted. Check answer choices!
+
+#### Trap 9: "The only one of..." vs "One of the..."
+
+| Structure | Verb | Reason |
+|-----------|------|--------|
+| **The only one of the [plural] who...** | **singular** | "The only one" = singular subject |
+| **One of the [plural] who...** | **plural** | "Who" refers to plural antecedent |
+
+Examples:
+- "She is the **only one of the students who is** failing." (only one = singular)
+- "She is **one of the students who are** failing." (who = students = plural)
+
+#### Trap 10: "Each" / "Every" with Compound Subjects
+
+- "Each boy and girl **has** a ticket." (singular)
+- "Every man, woman, and child **was** affected." (singular)
+
+**But**: "Each of the boys **has**..." / "Every one of the girls **is**..."
+
+#### Trap 11: Relative Pronoun Agreement (who/which/that)
+
+| Antecedent | Verb in Relative Clause |
+|------------|-------------------------|
+| **Singular** | Singular ("The student who **is** here") |
+| **Plural** | Plural ("The students who **are** here") |
+| **"One of the [plural] who..."** | **Plural** ("One of the students who **are**...") |
+| **"The only one of the [plural] who..."** | **Singular** ("The only one who **is**...") |
+
+#### Trap 12: "Majority/Minority/Percentage/Proportion" + "of"
+
+| Structure | Verb | Reason |
+|-----------|------|--------|
+| **The majority of [singular]...** | **Singular** | "The majority of the cake **is** gone." |
+| **The majority of [plural]...** | **Plural** | "The majority of the students **are** here." |
+| **A majority of [plural]...** | **Plural** | "A majority of voters **support** the bill." |
+
+#### Trap 13: "Number of" vs "Amount of"
+
+- **"A number of"** + plural noun → **plural verb** ("A number of students **are**...")
+- **"The number of"** + plural noun → **singular verb** ("The number of students **is**...")
+- **"Amount of"** + uncountable noun → **singular** ("The amount of sugar **is**...")
+
+---
+
+### 🔧 MODIFIERS: Advanced Dangling & Misplaced
+
+From 5_Modifiers.pdf, 5_(Ans) Modifiers.pdf + new patterns.
+
+#### Dangling Infinitive Phrases
+
+**Wrong**: "**To pass the test**, the book must be studied."
+- Who must study? Not the book!
+
+**Fixed**: "**To pass the test**, **you** must study the book."
+Or: "The book must be studied **to pass the test**." (Passive, but logical)
+
+#### Dangling Prepositional Phrases (Participle Implied)
+
+**Wrong**: "**After finishing the exam**, the answers were submitted."
+- Implied subject of "finishing" = "answers"? No!
+
+**Fixed**: "**After finishing the exam**, **I** submitted the answers."
+
+#### Misplaced "Only" — Scope Changes Meaning
+
+| Placement | Meaning |
+|-----------|---------|
+| **"Only** she loves him." | No one else loves him. |
+| "She **only** loves him." | She does nothing else but love him. |
+| "She loves **only** him." | She loves him and no one else. |
+| "She loves him **only**." | Same as above (end position). |
+
+**SAT Pattern**: "She only eats vegetables" → usually means "She eats **only** vegetables" (vegetables are the only thing she eats).
+
+#### Comparative Modifier Errors
+
+| Wrong | Right | Reason |
+|-------|-------|--------|
+| "Like his brother, the car is fast." | "Like his brother, **he** drives a fast car." | "Like" modifies noun, not sentence |
+| "Unlike the movie, the book was better." | "Unlike the movie, **the book** was better." (OK) | Compare book to movie |
+| "Different than" | "Different **from**" | "Than" follows comparatives (-er, more) |
+
+---
+
+### 📍 PUNCTUATION: Advanced Rules & Edge Cases
+
+From 14_Commas, Dashes, Colons.pdf, 14_(Ans).pdf + SAT edge cases.
+
+#### Comma: The "Non-Essential" Test
+
+**Rule**: If you can remove the phrase and the sentence still makes sense → commas.
+
+| Test | Example | Commas? |
+|------|---------|---------|
+| **Remove it → still grammatical?** | "My brother, who lives in NYC, is here." → "My brother is here." ✓ | Yes |
+| **Remove it → meaning changes?** | "The man who stole my car was caught." → "The man was caught." (Which man?) | No |
+
+**SAT Trap**: "My brother who lives in NYC is here." (No commas = I have multiple brothers, specifying which one)
+
+#### Semicolon + Conjunctive Adverb (Formal Pattern)
+
+**Pattern**: Independent clause; **conjunctive adverb**, independent clause.
+
+| Conjunctive Adverbs | Example |
+|---------------------|---------|
+| however, therefore, moreover, furthermore, consequently, nevertheless, otherwise, thus, hence, accordingly | "It rained; **therefore**, the game was canceled." |
+
+**Common Error**: Using comma instead of semicolon
+- ✗ "It rained, therefore the game was canceled."
+- ✓ "It rained; therefore, the game was canceled."
+
+#### Colon: Must Follow Complete Sentence
+
+| Wrong | Right | Reason |
+|-------|-------|--------|
+| "The ingredients are: flour, sugar, eggs." | "The ingredients **are flour, sugar, and eggs**." | No colon after verb |
+| "She wants: to travel." | "She **wants to travel**." | No colon after verb |
+| "He has three hobbies: reading, swimming, and coding." | ✓ | Complete sentence before colon |
+
+#### Dashes: Emphasis vs. Parentheses
+
+| Usage | Effect | Example |
+|-------|--------|---------|
+| **Pair of dashes** | Strong emphasis, dramatic | "The winner—**my best friend**—cheered." |
+| **Single dash** | Explanation, summary, emphasis | "She got the job—**her dream since childhood**." |
+| **Parentheses** | Whispered aside, incidental | "The winner (my best friend) cheered." |
+
+**SAT Rule**: If the phrase contains commas, use dashes (not commas) to avoid confusion.
+- "Three students—Anna, Ben, and Cara—won awards." (Correct)
+- "Three students, Anna, Ben, and Cara, won awards." (Confusing: 3 students or 6 people?)
+
+---
+
+### 🏗️ PARALLELISM: Advanced Patterns
+
+From 10_W, 11_W (Standard English Conventions 3).
+
+#### Correlative Conjunctions — Both Sides Must Match
+
+| Correlative Pair | Wrong | Right |
+|------------------|-------|-------|
+| **Not only... but also** | "Not only **smart** but also **works hard**." | "Not only **smart** but also **hardworking**." |
+| **Either... or** | "Either **to stay** or **going**." | "Either **to stay** or **to go**." / "**Staying** or **going**." |
+| **Neither... nor** | "Neither **reading** nor **to write**." | "Neither **reading** nor **writing**." |
+| **Both... and** | "Both **intelligent** and **has humor**." | "Both **intelligent** and **humorous**." |
+
+#### Comparison Parallelism
+
+| Structure | Wrong | Right |
+|-----------|-------|-------|
+| **More X than Y** | "She is **more smart** than **diligent**." | "She is **smart** rather than **diligent**." / "More **smart** than **diligent**." |
+| **X rather than Y** | "He chose **to run** rather than **walking**." | "He chose **to run** rather than **walk**." / "**Running** rather than **walking**." |
+| **Prefer X to Y** | "I prefer **reading** than **to watch** TV." | "I prefer **reading** to **watching** TV." |
+
+#### Ellipsis in Parallelism (Allowed When Clear)
+
+- "She likes reading, writing, and **math**." (OK: "to" distributes)
+- "He wants to swim, hike, and **bike**." (OK: "to" distributes)
+- "The movie was better than the book **was**." (Ellipsis OK)
+
+**But**: If ambiguous, repeat the word.
+- "She likes reading more than **he**." (Ambiguous: more than he likes reading? more than she likes him?)
+- "She likes reading more than **he does**." (Clear)
+
+---
+
+### 🔗 PRONOUNS: Advanced Agreement & Case
+
+#### "Who" vs "Whom" — The He/Him Test
+
+| Step | Process |
+|------|---------|
+| 1. Find the clause with who/whom |
+| 2. Rearrange to normal order |
+| 3. Substitute **he/him** |
+| 4. **He** → **who**; **Him** → **whom** |
+
+Examples:
+- "To **who/whom** did you give it?" → "You gave it to **him**" → **whom**
+- "**Who/Whom** called you?" → "**He** called you" → **who**
+- "She is the one **who/whom** I trust." → "I trust **him**" → **whom**
+
+#### Pronoun Case After "Than/As" (Elliptical Clauses)
+
+| Structure | Test | Correct |
+|-----------|------|---------|
+| "She is taller than **I/me**." | "She is taller than **I am**." | **I** (subject of implied verb) |
+| "He likes her more than **I/me**." | Ambiguous! | "He likes her more than **I do**." (I like her) / "**me**" (he likes me) |
+
+**SAT Rule**: If ambiguous, the sentence will be revised to clarify.
+
+#### Possessive Pronouns with Gerunds
+
+| Wrong | Right | Reason |
+|-------|-------|--------|
+| "I appreciate **him** helping." | "I appreciate **his** helping." | Gerund = noun; use possessive |
+| "We discussed **them** leaving." | "We discussed **their** leaving." | Gerund needs possessive |
+
+---
+
+### 🎯 CONCISENESS & STYLE: The SAT Preferences (Expanded)
+
+#### Redundancy Pairs (Delete the Extra)
+
+| Redundant | Concise | Why |
+|-----------|---------|-----|
+| "past history" | "history" | History = past |
+| "future plans" | "plans" | Plans = future |
+| "free gift" | "gift" | Gift = free |
+| "end result" | "result" | Result = end |
+| "basic fundamentals" | "fundamentals" | Fundamentals = basic |
+| "collaborate together" | "collaborate" | Collaborate = together |
+| "repeat again" | "repeat" | Repeat = again |
+| "unexpected surprise" | "surprise" | Surprise = unexpected |
+| "advance planning" | "planning" | Planning = advance |
+| "close proximity" | "proximity" | Proximity = close |
+
+#### Wordiness → Directness
+
+| Wordy | Concise |
+|-------|---------|
+| "due to the fact that" | "because" |
+| "in order to" | "to" |
+| "at this point in time" | "now" |
+| "the reason is because" | "the reason is that" / "because" |
+| "make a decision" | "decide" |
+| "give an explanation" | "explain" |
+| "conduct an investigation" | "investigate" |
+| "reach a conclusion" | "conclude" |
+| "take into consideration" | "consider" |
+| "with the exception of" | "except" |
+
+#### Passive → Active (Preferred)
+
+| Passive | Active |
+|---------|--------|
+| "The proposal **was approved by** the committee." | "The committee **approved** the proposal." |
+| "Mistakes **were made**." | "**We made** mistakes." |
+| "It **is believed by** many that..." | "Many **believe** that..." |
+
+**Exception**: Passive OK when actor unknown/unimportant, or emphasis on receiver.
+- "The window **was broken** during the storm." (Actor unknown/irrelevant)
+
+---
+
+### 📝 NEW PRACTICE SET (July 8 Update)
+
+**Tenses:**
+1. By the time the movie **starts**, we **will have been waiting** for 30 minutes.
+2. If she **had known** the truth, she **would have acted** differently. (Third conditional)
+3. The report stated that the economy **had grown** by 3% the previous year. (Backshift)
+4. **Having finished** the exam, **the answers were submitted**. → **Having finished** the exam, **I submitted** the answers. (Dangling)
+
+**Subject-Verb Agreement:**
+5. The only one of the students who **is** failing is my brother.
+6. One of the students who **are** failing is my brother.
+7. A number of theories **have** been proposed; the number of theories **is** growing.
+8. Each of the participants **has** received a certificate.
+9. Neither the coach nor the players **are** happy with the call.
+
+**Modifiers:**
+10. **Exhausted from the hike**, the campsite was a welcome sight.
+    → **Exhausted from the hike**, **we** found the campsite a welcome sight.
+11. She only **eats** organic food. → She eats **only** organic food.
+12. **To qualify**, the application must be complete. (Correct — understood subject)
+
+**Punctuation:**
+13. The recipe calls for three ingredients: **flour, sugar, and eggs**.
+14. It was a difficult test; **nevertheless**, she passed.
+15. The winner—**a complete surprise**—accepted the trophy.
+16. My brother, who lives in NYC, is visiting. (Non-essential = commas)
+17. The man who stole my car was caught. (Essential = no commas)
+
+**Parallelism:**
+18. The course covers **reading, writing, and math**. (All nouns)
+19. She likes **to swim, hike, and bike**. (All base verbs after "to")
+20. Not only **smart** but also **hardworking**. (Both adjectives)
+
+**Pronouns:**
+21. Each of the students must submit **their** application by Friday. (Singular they OK)
+22. The teacher gave the award to **whoever** earned it. (Subject of "earned" → whoever)
+23. I appreciate **your/him** helping me. → **your** helping (possessive + gerund)
+
+---
+
+### 💡 KEY STRATEGIES FOR NEW WRITING MATERIAL (July 8)
+
+1. **Tenses**: Find time marker → determine relationship to other verbs → select consistent tense. Master conditional sequences (Zero/First/Second/Third/Mixed). Reported speech backshifting. Never "would" in if-clause.
+
+2. **Subject-Verb Agreement**: Cross out prepositional phrases. For or/nor → match closer subject. "The only one of..." = singular; "One of the... who..." = plural. "A number of" = plural, "The number of" = singular.
+
+3. **Modifiers**: Introductory -ing/-ed/infinitive phrases MUST modify subject of main clause. "Only" placement changes meaning. "Different from" not "than." Like/unlike compare nouns.
+
+4. **Punctuation**: 
+   - Semicolon = period (independent clauses); + conjunctive adverb = semicolon before, comma after
+   - Colon = after complete sentence only
+   - Dashes = emphasis or non-essential with internal commas
+   - Commas = non-essential (removable), not essential (defining)
+
+5. **Parallelism**: Circle trigger (and, or, but, than, not only, either...or). Match forms: gerunds, infinitives, nouns, adjectives. Correlative pairs = strict parallelism.
+
+6. **Pronouns**: Who/whom → he/him test. Than/as + pronoun → add implied verb. Possessive before gerund.
+
+7. **Conciseness**: Shorter = better if meaning preserved. Kill "due to the fact that," "in order to," passive voice. Redundancy pairs: past history, free gift, etc.
+
+8. **Process**: Eliminate grammar errors first → choose most concise correct version.
+---
+
 ## 📅 Update: 2026-07-06 - New Concepts from Summer SAT/ACT Class (Days 6, 10-12)
 
 ### 📝 STANDARD ENGLISH CONVENTIONS: Complete Grammar Coverage
