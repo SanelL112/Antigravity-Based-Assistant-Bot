@@ -1,5 +1,5 @@
 import os
-import requests
+import httpx
 import asyncio
 from telegram import Bot
 import logging
@@ -13,7 +13,7 @@ DATABASE_ID = "38309c49-e758-8004-8005-c5440093e2cb"
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 SANEL_CHAT_ID = 8534649457
 
-def get_pending_tasks():
+async def get_pending_tasks():
     if not NOTION_API_KEY: return []
     query_url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
     headers = {
@@ -30,9 +30,10 @@ def get_pending_tasks():
         }
     }
     try:
-        res = requests.post(query_url, headers=headers, json=payload, timeout=10)
-        res.raise_for_status()
-        results = res.json().get("results", [])
+        async with httpx.AsyncClient() as client:
+            res = await client.post(query_url, headers=headers, json=payload, timeout=10)
+            res.raise_for_status()
+            results = res.json().get("results", [])
         tasks = []
         for r in results:
             title_props = r.get("properties", {}).get("Task name", {}).get("title", [])
@@ -56,7 +57,7 @@ async def send_morning_digest():
         with open(context_file, "r", encoding="utf-8") as f:
             bot_context = f.read().strip()
             
-    tasks = get_pending_tasks()
+    tasks = await get_pending_tasks()
     
     msg = "☀️ **GOOD MORNING! Here is your Daily Digest.**\n\n"
     
