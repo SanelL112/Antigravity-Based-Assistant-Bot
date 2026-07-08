@@ -30,7 +30,9 @@ INDEX_DIR = os.path.join(BASE_DIR, "embedding_data")
 INDEX_PATH = os.path.join(INDEX_DIR, "embedding_index.npz")
 MANIFEST_PATH = os.path.join(INDEX_DIR, "manifest.json")
 
-OLLAMA_URL = "http://localhost:11434"
+# Use Orange Pi 5 for embeddings (has nomic-embed-text, frees local CPU)
+# OLLAMA_URL loaded from config.py (which reads from .env)
+from config import OLLAMA_URL
 EMBED_MODEL = "nomic-embed-text"
 CHUNK_SIZE = 1000  # tokens (approximate: 1 token ~ 4 chars, so ~4000 chars)
 CHUNK_OVERLAP = 200  # tokens overlap between chunks (~800 chars)

@@ -40,7 +40,8 @@ if _missing_vars:
 
 # ── External Services ─────────────────────────────────────────────────────────
 AGENTAPI_BIN = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
-OLLAMA_URL = "http://localhost:11434"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_ORANGEPI_URL = os.getenv("OLLAMA_ORANGEPI_URL", "http://10.10.10.2:11434")  # Orange Pi 5 via ethernet
 RESPONSE_TIMEOUT = 300  # seconds to wait for a reply
 
 # ── OpenRouter Models ─────────────────────────────────────────────────────────
@@ -63,6 +64,12 @@ PDF_EXPORTS_FILE = CACHE_DIR / "pdf_exports.txt"
 BACKUP_DIR = BASE_DIR / "backups"
 ARCHIVE_DIR = BASE_DIR / "offline_archive"
 ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+
+# ── Orange Pi 5 NFS mounts ───────────────────────────────────────────────────
+ORANGEPI_CACHE_DIR = Path("/mnt/orangepi/cache")
+ORANGEPI_BACKUP_DIR = Path("/mnt/orangepi/backups")
+ORANGEPI_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+ORANGEPI_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Rotation Limits ──────────────────────────────────────────────────────────
 MAX_COMBINED_SUMMARIES_CHARS = 50_000      # ~7 days of digests

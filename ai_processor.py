@@ -152,11 +152,21 @@ def call_local_llm(prompt: str) -> str:
     Delegates to llm_router for unified Ollama calls.
     """
     try:
-        from llm_router import call_ollama
-        response = call_ollama(prompt, model="hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest")
-        if "UNSURE" in response.upper():
-            logger.info("Qwen2:0.5b was UNSURE. Falling back to Llama 3.2 3B GGUF...")
-            response = call_ollama(prompt, model="hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest")
+        from llm_router import call_ollama, is_orangepi_ollama_healthy
+        # Try Orange Pi 5 first (faster NPU acceleration)
+        if is_orangepi_ollama_healthy():
+            logger.info("Using Orange Pi 5 Ollama for local inference")
+            response = call_ollama(prompt, model="qwen2:0.5b")
+            if "UNSURE" not in response.upper():
+                return response if response else "Could not summarize locally."
+            logger.info("Qwen2:0.5b on Orange Pi 5 was UNSURE. Falling back to Llama 3.2 3B GGUF...")
+            response = call_ollama(prompt, model="qwen2.5:3b-instruct-q4_K_M")
+        else:
+            logger.info("Orange Pi 5 Ollama unavailable, using local Ollama")
+            response = call_ollama(prompt, model="hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest")
+            if "UNSURE" in response.upper():
+                logger.info("Qwen2:0.5b was UNSURE. Falling back to Llama 3.2 3B GGUF...")
+                response = call_ollama(prompt, model="hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest")
         return response if response else "Could not summarize locally."
     except ImportError:
         pass

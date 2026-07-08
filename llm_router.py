@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Optional
 from config import (
     OPENROUTER_API_KEY, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL,
-    COST_LOG_FILE, AGENTAPI_BIN
+    COST_LOG_FILE, AGENTAPI_BIN, OLLAMA_URL, OLLAMA_ORANGEPI_URL
 )
 
 logger = logging.getLogger(__name__)
@@ -395,14 +395,28 @@ def _streaming_call(client, model, messages, task, max_tokens, timeout, stream_t
 
 # ── Local LLM Wrappers (PII-safe, never leaves server) ──────────────────────
 def call_ollama(prompt: str, model: str = "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest",
-                timeout: int = 30) -> str:
-    """Call local Ollama model. Safe for PII — runs entirely on your server."""
+                timeout: int = 30, url: str | None = None) -> str:
+    """Call local Ollama model. Safe for PII — runs entirely on your server.
+    
+    Args:
+        prompt: The prompt to send
+        model: Model name
+        timeout: Read timeout in seconds
+        url: Ollama server URL (defaults to OLLAMA_URL from config, or OLLAMA_ORANGEPI_URL if model starts with 'qwen2.5:3b' or 'qwen2:0.5b')
+    """
+    # Auto-select Orange Pi 5 for qwen2.5:3b and qwen2:0.5b models
+    if url is None:
+        if model.startswith("qwen2.5:3b") or model.startswith("qwen2:0.5b"):
+            url = OLLAMA_ORANGEPI_URL
+        else:
+            url = OLLAMA_URL
+   
     try:
         import httpx
         # Use proper httpx timeout with all 4 parameters
         httpx_timeout = httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0)
         resp = httpx.post(
-            "http://localhost:11434/api/generate",
+            f"{url}/api/generate",
             json={"model": model, "prompt": prompt, "stream": False, "options": {"temperature": 0.0}},
             timeout=httpx_timeout,
         )
@@ -510,13 +524,19 @@ def response_cache_key(model: str, prompt: str) -> str:
     return hashlib.md5(f"{model}:{prompt}".encode()).hexdigest()
 
 
-def is_ollama_healthy() -> bool:
-    """Check if Ollama is running and responsive."""
+def is_ollama_healthy(url: str | None = None) -> bool:
+    """Check if Ollama is running at the given URL."""
+    target = url or OLLAMA_URL
     try:
-        resp = requests.get("http://localhost:11434/api/tags", timeout=5)
+        resp = requests.get(f"{target}/api/tags", timeout=5)
         return resp.status_code == 200
     except Exception:
         return False
+
+
+def is_orangepi_ollama_healthy() -> bool:
+    """Check if Orange Pi 5 Ollama is running."""
+    return is_ollama_healthy(OLLAMA_ORANGEPI_URL)
 
 
 def is_agy_healthy(model: str = "flash") -> bool:
