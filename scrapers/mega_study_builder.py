@@ -52,6 +52,7 @@ def search_web_article(topic: str):
         queries = [f"{topic} tutorial", f"{topic} explanation", f"{topic} study guide", f"{topic} practice problems", f"{topic} advanced concepts"]
         combined_text = ""
         sources_list = []
+        seen_hrefs = set()
         
         for q in queries:
             logger.info(f"Querying DuckDuckGo: {q}...")
@@ -61,7 +62,7 @@ def search_web_article(topic: str):
                 
                 for res in results:
                     if len(sources_list) >= 100: break
-                    if any(s["href"] == res["href"] for s in sources_list): continue
+                    if res["href"] in seen_hrefs: continue
                     
                     try:
                         resp = requests.get(res["href"], timeout=5)
@@ -69,6 +70,7 @@ def search_web_article(topic: str):
                         combined_text += f"\n--- SOURCE: {res['title']} ---\n"
                         combined_text += " ".join([p.text for p in soup.find_all("p")])
                         sources_list.append({"title": res["title"], "href": res["href"]})
+                        seen_hrefs.add(res["href"])
                     except Exception:
                         continue
             except Exception as e:
