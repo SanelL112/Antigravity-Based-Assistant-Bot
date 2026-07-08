@@ -34,7 +34,6 @@ atexit.register(_cleanup_background_tasks)
 TELEGRAM_BOT_TOKEN  = os.getenv("TELEGRAM_BOT_TOKEN")
 CONVERSATION_ID     = os.getenv("CONVERSATION_ID")
 AGENTAPI_BIN        = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
-SUDO_PASSWORD       = os.getenv("SUDO_PASSWORD", "")
 TRANSCRIPT_PATH     = os.getenv(
     "TRANSCRIPT_PATH",
     f"/home/sanellathiya/.gemini/antigravity-cli/brain/{CONVERSATION_ID}/.system_generated/logs/transcript.jsonl"

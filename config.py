@@ -17,7 +17,6 @@ TELEGRAM_CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "0"))
 SANEL_CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID", "0"))  # Alias for backward compatibility
 
 CONVERSATION_ID = os.getenv("CONVERSATION_ID", "")
-SUDO_PASSWORD = os.getenv("SUDO_PASSWORD", "")
 GROUPME_TOKEN = os.getenv("GROUPME_TOKEN", "")
 GROUPME_GROUP_ID = os.getenv("GROUPME_GROUP_ID", "")
 
