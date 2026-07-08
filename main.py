@@ -8,7 +8,7 @@ try:
 except Exception:
     pass
 
-from activity_log import log_event, log_llm_call, log_scrape, log_system, log_nightly, get_recent_events, format_events
+from activity_log import log_event
 from utils import scrub_pii
 import time
 import asyncio
