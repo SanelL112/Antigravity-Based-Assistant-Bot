@@ -1,4 +1,4 @@
-import re
+
 
 def fix_bot_commands():
     with open('bot/commands.py', 'r') as f:
