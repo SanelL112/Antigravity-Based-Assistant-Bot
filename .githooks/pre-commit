@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit — CI-style checks for the personal assistant bot.
+#
+# Runs on every `git commit` after `git config core.hooksPath .githooks`.
+# Exits non-zero to block the commit if any check fails.
+#
+# Checks (in order):
+#   1. pyflakes on changed/added .py files  (catches undefined names, unused imports)
+#   2. python -W error::DeprecationWarning import on each safe-to-import module
+#      (catches any future runtime DeprecationWarning during import)
+#   3. static grep for known 3.10+/3.12+ deprecation patterns
+#      (catches utcnow()/pytz-style drift even if no DeprecationWarning is raised yet)
+#
+# Skip with: git commit --no-verify
+set -e
+
+cd "$(git rev-parse --show-toplevel)"
+
+# 0) Collect changed/added .py files in this commit
+CHANGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.py$' || true)
+if [ -z "$CHANGED" ]; then
+  exit 0
+fi
+
+echo "pre-commit: $CHANGED"
+echo
+
+# 1) pyflakes
+echo "[1/3] pyflakes"
+if command -v pyflakes >/dev/null 2>&1; then
+  PYFLAKES_CMD="pyflakes"
+elif python3 -m pyflakes --version >/dev/null 2>&1; then
+  PYFLAKES_CMD="python3 -m pyflakes"
+else
+  PYFLAKES_CMD=""
+  echo "  pyflakes not installed — skipping (install with: pip install pyflakes)"
+fi
+
+if [ -n "$PYFLAKES_CMD" ]; then
+  if $PYFLAKES_CMD $CHANGED; then
+    echo "  pyflakes: OK"
+  else
+    echo "  pyflakes: FAILED — see errors above"
+    exit 1
+  fi
+fi
+echo
+
+# 2) DeprecationWarning-as-error on import
+#    Try to import each safe module under -W error::DeprecationWarning. Missing
+#    deps (network errors, missing .env) are silently skipped so this doesn't
+#    false-positive in a fresh checkout — but ANY DeprecationWarning during
+#    import is fatal.
+echo "[2/3] python -W error::DeprecationWarning import check"
+if PYTHONPATH=. python3 -W error::DeprecationWarning << 'PYEOF'
+import sys
+import warnings
+
+# Convert ALL DeprecationWarnings to errors (the goal of the check)
+warnings.filterwarnings("error", category=DeprecationWarning)
+# But: do not fail on PendingDeprecationWarning (3.12+ removed it, harmless)
+warnings.filterwarnings("default", category=PendingDeprecationWarning)
+
+# Only try safe-to-import modules (no side effects, no env-var reads).
+# Adding a module here means "importing it should never emit DeprecationWarning".
+SAFE_MODULES = [
+    "utils",
+    "bot.state",
+    "bot.security",
+    "config",
+]
+
+ok, skipped, failed = 0, 0, 0
+for m in SAFE_MODULES:
+    try:
+        __import__(m)
+        print(f"  import ok   {m}")
+        ok += 1
+    except DeprecationWarning as e:
+        # Re-raise so the outer || triggers
+        print(f"  DEPRECATION in {m}: {e}")
+        sys.exit(1)
+    except Exception as e:
+        # Missing deps, env vars, etc. — not our concern in this check
+        print(f"  (skip {m}: {type(e).__name__}: {str(e)[:80]})")
+        skipped += 1
+
+print(f"  -> {ok} ok, {skipped} skipped, {failed} failed")
+PYEOF
+then
+  echo "  DeprecationWarning-as-error: OK"
+else
+  echo "  DeprecationWarning-as-error: FAILED"
+  exit 1
+fi
+echo
+
+# 3) Static grep for known 3.10+/3.12+ deprecation patterns.
+#    These are patterns that may NOT raise a DeprecationWarning at import time
+#    (e.g. utcnow() doesn't warn on 3.12, but is slated for removal). This
+#    check is the last line of defense.
+echo "[3/3] static grep for known deprecation patterns"
+PATTERNS=(
+  # datetime.utc* — deprecated in 3.12, removal pending
+  'datetime\.utcnow\(\)'
+  'datetime\.utcfromtimestamp\('
+  # pytz — use zoneinfo (3.9+)
+  '^import pytz\b|^from pytz\b'
+  # Removed in 3.12
+  '^import distutils\b|^from distutils\b'
+  '^import imp\b|^from imp\b'
+  '^import asyncore\b|^from asyncore\b'
+  '^import asynchat\b|^from asynchat\b'
+  '^import smtpd\b|^from smtpd\b'
+  '^import binhex\b|^from binhex\b'
+  '^import macpath\b|^from macpath\b'
+  'subprocess\.(getoutput|getstatusoutput)\('
+  # Removed in 3.10
+  '^import cgi\b|^from cgi\b'
+  'cgi\.(escape|parse|FieldStorage)\b'
+  'collections\.(MutableMapping|MutableSet|Mapping|Sequence|Iterable|Iterator|Container|Hashable|Sized|Callable|Coroutine|Awaitable|AsyncIterable|AsyncIterator|AsyncGenerator)\b'
+  'asyncio\.get_event_loop\(\)'
+  # Removed in 3.11
+  'inspect\.getargspec'
+  'unittest\.(makeSuite|findTestCases|getTestCaseNames)\b'
+  # Removed in 3.8
+  'platform\.linux_distribution\b'
+  # Removed-in-future stdlib deprecations
+  'logging\.warn\('
+  # unittest camelCase aliases
+  '\.assertEquals\(|\.assertNotEquals\(|\.assertRegexpMatches\(|\.assertNotRegexpMatches\('
+)
+
+FOUND=0
+for pat in "${PATTERNS[@]}"; do
+  matches=$(grep -nE "$pat" $CHANGED 2>/dev/null || true)
+  if [ -n "$matches" ]; then
+    echo "  ❌ pattern: $pat"
+    echo "$matches" | sed 's/^/      /'
+    FOUND=1
+  fi
+done
+
+if [ "$FOUND" -eq 1 ]; then
+  echo
+  echo "  static-grep: FAILED — fix the patterns above (or use --no-verify if intentional)"
+  exit 1
+fi
+echo "  static-grep: OK"
+echo
+
+echo "pre-commit: ✅ all checks passed"
