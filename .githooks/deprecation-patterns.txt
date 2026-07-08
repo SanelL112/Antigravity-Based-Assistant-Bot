@@ -1,0 +1,74 @@
+# .githooks/deprecation-patterns.txt
+# Single source of truth for static-grep deprecation checks.
+# Read with: grep -nE -f .githooks/deprecation-patterns.txt <files...>
+#
+# One POSIX-ERE pattern per line. Comments start with # and are ignored by grep.
+# Used by both .githooks/pre-commit (local) and .github/workflows/lint.yml (CI),
+# so editing this file updates both at once — no drift.
+
+# datetime.utc* — deprecated in 3.12, removal pending
+datetime\.utcnow\(\)
+datetime\.utcfromtimestamp\(
+
+# pytz — use zoneinfo (3.9+)
+^import pytz\b
+^from pytz\b
+
+# Removed in 3.12
+^import distutils\b
+^from distutils\b
+^import imp\b
+^from imp\b
+^import asyncore\b
+^from asyncore\b
+^import asynchat\b
+^from asynchat\b
+^import smtpd\b
+^from smtpd\b
+^import binhex\b
+^from binhex\b
+^import macpath\b
+^from macpath\b
+^subprocess\.getoutput\(
+^subprocess\.getstatusoutput\(
+
+# Removed in 3.10
+^import cgi\b
+^from cgi\b
+^cgi\.escape\b
+^cgi\.parse\b
+^cgi\.FieldStorage\b
+^collections\.MutableMapping\b
+^collections\.MutableSet\b
+^collections\.Mapping\b
+^collections\.Sequence\b
+^collections\.Iterable\b
+^collections\.Iterator\b
+^collections\.Container\b
+^collections\.Hashable\b
+^collections\.Sized\b
+^collections\.Callable\b
+^collections\.Coroutine\b
+^collections\.Awaitable\b
+^collections\.AsyncIterable\b
+^collections\.AsyncIterator\b
+^collections\.AsyncGenerator\b
+asyncio\.get_event_loop\(\)
+
+# Removed in 3.11
+^inspect\.getargspec
+^unittest\.makeSuite\b
+^unittest\.findTestCases\b
+^unittest\.getTestCaseNames\b
+
+# Removed in 3.8
+^platform\.linux_distribution\b
+
+# Removed-in-future stdlib deprecations
+^logging\.warn\(
+
+# unittest camelCase aliases
+\.assertEquals\(
+\.assertNotEquals\(
+\.assertRegexpMatches\(
+\.assertNotRegexpMatches\(

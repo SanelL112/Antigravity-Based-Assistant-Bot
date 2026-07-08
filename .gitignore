@@ -7,6 +7,7 @@ __pycache__/
 *.pyc
 
 *.txt
+!.githooks/deprecation-patterns.txt
 *.json
 source_cache/
 scratch/

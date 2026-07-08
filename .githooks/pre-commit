@@ -99,47 +99,26 @@ echo
 #    These are patterns that may NOT raise a DeprecationWarning at import time
 #    (e.g. utcnow() doesn't warn on 3.12, but is slated for removal). This
 #    check is the last line of defense.
+#    Pattern list is shared with .github/workflows/lint.yml to avoid drift.
 echo "[3/3] static grep for known deprecation patterns"
-PATTERNS=(
-  # datetime.utc* — deprecated in 3.12, removal pending
-  'datetime\.utcnow\(\)'
-  'datetime\.utcfromtimestamp\('
-  # pytz — use zoneinfo (3.9+)
-  '^import pytz\b|^from pytz\b'
-  # Removed in 3.12
-  '^import distutils\b|^from distutils\b'
-  '^import imp\b|^from imp\b'
-  '^import asyncore\b|^from asyncore\b'
-  '^import asynchat\b|^from asynchat\b'
-  '^import smtpd\b|^from smtpd\b'
-  '^import binhex\b|^from binhex\b'
-  '^import macpath\b|^from macpath\b'
-  'subprocess\.(getoutput|getstatusoutput)\('
-  # Removed in 3.10
-  '^import cgi\b|^from cgi\b'
-  'cgi\.(escape|parse|FieldStorage)\b'
-  'collections\.(MutableMapping|MutableSet|Mapping|Sequence|Iterable|Iterator|Container|Hashable|Sized|Callable|Coroutine|Awaitable|AsyncIterable|AsyncIterator|AsyncGenerator)\b'
-  'asyncio\.get_event_loop\(\)'
-  # Removed in 3.11
-  'inspect\.getargspec'
-  'unittest\.(makeSuite|findTestCases|getTestCaseNames)\b'
-  # Removed in 3.8
-  'platform\.linux_distribution\b'
-  # Removed-in-future stdlib deprecations
-  'logging\.warn\('
-  # unittest camelCase aliases
-  '\.assertEquals\(|\.assertNotEquals\(|\.assertRegexpMatches\(|\.assertNotRegexpMatches\('
-)
+PATTERNS_FILE="$(cd "$(git rev-parse --show-toplevel)" && pwd)/.githooks/deprecation-patterns.txt"
+if [ ! -f "$PATTERNS_FILE" ]; then
+  echo "  ❌ $PATTERNS_FILE not found"
+  exit 1
+fi
 
 FOUND=0
-for pat in "${PATTERNS[@]}"; do
-  matches=$(grep -nE "$pat" $CHANGED 2>/dev/null || true)
-  if [ -n "$matches" ]; then
-    echo "  ❌ pattern: $pat"
-    echo "$matches" | sed 's/^/      /'
-    FOUND=1
-  fi
-done
+# Filter out comment lines (#) and blank lines from the patterns file before
+# passing to grep -E -f (grep treats every line as a regex, so a # comment
+# like "# .githooks/deprecation-patterns.txt" would otherwise match anywhere
+# the literal text "deprecation-patterns.txt" appears in the codebase).
+matches=$(grep -nE -f <(grep -vE '^[[:space:]]*(#|$)' "$PATTERNS_FILE") $CHANGED 2>/dev/null || true)
+if [ -n "$matches" ]; then
+  FOUND=1
+  echo "$matches" | while IFS= read -r line; do
+    echo "  ❌ $line"
+  done
+fi
 
 if [ "$FOUND" -eq 1 ]; then
   echo
