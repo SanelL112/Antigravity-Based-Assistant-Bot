@@ -397,12 +397,20 @@ def _streaming_call(client, model, messages, task, max_tokens, timeout, stream_t
 def call_ollama(prompt: str, model: str = "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest",
                 timeout: int = 30, url: str | None = None) -> str:
     """Call local Ollama model. Safe for PII — runs entirely on your server.
-    
+
     Args:
         prompt: The prompt to send
         model: Model name
         timeout: Read timeout in seconds
         url: Ollama server URL (defaults to OLLAMA_URL from config, or OLLAMA_ORANGEPI_URL if model starts with 'qwen2.5:3b' or 'qwen2:0.5b')
+
+    Behavior:
+        * Connects with a tight 2 s connect timeout (LAN/VPN target should fail fast).
+        * Trailing-slash-safe URL join via rstrip('/').
+        * If the call was auto-routed to OLLAMA_ORANGEPI_URL and the response is empty
+          (timeout / connection error / non-200), transparently retry once against
+          OLLAMA_URL (the local box) so the bot doesn't silently return "" to callers
+          that would otherwise treat that as a real answer.
     """
     # Auto-select Orange Pi 5 for qwen2.5:3b and qwen2:0.5b models
     if url is None:
@@ -410,25 +418,36 @@ def call_ollama(prompt: str, model: str = "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:l
             url = OLLAMA_ORANGEPI_URL
         else:
             url = OLLAMA_URL
-   
-    try:
-        import httpx
-        # Use proper httpx timeout with all 4 parameters
-        httpx_timeout = httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0)
-        resp = httpx.post(
-            f"{url}/api/generate",
-            json={"model": model, "prompt": prompt, "stream": False, "options": {"temperature": 0.0}},
-            timeout=httpx_timeout,
+
+    def _attempt(target_url: str) -> str:
+        try:
+            import httpx
+            # Tight connect timeout for LAN/VPN; longer read timeout (caller-controlled).
+            httpx_timeout = httpx.Timeout(connect=2.0, read=float(timeout), write=10.0, pool=5.0)
+            resp = httpx.post(
+                f"{target_url.rstrip('/')}/api/generate",
+                json={"model": model, "prompt": prompt, "stream": False,
+                      "options": {"temperature": 0.0}},
+                timeout=httpx_timeout,
+            )
+            if resp.status_code == 200:
+                return resp.json().get("response", "").strip()
+            return ""
+        except httpx.TimeoutException:
+            logger.error(f"Ollama call to {target_url} timed out after {timeout}s")
+            return ""
+        except Exception as e:
+            logger.error(f"Ollama call to {target_url} failed: {e}")
+            return ""
+
+    result = _attempt(url)
+    # Transparent fallback: if we tried the Orange Pi and got nothing, retry on local Ollama.
+    if not result and url == OLLAMA_ORANGEPI_URL and OLLAMA_ORANGEPI_URL != OLLAMA_URL:
+        logger.warning(
+            f"Orange Pi Ollama at {url} returned empty; falling back to local Ollama at {OLLAMA_URL}"
         )
-        if resp.status_code == 200:
-            return resp.json().get("response", "").strip()
-        return ""
-    except httpx.TimeoutException:
-        logger.error(f"Ollama call timed out after {timeout}s")
-        return ""
-    except Exception as e:
-        logger.error(f"Ollama call failed: {e}")
-        return ""
+        result = _attempt(OLLAMA_URL)
+    return result
 
 
 def call_agy_local(prompt: str, model: str = "flash", timeout: int = 180) -> str:
