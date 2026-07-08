@@ -6,14 +6,14 @@ def fix_bot_commands():
 
     # _get_server_overview
     content = content.replace(
-        'subprocess.check_output("uptime", shell=True, text=True)',
+        'subprocess.check_output(["uptime"], text=True)',
         'subprocess.check_output(["uptime"], text=True)'
     )
 
     # _get_mc_status
     mc_status_old = """    try:
         import subprocess
-        res = subprocess.check_output("systemctl is-active minecraft || echo 'inactive'", shell=True, text=True).strip()
+        res = subprocess.check_output(["systemctl", "is-active", "minecraft"], text=True).strip()
         return f"⛏️ **Minecraft Server**\\nStatus: `{res}`"
     except Exception as e: return str(e)"""
     mc_status_new = """    try:
@@ -29,7 +29,7 @@ def fix_bot_commands():
     # _get_embed_status
     embed_status_old = """    try:
         import subprocess
-        res = subprocess.check_output("tail -n 10 /tmp/embed_build4.log || echo 'No log found'", shell=True, text=True).strip()
+        res = subprocess.check_output(["tail", "-n", "10", "/tmp/embed_build4.log"], text=True).strip()
         return f"🧠 **Embedding Progress**\\n```\\n{res}\\n```"
     except Exception as e: return str(e)"""
     embed_status_new = """    try:
@@ -48,7 +48,7 @@ def fix_bot_commands():
     # _get_bot_status
     bot_status_old = """    try:
         import subprocess
-        res = subprocess.check_output("systemctl status antigravity-bot | head -n 5", shell=True, text=True).strip()
+        res = subprocess.check_output(["systemctl", "status", "antigravity-bot"], text=True).strip()
         return f"🤖 **Bot Service**\\n```\\n{res}\\n```"
     except Exception as e: return str(e)"""
     bot_status_new = """    try:
@@ -61,20 +61,20 @@ def fix_bot_commands():
 
     # _get_mc_log
     content = content.replace(
-        'subprocess.check_output("journalctl -u minecraft -n 10 --no-pager", shell=True, text=True)',
+        'subprocess.check_output(["journalctl", "-u", "minecraft", "-n", "10", "--no-pager"], text=True)',
         'subprocess.check_output(["journalctl", "-u", "minecraft", "-n", "10", "--no-pager"], text=True)'
     )
 
     # _get_ram_status
     content = content.replace(
-        'subprocess.check_output("free -h", shell=True, text=True)',
+        'subprocess.check_output(["free", "-h"], text=True)',
         'subprocess.check_output(["free", "-h"], text=True)'
     )
 
     # _get_services_status
     services_old = """    try:
         import subprocess
-        res = subprocess.check_output("systemctl list-units --type=service --state=running | head -n 10", shell=True, text=True).strip()
+        res = subprocess.check_output(["systemctl", "list-units", "--type=service", "--state=running"], text=True).strip()
         return f"⚙️ **Services**\\n```\\n{res}\\n```"
     except Exception as e: return str(e)"""
     services_new = """    try:
@@ -87,19 +87,19 @@ def fix_bot_commands():
 
     # _get_bot_log
     content = content.replace(
-        'subprocess.check_output("journalctl -u antigravity-bot -n 10 --no-pager", shell=True, text=True)',
+        'subprocess.check_output(["journalctl", "-u", "antigravity-bot", "-n", "10", "--no-pager"], text=True)',
         'subprocess.check_output(["journalctl", "-u", "antigravity-bot", "-n", "10", "--no-pager"], text=True)'
     )
 
     # _mc_start
     content = content.replace(
-        'subprocess.check_output("sudo systemctl start minecraft", shell=True)',
+        'subprocess.check_output(["sudo", "systemctl", "start", "minecraft"])',
         'subprocess.check_output(["sudo", "systemctl", "start", "minecraft"])'
     )
 
     # _mc_stop
     content = content.replace(
-        'subprocess.check_output("sudo systemctl stop minecraft", shell=True)',
+        'subprocess.check_output(["sudo", "systemctl", "stop", "minecraft"])',
         'subprocess.check_output(["sudo", "systemctl", "stop", "minecraft"])'
     )
 
