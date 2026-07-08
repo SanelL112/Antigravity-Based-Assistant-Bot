@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INDEX_PATH = os.path.join(BASE_DIR, "embedding_data", "embedding_index.npz")
-OLLAMA_URL = "http://localhost:11434"
 EMBED_MODEL = "nomic-embed-text"
 DIM = 768
 
@@ -74,6 +73,11 @@ import httpx
 # Shared httpx client for connection pooling
 _ollama_client = None
 
+def _get_ollama_url() -> str:
+    """Get Ollama URL from config (loaded from .env)."""
+    from config import OLLAMA_URL
+    return OLLAMA_URL
+
 def _get_ollama_client() -> httpx.Client:
     global _ollama_client
     if _ollama_client is None:
@@ -86,7 +90,7 @@ def _ollama_is_running() -> bool:
     """Check if Ollama is reachable."""
     try:
         client = _get_ollama_client()
-        resp = client.get(f"{OLLAMA_URL}/api/tags")
+        resp = client.get(f"{_get_ollama_url()}/api/tags")
         return resp.status_code == 200
     except Exception:
         return False
@@ -124,7 +128,7 @@ def embed_query(query: str) -> np.ndarray | None:
     try:
         client = _get_ollama_client()
         resp = client.post(
-            f"{OLLAMA_URL}/api/embed",
+            f"{_get_ollama_url()}/api/embed",
             json={"model": EMBED_MODEL, "input": query},
         )
         if resp.status_code != 200:
