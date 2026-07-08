@@ -373,10 +373,6 @@ _STUDENT_ID_RE = _re.compile(r'\b(?:student\s*id|sid|id\s*#?)\s*:?\s*\d{4,10}\b'
 _IP_RE = _re.compile(r'\b\d{1,3}(?:\.\d{1,3}){3}\b')
 # Home directories
 _HOME_DIR_RE = _re.compile(r'/home/[a-zA-Z0-9_-]+/?')
-# IP Addresses (IPv4)
-_IP_RE = _re.compile(r'\b\d{1,3}(?:\.\d{1,3}){3}\b')
-# Home directories
-_HOME_DIR_RE = _re.compile(r'/home/[a-zA-Z0-9_-]+/?')
 
 # Known PII-safe replacement markers
 _PII_REPLACEMENTS = {
@@ -411,8 +407,6 @@ def scrub_pii(text: str, aggressive: bool = False) -> str:
     text = _CC_RE.sub(_PII_REPLACEMENTS['cc'], text)
     text = _DOB_RE.sub(_PII_REPLACEMENTS['dob'], text)
     text = _STUDENT_ID_RE.sub(_PII_REPLACEMENTS['student_id'], text)
-    text = _IP_RE.sub(_PII_REPLACEMENTS['ip'], text)
-    text = _HOME_DIR_RE.sub(_PII_REPLACEMENTS['home_dir'], text)
     text = _IP_RE.sub(_PII_REPLACEMENTS['ip'], text)
     text = _HOME_DIR_RE.sub(_PII_REPLACEMENTS['home_dir'], text)
 
