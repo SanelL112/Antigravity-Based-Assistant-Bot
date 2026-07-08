@@ -489,14 +489,14 @@ async def _get_bot_log():
 async def _mc_start():
     try:
         import subprocess
-        subprocess.check_output(["sudo", "systemctl", "start", "minecraft"])
+        subprocess.check_output(["systemctl", "start", "minecraft"])
         return "✅ Minecraft server starting..."
     except Exception as e: return str(e)
 
 async def _mc_stop():
     try:
         import subprocess
-        subprocess.check_output(["sudo", "systemctl", "stop", "minecraft"])
+        subprocess.check_output(["systemctl", "stop", "minecraft"])
         return "🛑 Minecraft server stopping..."
     except Exception as e: return str(e)
 

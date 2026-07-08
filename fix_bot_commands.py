@@ -94,13 +94,13 @@ def fix_bot_commands():
     # _mc_start
     content = content.replace(
         'subprocess.check_output("sudo systemctl start minecraft", shell=True)',
-        'subprocess.check_output(["sudo", "systemctl", "start", "minecraft"])'
+        'subprocess.check_output(["systemctl", "start", "minecraft"])'
     )
 
     # _mc_stop
     content = content.replace(
         'subprocess.check_output("sudo systemctl stop minecraft", shell=True)',
-        'subprocess.check_output(["sudo", "systemctl", "stop", "minecraft"])'
+        'subprocess.check_output(["systemctl", "stop", "minecraft"])'
     )
 
     with open('bot/commands.py', 'w') as f:
