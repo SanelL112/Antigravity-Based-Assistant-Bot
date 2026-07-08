@@ -762,7 +762,7 @@ if __name__ == "__main__":
 
     try:
         from scrapers.compile_context import compile_bot_context
-        asyncio.get_event_loop().run_until_complete(compile_bot_context())
+        asyncio.run(compile_bot_context())
     except Exception as e:
         logger.error(f"Failed to pre-compile bot context: {e}")
     
