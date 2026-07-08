@@ -32,14 +32,14 @@ def patch_utils():
     try:
         parts = shlex.split(cmd_stripped)
     except ValueError as e:
-        return False, f"Invalid command syntax: {e}"
+        return False, f"Shell parsing error: {e}"
 
     if not parts:
-        return False, "Empty command"
+        return False, "No command parsed"
 
-    base_cmd = parts[0].lower()"""
+    base_cmd = parts[0]"""
 
-    new_func = """def _is_command_allowed(cmd: str) -> tuple[bool, str]:
+    new_func = r"""def _is_command_allowed(cmd: str) -> tuple[bool, str]:
     \"\"\"
     Validate command against strict allowlist templates.
     Returns (allowed, reason_if_blocked).
