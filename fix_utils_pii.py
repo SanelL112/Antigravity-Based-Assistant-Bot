@@ -1,4 +1,3 @@
-import re
 
 def fix_utils_pii():
     with open('utils.py', 'r') as f:
