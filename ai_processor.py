@@ -11,6 +11,7 @@ import subprocess
 import os
 import logging
 import threading
+import asyncio
 from pathlib import Path
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -22,6 +23,46 @@ BOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 CACHE_DIR = Path(CONFIG_CACHE_DIR)
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 _write_lock = threading.Lock()
+
+# ── Orange Pi 5 Classifier Integration ────────────────────────────────────────
+# Offloads batch classification to the Pi's 8 cores (qwen2:0.5b, 4 concurrent
+# workers) so the main server stays free for heavier inference.
+
+PI_CLASSIFIER_URL = "http://10.10.10.2:8080"
+
+
+async def pi_classify_batch(items: list[dict]) -> list[dict] | None:
+    """
+    Send batch classification to Orange Pi 5 pipeline.
+
+    Each item: {"id": str, "source": str, "text": str}
+    Returns: list of classification results, or None if Pi is unreachable.
+    """
+    try:
+        import aiohttp
+        timeout = aiohttp.ClientTimeout(total=60, connect=5)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(
+                f"{PI_CLASSIFIER_URL}/classify",
+                json=items,
+            ) as resp:
+                if resp.status == 200:
+                    return await resp.json()
+                logger.warning(f"Pi classifier returned HTTP {resp.status}")
+                return None
+    except Exception as e:
+        logger.info(f"Pi classifier unavailable (falling back to local): {e}")
+        return None
+
+
+def pi_classify_sync(items: list[dict]) -> list[dict] | None:
+    """Synchronous wrapper for ThreadPoolExecutor."""
+    try:
+        return asyncio.run(pi_classify_batch(items))
+    except Exception as e:
+        logger.warning(f"Pi classifier sync call failed: {e}")
+        return None
+
 
 # ── Per-source prompts ────────────────────────────────────────────────────────
 
