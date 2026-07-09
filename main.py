@@ -235,8 +235,8 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
         )
     try:
         from llm_router import call_openrouter
-        from config import OR_FALLBACK_MODEL
-        
+        from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
+
         result = call_openrouter(
             model="nvidia/nemotron-3-ultra-550b-a55b:free",
             prompt=f"Read the following recent school and email notifications. "
@@ -244,18 +244,22 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
                   f"If there is nothing urgent, reply exactly: NO_ALERT\n\n"
                   f"DATA:\n{raw_data}",
             task="watchdog",
-            fallback_chain=[OR_FALLBACK_MODEL],
+            fallback_chain=[OR_FALLBACK_MODEL, OR_THIRD_MODEL],
             timeout=45,
         )
 
         # Send alert regardless of which model produced the result
-        if result and "NO_ALERT" not in result and len(result) > 10:
+        # But filter out the "all models failed" fallback message
+        if (result and "NO_ALERT" not in result and len(result) > 10
+                and "All models failed" not in result):
             logger.info(f"Watchdog triggered: {result}")
             await context.bot.send_message(
                 chat_id=chat_id, 
                 text=f"🚨 **WATCHDOG ALERT** 🚨\n\n{result}",
                 parse_mode="Markdown"
             )
+        elif result and "All models failed" in result:
+            logger.warning("Watchdog: all LLM models failed (rate limited), skipping check")
         else:
             logger.info("Watchdog check clear (no alerts).")
     except Exception as e:
