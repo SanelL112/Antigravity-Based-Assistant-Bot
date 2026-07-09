@@ -1,0 +1,6 @@
+{"ts": 1783543800.0480447, "time": "16:50:00", "date": "2026-07-08", "cat": "test", "details": {"msg": "health check"}}
+{"ts": 1783574203.274028, "time": "01:16:43", "date": "2026-07-09", "cat": "nightly", "details": {"phase": "classroom_pdfs", "status": "failed", "message": "(mismatching_state) CSRF Warning! State not equal in request and response."}}
+{"ts": 1783576660.44461, "time": "01:57:40", "date": "2026-07-09", "cat": "nightly", "details": {"phase": "embedding_indexer", "status": "started"}}
+{"ts": 1783576988.1899757, "time": "02:03:08", "date": "2026-07-09", "cat": "nightly", "details": {"phase": "embedding_indexer", "status": "completed"}}
+{"ts": 1783615879.9067252, "time": "12:51:19", "date": "2026-07-09", "cat": "llm_call", "details": {"model": "nvidia/nemotron-3-nano-30b-a3b:free", "task": "chat", "duration_s": 0, "cost_usd": 0, "tokens_in": 0, "tokens_out": 0, "local": false}}
+{"ts": 1783615882.7674348, "time": "12:51:22", "date": "2026-07-09", "cat": "message", "details": {"preview": "Heloo", "routed_to": "unknown"}}

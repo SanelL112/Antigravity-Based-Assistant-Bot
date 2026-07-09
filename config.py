@@ -49,6 +49,7 @@ RESPONSE_TIMEOUT = 300  # seconds to wait for a reply
 # ── OpenRouter Models ─────────────────────────────────────────────────────────
 OR_DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"  # Working, free, 1M context
 OR_FALLBACK_MODEL = "nvidia/nemotron-3-nano-30b-a3b:free"  # Smaller, free, less rate-limited
+OR_THIRD_MODEL = "tencent/hy3:free"  # Backup free tier model
 
 # ── File Paths ────────────────────────────────────────────────────────────────
 TOKEN_PATH = BASE_DIR / "token.json"

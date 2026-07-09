@@ -21,7 +21,7 @@ import logging
 import requests
 from typing import Optional
 from config import (
-    OPENROUTER_API_KEY, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL,
+    OPENROUTER_API_KEY, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL, OR_THIRD_MODEL,
     COST_LOG_FILE, AGENTAPI_BIN, OLLAMA_URL, OLLAMA_ORANGEPI_URL,
     OPENCODE_ZEN_API_KEY, OPENCODE_ZEN_URL
 )
@@ -117,7 +117,9 @@ def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int) -> floa
     """Estimate cost. Free models and local = $0."""
     free_models = {
         "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "nvidia/nemotron-3-nano-30b-a3b:free",
         "openrouter/owl-alpha:free",
+        "tencent/hy3:free",
     }
     paid_rates = {
         "openrouter/owl-alpha": (0.01, 0.03),  # ($/1K input, $/1K output)
@@ -878,10 +880,10 @@ def call_llamacpp_rpc_with_fallback(
     return ""
 
 
-# ── Opencode Zen ─────────────────────────────────────────────────────────────
+# ── Opencode Zen (separate provider from OpenRouter) ────────────────────────
 def call_opencode(
     prompt: str,
-    model: str = "opencode/gpt-5.5",
+    model: str = "mimo-v2.5-free",
     system_prompt: str = "",
     max_tokens: int = 4000,
     task: str = "general",
@@ -889,14 +891,17 @@ def call_opencode(
     temperature: float = 0.0,
 ) -> str:
     """
-    Call OpenCode Zen — an AI model gateway with an OpenAI-compatible API.
+    Call Opencode Zen API — a separate provider from OpenRouter.
+    Requires OPENCODE_ZEN_API_KEY to be set.
 
-    Zen provides access to curated, optimized models for coding and general use.
-    Models include GPT-5.5, Gemini 3.5 Flash, and others with the "opencode/" prefix.
+    Models available (free tier):
+      - "mimo-v2.5-free"  (MiMo 2.5)
+      - "hy3-free"        (Hy3)
+      - "nemotron-3-ultra-free"
 
     Args:
         prompt: The user message
-        model: Model ID (e.g. "opencode/gpt-5.5", "opencode/gemini-3.5-flash")
+        model: Model ID (e.g. "mimo-v2.5-free", "hy3-free")
         system_prompt: Optional system message
         max_tokens: Max output tokens
         task: Label for cost tracking

@@ -10,7 +10,7 @@ from ai_processor import call_agy
 
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import OR_FALLBACK_MODEL
+from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -189,7 +189,7 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
             model=OR_FALLBACK_MODEL,
             prompt=prompt_text,
             task="study-guide",
-            fallback_chain=["meta-llama/llama-3.3-70b-instruct:free"],
+            fallback_chain=[OR_THIRD_MODEL],
             timeout=3600,
         )
 
