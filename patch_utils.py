@@ -27,6 +27,7 @@ def patch_utils():
             return False, f"Blocked pattern: {blocked}"
 
     # Parse command to get base command and args
+    import shlex
     try:
         parts = shlex.split(cmd_stripped)
     except ValueError as e:
@@ -46,6 +47,8 @@ def patch_utils():
     if not cmd_stripped:
         return False, "Empty command"
 
+    import shlex
+    import re
     try:
         parts = shlex.split(cmd_stripped)
     except ValueError as e:
