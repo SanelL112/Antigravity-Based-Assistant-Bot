@@ -18,7 +18,8 @@
 # Prerequisites (one-time):
 #   1. Orange Pi running: ggml-rpc-server --host 0.0.0.0 --port 50052
 #   2. Model pulled: ollama pull qwen2.5:7b-instruct-q4_K_M
-#   3. llama.cpp installed: brew install llama.cpp (Mac) or apt install llama.cpp
+#   3. llama.cpp installed: /usr/local/bin/llama-server (built with GGML_RPC=ON)
+#   4. Orange Pi: systemctl enable --now rpc-server  (persistent across reboots)
 # =============================================================================
 
 set -euo pipefail
@@ -30,13 +31,19 @@ CTX_SIZE="${CTX_SIZE:-4096}"
 NGPU_LAYERS="${NGPU_LAYERS:-99}"
 THREADS="${THREADS:-2}"
 
-# Find the largest matching GGUF model
+# Find the largest matching GGUF model (by size, not name — blob filenames are hashes)
 MODEL_DIR="${MODEL_DIR:-$HOME/.ollama/models/blobs}"
-MODEL_GLOB="${MODEL_GLOB:-sha256-*qwen2.5*7b*}"
+MODEL_GLOB="${MODEL_GLOB:-sha256-*qwen2.5*}"
 MODEL_PATH=$(find "$MODEL_DIR" -name "$MODEL_GLOB" -type f 2>/dev/null \
-    | sort | tail -1)
+    | xargs -r ls -1S | head -1)
 
 # ── Commands ─────────────────────────────────────────────────────────────────
+
+# Use Python for port checks (nc not available on all systems)
+check_port() {
+    python3 -c "import socket; s=socket.socket(); s.settimeout(2); r=s.connect_ex(('$1',$2)); s.close(); exit(r)" 2>/dev/null
+}
+
 case "${1:-start}" in
     --stop|stop)
         echo "=== Stopping RPC llama-server ==="
@@ -52,7 +59,7 @@ case "${1:-start}" in
 
         echo ""
         echo "=== Orange Pi RPC worker (${RPC_WORKER}) ==="
-        if nc -z -w 2 "${RPC_WORKER%:*}" "${RPC_WORKER##*:}" 2>/dev/null; then
+        if check_port "${RPC_WORKER%:*}" "${RPC_WORKER##*:}"; then
             echo "✅ ggml-rpc-server reachable on ${RPC_WORKER}"
         else
             echo "❌ Cannot reach ggml-rpc-server on ${RPC_WORKER}"
@@ -87,7 +94,7 @@ case "${1:-start}" in
             exit 1
         fi
 
-        if ! nc -z -w 2 "${RPC_WORKER%:*}" "${RPC_WORKER##*:}" 2>/dev/null; then
+        if ! check_port "${RPC_WORKER%:*}" "${RPC_WORKER##*:}"; then
             echo "⚠️  WARNING: Cannot reach Orange Pi RPC worker at ${RPC_WORKER}"
             echo "   Make sure ggml-rpc-server is running on the Orange Pi:"
             echo "   ssh root@10.10.10.2 'systemctl start rpc-server'"
@@ -108,12 +115,14 @@ case "${1:-start}" in
 
         # Start llama-server with RPC (runs in foreground)
         echo "   Starting llama-server..."
+        # Note: -ngl removed — server has no GPU. RPC splits layers via --rpc flag.
+        # Both server (GCC 14 x86_64) and Orange Pi (GCC 15 aarch64) binaries work
+        # despite compiler version differences — the RPC protocol is arch-agnostic.
         exec llama-server \
             -m "$MODEL_PATH" \
             --rpc "$RPC_WORKER" \
             --host 127.0.0.1 \
             --port "$RPC_PORT" \
-            -ngl "$NGPU_LAYERS" \
             -c "$CTX_SIZE" \
             -t "$THREADS"
         ;;
