@@ -27,11 +27,14 @@ from pathlib import Path
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
     "https://www.googleapis.com/auth/classroom.courses.readonly",
-    "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+    "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",
     "https://www.googleapis.com/auth/classroom.announcements.readonly",
     "https://www.googleapis.com/auth/documents.readonly",
     "https://www.googleapis.com/auth/drive.readonly",
     "https://www.googleapis.com/auth/calendar.events",
+    # TODO: add classroom.coursework.me.readonly in Google Cloud Console
+    # → https://console.cloud.google.com/apis/credentials/consent → project unique-sentinel-486019-r1
+    # then re-add: "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
 ]
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
