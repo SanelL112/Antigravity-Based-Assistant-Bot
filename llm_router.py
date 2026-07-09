@@ -19,10 +19,9 @@ import json
 import hashlib
 import logging
 import requests
-from pathlib import Path
 from typing import Optional
 from config import (
-    OPENROUTER_API_KEY, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL,
+    OPENROUTER_API_KEY,
     COST_LOG_FILE, AGENTAPI_BIN, OLLAMA_URL, OLLAMA_ORANGEPI_URL
 )
 
@@ -231,7 +230,6 @@ def call_openrouter(
         Generated text string
     """
     chain = [model] + (fallback_chain or [])
-    all_models = set(chain)
 
     for i, m in enumerate(chain):
         start = time.time()
@@ -376,7 +374,6 @@ def _streaming_call(client, model, messages, task, max_tokens, timeout, stream_t
                                     )
                             if coro:
                                 try:
-                                    import asyncio
                                     asyncio.run_coroutine_threadsafe(coro, main_loop)
                                 except Exception:
                                     pass # Ignore if loop is dead or coro fails
@@ -536,6 +533,193 @@ def call_agy_local(prompt: str, model: str = "flash", timeout: int = 180) -> str
         logger.warning(f"agy {model} failed, falling back to pro...")
         result = _run_model("pro")
     return result
+
+
+# ── RPC (llama.cpp Remote Procedure Call) ───────────────────────────────────
+# For overnight 7B+ inference split across Server + Orange Pi 5.
+# Architecture: llama-server on server --rpc→ ggml-rpc-server on Orange Pi.
+# Server runs layers 1-N/2, Orange Pi runs layers N/2+1-end.
+# Speed: ~3-8 tok/s (LAN-bound), fine for batch/overnight tasks.
+
+# ── RPC config (override via env vars) ───────────────────────────────────────
+LLAMACPP_RPC_URL = os.getenv("LLAMACPP_RPC_URL", "http://localhost:8080")
+RPC_WORKER_URL = os.getenv("RPC_WORKER_URL", "10.10.10.2:50052")
+# Default model path on server — pull with: ollama pull qwen2.5:7b-instruct-q4_K_M
+# then find the blob: ls ~/.ollama/models/blobs/sha256-*
+RPC_MODEL_PATH = os.getenv(
+    "RPC_MODEL_PATH",
+    "/home/sanel/.ollama/models/blobs/sha256-*qwen2.5-7b*"
+)
+
+
+def call_llamacpp_rpc(
+    prompt: str,
+    model_path: str = None,
+    system_prompt: str = "",
+    max_tokens: int = 4000,
+    timeout: int = 600,
+    temperature: float = 0.0,
+) -> str:
+    """
+    Call a local llama-server (OpenAI-compatible API) that internally uses
+    RPC to split layers across Server + Orange Pi 5.
+
+    Use this for OVERNIGHT BATCH TASKS only — it's ~5 tok/s over Ethernet.
+    For interactive use, prefer call_ollama() with a model that fits single-machine.
+
+    The llama-server must already be running (start with start_rpc_llama_server()
+    or the scripts/start-rpc-overnight.sh script).
+
+    Args:
+        prompt: The user prompt
+        model_path: Path to GGUF model (defaults to RPC_MODEL_PATH env var)
+        system_prompt: Optional system message
+        max_tokens: Max output tokens
+        timeout: HTTP timeout (longer for slow RPC inference)
+        temperature: 0.0 = deterministic, higher = creative
+
+    Returns:
+        Generated text, or empty string on failure.
+    """
+    import glob as _glob
+
+    # Resolve model path (may be a glob for Ollama blob paths)
+    path = model_path or RPC_MODEL_PATH
+    if "*" in path:
+        matches = sorted(_glob.glob(path), key=os.path.getsize, reverse=True)
+        if not matches:
+            logger.error(f"RPC: no model found matching {path}")
+            return ""
+        path = matches[0]
+
+    if not os.path.exists(path):
+        logger.error(f"RPC: model not found at {path}")
+        return ""
+
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
+    start = time.time()
+    try:
+        import httpx
+        client = httpx.Client(
+            timeout=httpx.Timeout(connect=5.0, read=float(timeout), write=10.0),
+        )
+        resp = client.post(
+            f"{LLAMACPP_RPC_URL.rstrip('/')}/v1/chat/completions",
+            json={
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "stream": False,
+            },
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            text = data["choices"][0]["message"]["content"].strip()
+            duration = time.time() - start
+            tok_est = len(text) // 4
+            logger.info(
+                f"RPC inference: {len(text)} chars in {duration:.1f}s "
+                f"(~{tok_est / max(duration, 0.1):.0f} tok/s)"
+            )
+            return text
+        else:
+            logger.error(f"RPC: HTTP {resp.status_code}: {resp.text[:200]}")
+            return ""
+    except httpx.TimeoutException:
+        logger.error(f"RPC: timed out after {timeout}s")
+        return ""
+    except Exception as e:
+        logger.error(f"RPC: call failed: {e}")
+        return ""
+
+
+def is_rpc_server_healthy() -> bool:
+    """Check if the RPC-enabled llama-server is running and responding."""
+    try:
+        import httpx
+        client = httpx.Client(timeout=httpx.Timeout(5.0))
+        resp = client.get(f"{LLAMACPP_RPC_URL.rstrip('/')}/health")
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
+def start_rpc_llama_server(model_path: str = None, port: int = 8080,
+                           ngl: int = 99, ctx_size: int = 4096,
+                           threads: int = 2) -> bool:
+    """
+    Start llama-server with RPC to Orange Pi. Blocking — runs in foreground.
+    Use for manual testing. For production, use the systemd service.
+
+    Args:
+        model_path: Path to GGUF model
+        port: HTTP listen port
+        ngl: Number of GPU layers (set high to force layer offload via RPC)
+        ctx_size: Context window size
+        threads: CPU threads on server side
+
+    Returns:
+        True if server started successfully (never returns if successful — blocks).
+    """
+    import subprocess as _sp
+    import glob as _glob
+
+    path = model_path or RPC_MODEL_PATH
+    if "*" in path:
+        matches = sorted(_glob.glob(path), key=os.path.getsize, reverse=True)
+        if not matches:
+            logger.error(f"RPC start: no model found matching {path}")
+            return False
+        path = matches[0]
+
+    if not os.path.exists(path):
+        logger.error(f"RPC start: model not found at {path}")
+        return False
+
+    cmd = [
+        "llama-server",
+        "-m", path,
+        "--rpc", RPC_WORKER_URL,
+        "--host", "127.0.0.1",
+        "--port", str(port),
+        "-ngl", str(ngl),
+        "-c", str(ctx_size),
+        "-t", str(threads),
+    ]
+    logger.info(f"Starting RPC llama-server: {' '.join(cmd)}")
+    try:
+        # subprocess.run() blocks until the server exits — this is
+        # intentional for foreground/manual use. For background use,
+        # run the scripts/start-rpc-overnight.sh script or systemd service.
+        _sp.run(cmd, check=True)
+        # Unreachable unless server crashes/exits — treat as failure.
+        logger.error("RPC llama-server exited unexpectedly.")
+        return False
+    except FileNotFoundError:
+        logger.error("llama-server not found. Install: brew install llama.cpp  or  apt install llama.cpp")
+        return False
+    except Exception as e:
+        logger.error(f"Failed to start RPC server: {e}")
+        return False
+
+
+def stop_rpc_llama_server() -> bool:
+    """Kill any running llama-server process on this machine."""
+    import subprocess as _sp
+    try:
+        _sp.run(
+            ["pkill", "-f", "llama-server"],
+            capture_output=True, timeout=10
+        )
+        logger.info("RPC llama-server stopped.")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to stop RPC server: {e}")
+        return False
 
 
 # ── Utility ──────────────────────────────────────────────────────────────────
