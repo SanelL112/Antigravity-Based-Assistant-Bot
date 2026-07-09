@@ -1,12 +1,10 @@
 import os
-import json
 import logging
 import requests
 from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
 from youtubesearchpython import VideosSearch
 from youtube_transcript_api import YouTubeTranscriptApi
-from ai_processor import call_agy
 
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
