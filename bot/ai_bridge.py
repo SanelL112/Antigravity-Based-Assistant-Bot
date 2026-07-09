@@ -294,46 +294,105 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             out = await _call_or(or_model_name)
             actual_model_used = or_model_name
             fail_phrases = ["i cannot", "i'm sorry", "i don't know", "as an ai", "unable to", "i apologize"]
+
+            # ── OpenRouter fallback chain: try OR models in order ──
+            or_fallback_models = []
+            if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
+                from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
+                or_fallback_models = [OR_FALLBACK_MODEL, OR_THIRD_MODEL]
+
+            # Check if primary model failed or refused
             if not out or (isinstance(out, str) and any(p in out.lower()[:50] for p in fail_phrases)):
-                if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                    from config import OR_FALLBACK_MODEL
-                    logger.warning(f"Nemotron failed or refused. Falling back to {OR_FALLBACK_MODEL}...")
-                    fallback_out = await _call_or(OR_FALLBACK_MODEL)
-                    if fallback_out and not any(p in fallback_out.lower()[:50] for p in fail_phrases):
-                        out = fallback_out
-                        actual_model_used = OR_FALLBACK_MODEL
-                    else:
-                        logger.warning("Fallback failed or refused. Falling back to local G1 Flash...")
-                        result = await asyncio.wait_for(
-                            asyncio.get_running_loop().run_in_executor(
-                                None,
-                                lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                            ), timeout=RESPONSE_TIMEOUT + 5)
-                        out = result.stdout.strip()
-                        actual_model_used = "flash (local fallback)"
+                fallback_tried = False
+                for fb_model in or_fallback_models:
+                    logger.warning(f"{or_model_name} failed. Falling back to {fb_model}...")
+                    try:
+                        if status_msg and context:
+                            await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using {fb_model}...")
+                        fb_out = await _call_or(fb_model)
+                        if fb_out and not any(p in fb_out.lower()[:50] for p in fail_phrases):
+                            out = fb_out
+                            actual_model_used = fb_model
+                            fallback_tried = True
+                            break
+                    except Exception:
+                        continue
+
+                if not fallback_tried:
+                    # ── Cross-provider: try Opencode Zen (separate rate limit bucket) ──
+                    logger.warning("OpenRouter models all failed. Trying Opencode Zen (hy3-free)...")
+                    try:
+                        from llm_router import call_opencode
+                        zen_out = await asyncio.get_running_loop().run_in_executor(
+                            None,
+                            lambda: call_opencode("hy3-free", full_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
+                        )
+                        if zen_out:
+                            out = zen_out
+                            actual_model_used = "hy3-free (Opencode Zen)"
+                        else:
+                            raise Exception("empty")
+                    except Exception as ze:
+                        logger.warning(f"Opencode Zen also failed ({ze}). Falling back to local G1 Flash...")
+                        try:
+                            result = await asyncio.wait_for(
+                                asyncio.get_running_loop().run_in_executor(
+                                    None,
+                                    lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
+                                ), timeout=RESPONSE_TIMEOUT + 5)
+                            out = result.stdout.strip()
+                            actual_model_used = "flash (local fallback)"
+                        except Exception as e3:
+                            out = f"⚠️ Fallback to G1 Exception: {e3}"
         except Exception as e:
             if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                from config import OR_FALLBACK_MODEL
-                logger.warning(f"Nemotron exception ({e}). Falling back to {OR_FALLBACK_MODEL}...")
-                try:
-                    out = await _call_or(OR_FALLBACK_MODEL)
-                    actual_model_used = OR_FALLBACK_MODEL
-                    if not out: raise Exception(f"{OR_FALLBACK_MODEL} empty")
-                except Exception as e2:
-                    logger.warning(f"{OR_FALLBACK_MODEL} exception ({e2}). Falling back to local G1 Flash...")
+                from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
+                logger.warning(f"Primary model exception ({e}). Trying fallback chain...")
+                fallback_tried = False
+                for fb_model in [OR_FALLBACK_MODEL, OR_THIRD_MODEL]:
                     try:
-                        result = await asyncio.wait_for(
-                            asyncio.get_running_loop().run_in_executor(
-                                None,
-                                lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                            ), timeout=RESPONSE_TIMEOUT + 5)
-                        out = result.stdout.strip()
-                        actual_model_used = "flash (local fallback)"
-                    except Exception as e3:
-                        out = f"⚠️ Fallback to G1 Exception: {e3}"
+                        if status_msg and context:
+                            await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Trying {fb_model}...")
+                        fb_out = await _call_or(fb_model)
+                        if fb_out:
+                            out = fb_out
+                            actual_model_used = fb_model
+                            fallback_tried = True
+                            break
+                        else:
+                            raise Exception(f"{fb_model} empty")
+                    except Exception:
+                        continue
+
+                if not fallback_tried:
+                    # ── Cross-provider: Opencode Zen ──
+                    logger.warning("All streaming OpenRouter models failed. Trying Opencode Zen...")
+                    try:
+                        from llm_router import call_opencode
+                        zen_out = await asyncio.get_running_loop().run_in_executor(
+                            None,
+                            lambda: call_opencode("hy3-free", full_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
+                        )
+                        if zen_out:
+                            out = zen_out
+                            actual_model_used = "hy3-free (Opencode Zen)"
+                        else:
+                            raise Exception("empty")
+                    except Exception as ze:
+                        logger.warning(f"Opencode Zen also failed ({ze}). Falling back to local G1 Flash...")
+                        try:
+                            result = await asyncio.wait_for(
+                                asyncio.get_running_loop().run_in_executor(
+                                    None,
+                                    lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
+                                ), timeout=RESPONSE_TIMEOUT + 5)
+                            out = result.stdout.strip()
+                            actual_model_used = "flash (local fallback)"
+                        except Exception as e3:
+                            out = f"⚠️ Fallback to G1 Exception: {e3}"
             else:
                 out = f"⚠️ OpenRouter Exception: {e}"
-                
+
         if not out:
             out = "⚠️ OpenRouter returned an empty response or failed."
     else:
