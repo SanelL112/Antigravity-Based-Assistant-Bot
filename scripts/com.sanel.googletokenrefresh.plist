@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.sanel.googletokenrefresh</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/sanellathiya/Antigravity-Based-Assistant-Bot/google_auth_setup.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/sanellathiya/Antigravity-Based-Assistant-Bot</string>
+
+    <!-- Every Monday at 9:00 AM (you'll be at your Mac to handle the browser popup) -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- Log output -->
+    <key>StandardOutPath</key>
+    <string>/Users/sanellathiya/Antigravity-Based-Assistant-Bot/logs/google_token_refresh.out</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/sanellathiya/Antigravity-Based-Assistant-Bot/logs/google_token_refresh.err</string>
+
+    <!-- Run even if the Mac was asleep (catch up on next wake) -->
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

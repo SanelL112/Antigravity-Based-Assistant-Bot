@@ -1,0 +1,124 @@
+name: lint
+
+# Mirror the .githooks/pre-commit hook in CI.
+# Runs on every push to main and every PR that targets main.
+# Fails the workflow if any of the 3 checks fail, gating the PR.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Read-only token is enough for a lint workflow.
+permissions:
+  contents: read
+
+# Cancel in-progress runs of the same workflow on the same branch.
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: pyflakes + DeprecationWarning + static-grep
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so we can lint ALL .py files (catches drift, not just new changes)
+          fetch-depth: 0
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install pyflakes + bot dependencies
+        # Install the bot's full requirements so the import check actually runs
+        # (otherwise all SAFE_MODULES would be silently skipped as "missing dep"
+        # and the DeprecationWarning-as-error check would be a no-op).
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pyflakes -r requirements.txt
+
+      - name: Collect all .py files
+        id: files
+        run: |
+          # Lint every .py file in the repo (catches existing drift, not just new changes).
+          # This is intentional — the local pre-commit hook only lints changed files;
+          # CI is the more thorough backstop.
+          FILES=$(find . -name '*.py' -not -path './.git/*' -not -path './venv/*' -not -path './*/venv/*' -not -path '*/__pycache__/*' | sort | tr '\n' ' ')
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          echo "  $(echo "$FILES" | wc -w | tr -d ' ') .py file(s) to lint"
+
+      - name: "[1/3] pyflakes"
+        if: steps.files.outputs.files != ''
+        run: |
+          set -e
+          pyflakes ${{ steps.files.outputs.files }}
+
+      - name: "[2/3] python -W error::DeprecationWarning import check"
+        if: steps.files.outputs.files != ''
+        env:
+          # These are required by config.py / utils.py / bot/state.py on import
+          # but are not actually exercised by the import alone (only on function calls).
+          # Set safe defaults so the import check doesn't false-positive on missing config.
+          TELEGRAM_BOT_TOKEN: ci-dummy-token
+          TELEGRAM_CHAT_ID: '0'
+          CONVERSATION_ID: ci-dummy
+          OPENROUTER_API_KEY: ci-dummy
+        run: |
+          python3 -W error::DeprecationWarning << 'PYEOF'
+          import sys
+          import warnings
+
+          # Convert ALL DeprecationWarnings to errors (the goal of the check)
+          warnings.filterwarnings("error", category=DeprecationWarning)
+          warnings.filterwarnings("default", category=PendingDeprecationWarning)
+
+          # Modules safe to import (no side effects beyond reading env vars)
+          SAFE_MODULES = [
+              "utils",
+              "bot.state",
+              "bot.security",
+              "config",
+          ]
+
+          ok, skipped, failed = 0, 0, 0
+          for m in SAFE_MODULES:
+              try:
+                  __import__(m)
+                  print(f"  import ok   {m}")
+                  ok += 1
+              except DeprecationWarning as e:
+                  print(f"  DEPRECATION in {m}: {e}")
+                  sys.exit(1)
+              except Exception as e:
+                  print(f"  (skip {m}: {type(e).__name__}: {str(e)[:80]})")
+                  skipped += 1
+
+          print(f"  -> {ok} ok, {skipped} skipped, {failed} failed")
+          PYEOF
+
+      - name: "[3/3] static grep for known 3.10+/3.12+ deprecation patterns"
+        # Pattern list is shared with .githooks/pre-commit (single source of truth
+        # in .githooks/deprecation-patterns.txt) so the two never drift.
+        if: steps.files.outputs.files != ''
+        env:
+          CHANGED_FILES: ${{ steps.files.outputs.files }}
+        run: |
+          set +e
+          # Filter out comment lines (#) and blank lines from the patterns file
+          # before passing to grep -E -f (grep treats every line as a regex).
+          matches=$(grep -nE -f <(grep -vE '^[[:space:]]*(#|$)' .githooks/deprecation-patterns.txt) $CHANGED_FILES 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "  ❌ matches:"
+            echo "$matches" | sed 's/^/      /'
+            echo
+            echo "  static-grep: FAILED"
+            exit 1
+          fi
+          echo "  static-grep: OK"

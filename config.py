@@ -42,6 +42,8 @@ if _missing_vars:
 AGENTAPI_BIN = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_ORANGEPI_URL = os.getenv("OLLAMA_ORANGEPI_URL", "http://10.10.10.2:11434")  # Orange Pi 5 via ethernet
+OPENCODE_ZEN_API_KEY = os.getenv("OPENCODE_ZEN_API_KEY", "")
+OPENCODE_ZEN_URL = os.getenv("OPENCODE_ZEN_URL", "https://opencode.ai/zen/v1")
 RESPONSE_TIMEOUT = 300  # seconds to wait for a reply
 
 # ── OpenRouter Models ─────────────────────────────────────────────────────────
@@ -79,6 +81,30 @@ MAX_SEEN_TASKS = 200
 MAX_CHAT_HISTORY_KB = 50
 DIGEST_INTERVAL_SECONDS = 14400            # 4 hours
 WATCHDOG_INTERVAL_SECONDS = 1800           # 30 minutes
+
+# ── RPC OOM Protection ────────────────────────────────────────────────────
+# Minimum free RAM (MB) on server and Orange Pi before attempting RPC.
+# If either machine has less, RPC is skipped and fallback is used.
+RPC_SERVER_MIN_FREE_MB = int(os.getenv("RPC_SERVER_MIN_FREE_MB", "1500"))
+RPC_WORKER_MIN_FREE_MB = int(os.getenv("RPC_WORKER_MIN_FREE_MB", "800"))
+
+# Max RSS (MB) for llama-server RPC process before auto-kill + fallback.
+RPC_SERVER_MAX_RSS_MB = int(os.getenv("RPC_SERVER_MAX_RSS_MB", "4000"))
+
+# RPC timeouts (seconds).
+RPC_STARTUP_TIMEOUT = int(os.getenv("RPC_STARTUP_TIMEOUT", "120"))
+RPC_INFERENCE_TIMEOUT = int(os.getenv("RPC_INFERENCE_TIMEOUT", "600"))
+
+# Fallback model chain when RPC fails:
+#   1. RPC (primary) → 2. Solo 7B Ollama → 3. Cloud OpenRouter (free)
+RPC_FALLBACK_OLLAMA_MODEL = os.getenv(
+    "RPC_FALLBACK_OLLAMA_MODEL",
+    "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest"
+)
+RPC_FALLBACK_CLOUD_MODEL = os.getenv(
+    "RPC_FALLBACK_CLOUD_MODEL",
+    "nvidia/nemotron-3-ultra-550b-a55b:free"
+)
 
 # ── Backup ────────────────────────────────────────────────────────────────────
 BACKUP_RETENTION_DAYS = 30

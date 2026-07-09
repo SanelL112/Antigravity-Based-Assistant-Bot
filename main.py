@@ -134,20 +134,28 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
     
     logger.info("Watchdog: Scraping sources...")
-    def _run_watchdog_scrape():
-        return (
-            get_all_canvas_data(),
-            get_classroom_assignments(),
-            get_classroom_announcements(),
-            get_unread_emails(),
-            get_latest_messages("102851186")
-        )
 
-    try:
-        canvas, classroom, classroom_ann, gmail, groupme = await asyncio.to_thread(_run_watchdog_scrape)
-    except Exception as e:
-        logger.error(f"Watchdog scrape error: {e}")
-        return
+    # ── Scrape each source independently so one failure doesn't kill the watchdog ──
+    async def _safe_scrape(name, func, *args):
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(func, *args),
+                timeout=60
+            )
+        except Exception as e:
+            err_msg = str(e)[:120]
+            # Suppress known noise: CSRF warnings from expired Google tokens
+            if "CSRF" in err_msg or "mismatching_state" in err_msg:
+                logger.info(f"Watchdog: Skipping {name} — Google token expired (run google_auth_setup.py to fix)")
+            else:
+                logger.warning(f"Watchdog: Scraper '{name}' failed: {err_msg}")
+            return f"(⚠️ {name} unavailable: {err_msg})"
+
+    canvas      = await _safe_scrape("canvas", get_all_canvas_data)
+    classroom   = await _safe_scrape("classroom", get_classroom_assignments)
+    classroom_ann = await _safe_scrape("classroom_ann", get_classroom_announcements)
+    gmail       = await _safe_scrape("gmail", get_unread_emails)
+    groupme     = await _safe_scrape("groupme", get_latest_messages, "102851186")
 
     raw_data = f"CANVAS:\n{canvas}\n\nCLASSROOM:\n{classroom}\n\nCLASSROOM ANNOUNCEMENTS:\n{classroom_ann}\n\nGMAIL:\n{gmail}\n\nGROUPME:\n{groupme}"
     
@@ -701,8 +709,63 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
         except Exception: pass
         await consolidate_memory()
         
-        # 3. Fetch tomorrow's research based on the new brain
-        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Memory Consolidated.\n3️⃣ Pre-caching tomorrow's research from the web...", parse_mode="Markdown")
+        # 3. Deep overnight research via RPC (7B+ model) with OOM-protected fallbacks
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Memory Consolidated.\n3️⃣ Running deep overnight research (RPC 7B with OOM protection)...", parse_mode="Markdown")
+        except Exception: pass
+        try:
+            from llm_router import call_llamacpp_rpc_with_fallback, check_rpc_memory_ok
+
+            # Read curated brain for research context
+            brain_file = os.path.join(BOT_DIR, "curated_brain.md")
+            research_context = ""
+            if os.path.exists(brain_file):
+                with open(brain_file, "r") as f:
+                    research_context = f.read()[:8000]
+
+            if research_context.strip():
+                rpc_prompt = (
+                    "You are an overnight deep-research engine. Using the user's curated brain below, "
+                    "identify 3-5 key academic topics that need comprehensive study guides. "
+                    "For each topic, write a detailed, well-structured study guide section with:\n"
+                    "- Key concepts and definitions\n"
+                    "- Important formulas or principles\n"
+                    "- Common mistakes to avoid\n"
+                    "- Practice problem types\n\n"
+                    "Format in Markdown. Be thorough — this runs overnight.\n\n"
+                    f"CURATED BRAIN:\n{research_context}"
+                )
+
+                logger.info("Nightly: Attempting RPC deep research...")
+                research_result = await asyncio.to_thread(
+                    call_llamacpp_rpc_with_fallback,
+                    prompt=rpc_prompt,
+                    system_prompt="You are an expert academic tutor creating comprehensive study materials.",
+                    max_tokens=4000,
+                    task="overnight-deep-research",
+                    timeout=600,
+                )
+
+                if research_result and len(research_result) > 200:
+                    # Save to knowledge base
+                    kb_dir = os.path.join(BOT_DIR, "knowledge_base")
+                    os.makedirs(kb_dir, exist_ok=True)
+                    timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
+                    kb_file = os.path.join(kb_dir, f"deep_research_{timestamp}.md")
+                    with open(kb_file, "w") as f:
+                        f.write(f"# Deep Research — {timestamp}\n\n{research_result}")
+                    logger.info(f"Nightly: RPC deep research saved to {kb_file} ({len(research_result)} chars)")
+                    log_nightly("rpc_deep_research", "completed", {"chars": len(research_result)})
+                else:
+                    logger.warning("Nightly: RPC deep research returned insufficient content")
+                    log_nightly("rpc_deep_research", "skipped", {"reason": "insufficient_content"})
+            else:
+                logger.info("Nightly: No curated brain content for deep research — skipping RPC step")
+        except Exception as e:
+            logger.warning(f"Nightly: RPC deep research failed (non-critical): {e}")
+            log_nightly("rpc_deep_research", "failed", {"message": str(e)[:80]})
+
+        # 4. Fetch tomorrow's research based on the new brain
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Deep Research Complete.\n4️⃣ Pre-caching tomorrow's research from the web...", parse_mode="Markdown")
         except Exception: pass
         await pre_cache_web()
         
@@ -710,15 +773,15 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
         python_bin = sys.executable
         builder_script = os.path.join(BASE_DIR, 'run_builder.py')
         
-        # 4. Auto-Generate SAT Guides
-        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Web Pre-cached.\n4️⃣ Building Separated SAT Study Guides (Math, Reading, Writing)...", parse_mode="Markdown")
+        # 5. Auto-Generate SAT Guides
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ Web Pre-cached.\n5️⃣ Building Separated SAT Study Guides (Math, Reading, Writing)...", parse_mode="Markdown")
         except Exception: pass
         await asyncio.to_thread(subprocess.run, [python_bin, builder_script, 'SAT Math and Geometry Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         await asyncio.to_thread(subprocess.run, [python_bin, builder_script, 'SAT Reading Comprehension Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         await asyncio.to_thread(subprocess.run, [python_bin, builder_script, 'SAT Writing and Grammar Master Guide'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
-        # 5. Dynamic Daily Topic Guide
-        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ SAT Guide Built.\n5️⃣ Analyzing today's notes to build a dynamic subject guide...", parse_mode="Markdown")
+        # 6. Dynamic Daily Topic Guide
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ SAT Guide Built.\n6️⃣ Analyzing today's notes to build a dynamic subject guide...", parse_mode="Markdown")
         except Exception: pass
         
         from ai_processor import call_agy
@@ -735,7 +798,7 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
         await asyncio.to_thread(subprocess.run, [python_bin, builder_script, dynamic_topic], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         
-        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"💤 **Sleep Cycle Complete:**\n✅ PDFs Processed\n✅ Memory Consolidated\n✅ Web Pre-cached\n✅ SAT Guide Updated\n✅ '{dynamic_topic}' Guide Generated!\n\nGood night! 🌙", parse_mode="Markdown")
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"💤 **Sleep Cycle Complete:**\n✅ PDFs Processed\n✅ Memory Consolidated\n✅ Deep Research Complete\n✅ Web Pre-cached\n✅ SAT Guide Updated\n✅ '{dynamic_topic}' Guide Generated!\n\nGood night! 🌙", parse_mode="Markdown")
         except Exception: pass
         
     except Exception as e:
