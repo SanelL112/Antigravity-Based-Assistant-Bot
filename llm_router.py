@@ -725,6 +725,159 @@ def stop_rpc_llama_server() -> bool:
         return False
 
 
+def get_free_memory_mb() -> int:
+    """Return available system memory in MB (Linux only)."""
+    try:
+        with open("/proc/meminfo", "r") as f:
+            for line in f:
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1]) // 1024
+    except Exception:
+        pass
+    return -1
+
+
+def check_rpc_memory_ok(server_min_mb: int = 1500, worker_min_mb: int = 800) -> tuple[bool, str]:
+    """
+    Check if both server and Orange Pi have enough free RAM for RPC.
+
+    Returns:
+        (ok, reason) — ok=True if both machines have sufficient RAM.
+    """
+    from config import RPC_WORKER_URL
+
+    server_free = get_free_memory_mb()
+    if server_free == -1:
+        return False, "Cannot read server memory"
+    if server_free < server_min_mb:
+        return False, f"Server RAM too low ({server_free}MB free, need {server_min_mb}MB)"
+
+    # Check Orange Pi via SSH (non-blocking, quick check)
+    worker_host = RPC_WORKER_URL.split(":")[0]
+    try:
+        import subprocess as _sp
+        result = _sp.run(
+            ["ssh", "-o", "ConnectTimeout=5", f"root@{worker_host}",
+             "awk '/MemAvailable:/{print int($2/1024)}' /proc/meminfo"],
+            capture_output=True, text=True, timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            worker_free = int(result.stdout.strip())
+            if worker_free < worker_min_mb:
+                return False, f"Orange Pi RAM too low ({worker_free}MB free, need {worker_min_mb}MB)"
+            return True, f"Server: {server_free}MB, Orange Pi: {worker_free}MB"
+        else:
+            # Can't reach Orange Pi — assume it's fine (RPC will just run solo if worker unreachable)
+            return True, f"Server: {server_free}MB (Orange Pi unreachable — will run solo)"
+    except Exception:
+        return True, f"Server: {server_free}MB (Orange Pi check skipped)"
+
+
+def call_llamacpp_rpc_with_fallback(
+    prompt: str,
+    system_prompt: str = "",
+    max_tokens: int = 4000,
+    task: str = "overnight",
+    timeout: int = 600,
+    skip_cloud_fallback: bool = False,
+) -> str:
+    """
+    Call llama.cpp RPC with full OOM protection and fallback chain.
+
+    Fallback order:
+      1. RPC via llama-server → Orange Pi (primary, for 7B+ models)
+      2. Solo Ollama on server (qwen2:0.5b or configured fallback model)
+      3. Cloud API via OpenRouter (free tier) — skipped if skip_cloud_fallback=True
+
+    Each step validates memory before attempting. If RPC fails or OOMs,
+    gracefully degrades to the next fallback.
+
+    Args:
+        prompt: The user prompt
+        system_prompt: Optional system message
+        max_tokens: Max output tokens
+        task: Label for cost tracking
+        timeout: Per-request timeout (seconds)
+        skip_cloud_fallback: If True, skip the cloud API fallback (step 3).
+            Use when caller has its own cloud fallback (e.g., Mega Study Builder).
+
+    Returns:
+        Generated text, or empty string if all fallbacks fail.
+    """
+    from config import (
+        RPC_SERVER_MIN_FREE_MB, RPC_WORKER_MIN_FREE_MB,
+        RPC_FALLBACK_OLLAMA_MODEL, RPC_FALLBACK_CLOUD_MODEL,
+        RPC_INFERENCE_TIMEOUT
+    )
+
+    # ── Step 1: Check if RPC is viable (memory check) ─────────────────────
+    mem_ok, mem_reason = check_rpc_memory_ok(
+        RPC_SERVER_MIN_FREE_MB, RPC_WORKER_MIN_FREE_MB
+    )
+
+    if mem_ok and is_rpc_server_healthy():
+        logger.info(f"RPC: attempting inference (RAM: {mem_reason})")
+        rpc_start = time.time()
+        try:
+            result = call_llamacpp_rpc(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                max_tokens=max_tokens,
+                timeout=RPC_INFERENCE_TIMEOUT,
+            )
+            rpc_duration = time.time() - rpc_start
+            if result and len(result.strip()) > 20:
+                logger.info(f"RPC: success ({len(result)} chars, {rpc_duration:.1f}s)")
+                log_call("llamacpp-rpc", task, prompt, result, rpc_duration)
+                return result
+            logger.warning("RPC: returned empty or too-short response, falling back")
+        except Exception as e:
+            logger.warning(f"RPC: call failed ({e}), falling back")
+    else:
+        logger.warning(f"RPC: skipping — {mem_reason}")
+
+    # ── Step 2: Fallback to local Ollama (solo, no RPC) ─────────────────
+    logger.info(f"Falling back to local Ollama ({RPC_FALLBACK_OLLAMA_MODEL})...")
+    try:
+        result = call_ollama(
+            prompt=prompt,
+            model=RPC_FALLBACK_OLLAMA_MODEL,
+            timeout=min(timeout, 300),
+        )
+        if result and len(result.strip()) > 10:
+            logger.info(f"Ollama fallback: success ({len(result)} chars)")
+            log_call(RPC_FALLBACK_OLLAMA_MODEL, task, prompt, result, 0)
+            return result
+        logger.warning("Ollama fallback: returned empty, trying cloud...")
+    except Exception as e:
+        logger.warning(f"Ollama fallback: failed ({e}), trying cloud...")
+
+    # ── Step 3: Final fallback to cloud API (OpenRouter free tier) ───────
+    if skip_cloud_fallback:
+        logger.info("Cloud fallback skipped (caller has own cloud strategy)")
+        return ""
+
+    logger.info(f"Final fallback to cloud ({RPC_FALLBACK_CLOUD_MODEL})...")
+    try:
+        result = call_openrouter(
+            model=RPC_FALLBACK_CLOUD_MODEL,
+            prompt=prompt,
+            task=task,
+            system_prompt=system_prompt,
+            max_tokens=max_tokens,
+            fallback_chain=[OR_FALLBACK_MODEL],
+            timeout=min(timeout, 120),
+        )
+        if result:
+            logger.info(f"Cloud fallback: success ({len(result)} chars)")
+            return result
+    except Exception as e:
+        logger.error(f"Cloud fallback: failed ({e})")
+
+    logger.error("All RPC fallbacks exhausted — returning empty")
+    return ""
+
+
 # ── Opencode Zen ─────────────────────────────────────────────────────────────
 def call_opencode(
     prompt: str,
