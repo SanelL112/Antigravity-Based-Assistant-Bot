@@ -6,13 +6,18 @@ REFACTORED: Uses llm_router for unified OpenRouter calls and llm_cost_log for tr
 Local agy/Ollama calls remain for PII-safe processing.
 """
 
-import json
-import subprocess
-import os
-import logging
-import threading
 import asyncio
+import json
+import logging
+import os
+import subprocess
+import threading
 from pathlib import Path
+
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None  # optional: only needed for Pi classifier
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 logger = logging.getLogger(__name__)
@@ -39,7 +44,6 @@ async def pi_classify_batch(items: list[dict]) -> list[dict] | None:
     Returns: list of classification results, or None if Pi is unreachable.
     """
     try:
-        import aiohttp
         timeout = aiohttp.ClientTimeout(total=60, connect=5)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
@@ -262,6 +266,21 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
                     pass  # cache miss, process normally
         except ImportError:
             pass  # utils not available, skip caching
+
+    # ── Stage 1: Try Orange Pi 5 classifier first (fast, saves agy credits) ──
+    if not skip_llm_filter:
+        pi_result = pi_classify_sync([{"id": "1", "source": name, "text": data[:2000]}])
+        if pi_result and len(pi_result) > 0:
+            classification = pi_result[0].get("classification", "UNSURE")
+            confidence = pi_result[0].get("confidence", 0.0)
+            logger.info(f"Pi classifier: {name} → {classification} ({confidence:.0%})")
+
+            if classification == "NOISE" and confidence >= 0.8:
+                summary = f"No urgent {name} updates."
+                with open(cache_file, "w") as f:
+                    f.write(summary)
+                logger.info(f"Pi classifier marked {name} as NOISE — skipping agy entirely")
+                return summary
 
     if skip_llm_filter:
         logger.info(f"Bypassing classification for high-signal source {name} — passing full raw data ({len(data)} chars).")

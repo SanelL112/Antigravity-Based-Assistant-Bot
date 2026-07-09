@@ -4,15 +4,18 @@ HTTP server for Orange Pi 5 concurrent classifier.
 Receives batch classification requests, processes them with 4 concurrent
 qwen2:0.5b workers running on 4 A76 cores.
 
-Endpoint: POST /classify  — batch classification
-          GET  /health    — health check
+Endpoints:
+    POST /classify  — batch classification (JSON array in, JSON array out)
+    GET  /health    — liveness check + model info
+    GET  /metrics   — Prometheus-style stats
 
 Start:  python3 pi_classifier_server.py   (listens on 0.0.0.0:8080)
 """
 
 import asyncio
-import json
 import logging
+import time
+from collections import defaultdict
 from datetime import datetime
 
 import aiohttp
@@ -26,15 +29,47 @@ MODEL = "qwen2:0.5b"
 MAX_CONCURRENT = 4
 TIMEOUT = 60
 
+# ── Classification categories ───────────────────────────────────────────────
+CATEGORIES = [
+    "URGENT",       # deadline today, grade posted, meeting starting
+    "HOMEWORK",     # assignment, project due soon
+    "ANNOUNCEMENT", # class announcement, schedule change
+    "GRADE",        # grade posted, score received
+    "MEETING",      # study group, appointment
+    "DELIVERY",     # package delivered, mail arrived
+    "INFO",         # useful resource, link, reference
+    "NOISE",        # spam, memes, jokes, social chat
+    "UNSURE",       # can't determine
+]
+
+# Partial-match fallbacks for when the model doesn't return an exact category
+PARTIAL_MAP = {
+    "URGENT":       ["URGENT", "DEADLINE", "IMMEDIATE", "CRITICAL"],
+    "HOMEWORK":     ["HOMEWORK", "ASSIGNMENT", "PROJECT", "ESSAY", "DUE"],
+    "ANNOUNCEMENT": ["ANNOUNC", "NOTICE", "SCHEDULE", "CANCELLED"],
+    "GRADE":        ["GRADE", "SCORE", "FEEDBACK", "GRADED"],
+    "MEETING":      ["MEET", "APPOINTMENT", "SESSION"],
+    "DELIVERY":     ["DELIVER", "PACKAGE", "SHIPMENT", "TRACKING", "ARRIVED"],
+    "INFO":         ["INFO", "RESOURCE", "LINK", "REFERENCE", "MATERIAL"],
+    "NOISE":        ["SPAM", "MEME", "JOKE", "LOL", "HAHA", "IRRELEVANT", "CHAT"],
+}
+
 
 # ── Classifier ────────────────────────────────────────────────────────────────
 class PiClassifierServer:
     def __init__(self, max_concurrent: int = MAX_CONCURRENT):
         self.semaphore = asyncio.Semaphore(max_concurrent)
-        self.session = None
-        self.stats = {"completed": 0, "failed": 0}
+        self.session: aiohttp.ClientSession | None = None
+        self.stats = {
+            "total_requests": 0,
+            "total_items": 0,
+            "by_category": defaultdict(int),
+            "by_source": defaultdict(int),
+            "errors": 0,
+            "start_time": time.time(),
+        }
 
-    async def start(self):
+    async def start(self) -> None:
         timeout = aiohttp.ClientTimeout(total=TIMEOUT, connect=5)
         connector = aiohttp.TCPConnector(
             limit=MAX_CONCURRENT, limit_per_host=MAX_CONCURRENT
@@ -57,7 +92,7 @@ class PiClassifierServer:
         except Exception as e:
             logger.warning(f"Warm-up failed (non-fatal): {e}")
 
-    async def stop(self):
+    async def stop(self) -> None:
         if self.session:
             await self.session.close()
 
@@ -69,15 +104,11 @@ class PiClassifierServer:
             source = item.get("source", "unknown")
             text = item.get("text", "")[:2000]
 
+            cats = ", ".join(CATEGORIES)
             prompt = (
-                "Classify this message. Reply with EXACTLY ONE word:\n"
-                "URGENT = action needed (deadline, grade, meeting)\n"
-                "INFO   = useful info (grade, announcement, delivery)\n"
-                "NOISE  = spam, memes, irrelevant\n"
-                "UNSURE = cannot determine\n\n"
-                f"Source: {source}\n"
-                f"TEXT: {text}\n\n"
-                "ONE WORD:"
+                f"Classify this text. Reply with EXACTLY ONE word: {cats}\n\n"
+                f"Text: {text}\n\n"
+                "Category:"
             )
 
             try:
@@ -96,30 +127,28 @@ class PiClassifierServer:
 
                 response = data.get("response", "").strip().upper()
                 latency_ms = int((datetime.now() - start).total_seconds() * 1000)
-                tokens = data.get("eval_count", 0)
 
-                # Parse the ONE WORD response
-                classification = "UNSURE"
-                confidence = 0.5
-                for word in ["URGENT", "INFO", "NOISE", "UNSURE"]:
-                    if word in response:
-                        classification = word
-                        confidence = 0.9 if word != "UNSURE" else 0.5
-                        break
+                # Match response to a category
+                classification = self._parse_category(response)
+                confidence = 0.9 if classification != "UNSURE" else 0.5
 
-                self.stats["completed"] += 1
+                # Track stats
+                self.stats["total_items"] += 1
+                self.stats["by_category"][classification] += 1
+                self.stats["by_source"][source] += 1
+
                 return {
                     "id": item_id,
                     "source": source,
                     "classification": classification,
                     "confidence": confidence,
-                    "tokens": tokens,
+                    "tokens": data.get("eval_count", 0),
                     "latency_ms": latency_ms,
                 }
 
             except Exception as e:
                 logger.error(f"Classification failed for item {item_id}: {e}")
-                self.stats["failed"] += 1
+                self.stats["errors"] += 1
                 return {
                     "id": item_id,
                     "source": source,
@@ -130,19 +159,37 @@ class PiClassifierServer:
                     "error": str(e)[:100],
                 }
 
+    @staticmethod
+    def _parse_category(response: str) -> str:
+        """Parse the model's response into a category, with partial-match fallback."""
+        # Exact match first
+        for cat in CATEGORIES:
+            if cat in response:
+                return cat
+
+        # Partial match fallback
+        for cat, keywords in PARTIAL_MAP.items():
+            for kw in keywords:
+                if kw in response:
+                    return cat
+
+        return "UNSURE"
+
 
 # ── HTTP Handlers ─────────────────────────────────────────────────────────────
-SERVER: PiClassifierServer = None  # set during startup
+SERVER: PiClassifierServer | None = None
 
 
 async def classify_handler(request: web.Request) -> web.Response:
     data = await request.json()
     items = data if isinstance(data, list) else [data]
 
+    if SERVER:
+        SERVER.stats["total_requests"] += 1
+
     tasks = [SERVER.classify_one(item) for item in items]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    # Unwrap any exceptions
     safe_results = []
     for r in results:
         if isinstance(r, dict):
@@ -158,8 +205,35 @@ async def health_handler(request: web.Request) -> web.Response:
         "status": "ok",
         "model": MODEL,
         "workers": MAX_CONCURRENT,
-        "stats": SERVER.stats,
+        "categories": CATEGORIES,
+        "stats": {
+            "total_items": SERVER.stats["total_items"],
+            "errors": SERVER.stats["errors"],
+            "uptime_seconds": int(time.time() - SERVER.stats["start_time"]),
+        } if SERVER else {},
     })
+
+
+async def metrics_handler(request: web.Request) -> web.Response:
+    """Prometheus-style metrics endpoint."""
+    if not SERVER:
+        return web.Response(text="", content_type="text/plain")
+
+    s = SERVER.stats
+    uptime = int(time.time() - s["start_time"])
+    lines = [
+        f"pi_classifier_total_items {s['total_items']}",
+        f"pi_classifier_total_requests {s['total_requests']}",
+        f"pi_classifier_errors {s['errors']}",
+        f"pi_classifier_uptime_seconds {uptime}",
+        f"pi_classifier_workers {MAX_CONCURRENT}",
+    ]
+    for cat, count in s["by_category"].items():
+        lines.append(f'pi_classifier_category_total{{category="{cat}"}} {count}')
+    for src, count in s["by_source"].items():
+        lines.append(f'pi_classifier_source_total{{source="{src}"}} {count}')
+
+    return web.Response(text="\n".join(lines), content_type="text/plain")
 
 
 # ── App factory ───────────────────────────────────────────────────────────────
@@ -170,6 +244,7 @@ async def create_app() -> web.Application:
     app = web.Application()
     app.router.add_post("/classify", classify_handler)
     app.router.add_get("/health", health_handler)
+    app.router.add_get("/metrics", metrics_handler)
 
     app.on_startup.append(lambda _: SERVER.start())
     app.on_cleanup.append(lambda _: SERVER.stop())

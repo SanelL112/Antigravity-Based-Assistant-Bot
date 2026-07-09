@@ -712,6 +712,17 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
                 logger.info(f"Nightly: archived {archived} stale Notion tasks")
         except Exception as e:
             logger.warning(f"Nightly: Notion archive failed (non-critical): {e}")
+
+        # 1.6. Warm up Orange Pi 5 classifier (pre-loads qwen2:0.5b for morning)
+        try:
+            import requests
+            resp = requests.get("http://10.10.10.2:8080/health", timeout=10)
+            if resp.status_code == 200:
+                logger.info("Nightly: Pi classifier health OK — model warm for morning")
+            else:
+                logger.warning(f"Nightly: Pi classifier health returned {resp.status_code}")
+        except Exception as e:
+            logger.info(f"Nightly: Pi classifier warmup skipped (Pi unreachable): {e}")
         
         # 2. Consolidate raw logs into curated_brain.md
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ PDFs Processed.\n2️⃣ Consolidating short-term memory into `curated_brain.md`...", parse_mode="Markdown")
