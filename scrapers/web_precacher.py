@@ -79,6 +79,19 @@ async def pre_cache_web():
         results = soup.find_all('a', class_='result__snippet', limit=3)
         urls_to_scrape = [a['href'] for a in results if 'href' in a.attrs]
 
+        # DuckDuckGo returns URLs in several forms that httpx 0.28+ rejects:
+        #   - protocol-relative: //duckduckgo.com/l/?uddg=... -> prepend "https:"
+        #   - path-relative:     /l/?uddg=...                   -> prepend "https://duckduckgo.com"
+        # Normalize both so the scraping client (with follow_redirects=True)
+        # follows the uddg redirect chain to the actual target.
+        def _normalize(u):
+            if u.startswith("//"):
+                return "https:" + u
+            if u.startswith("/"):
+                return "https://duckduckgo.com" + u
+            return u
+        urls_to_scrape = [_normalize(u) for u in urls_to_scrape]
+
         if not urls_to_scrape:
             logger.warning("No search results found.")
             return
