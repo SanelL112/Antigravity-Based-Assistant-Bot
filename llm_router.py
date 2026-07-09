@@ -21,7 +21,7 @@ import logging
 import requests
 from typing import Optional
 from config import (
-    OPENROUTER_API_KEY,
+    OPENROUTER_API_KEY, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL,
     COST_LOG_FILE, AGENTAPI_BIN, OLLAMA_URL, OLLAMA_ORANGEPI_URL
 )
 
