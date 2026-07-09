@@ -1,0 +1,34 @@
+[Unit]
+Description=Ollama LLM Service
+Documentation=https://github.com/ollama/ollama
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ollama
+Group=ollama
+ExecStart=/usr/local/bin/ollama serve
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=15
+
+# Give Ollama time to stop gracefully
+TimeoutStopSec=30
+
+# Resource limits (server has 5.7GB RAM — Ollama needs ~3.3GB for loaded models)
+MemoryMax=4G
+MemoryHigh=3.5G
+
+# Prevent thrashing — if it restarts >5 times in 2 min, back off
+StartLimitBurst=5
+StartLimitInterval=120
+
+# File descriptor limit (needed for model loading)
+LimitNOFILE=65536
+
+# Security hardening (no PrivateTmp — Ollama 0.30.10 uses /tmp for IPC)
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

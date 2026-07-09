@@ -1,0 +1,12 @@
+[Unit]
+Description=Ollama Health Check Timer (every 5 minutes)
+Requires=ollama-health.service
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
