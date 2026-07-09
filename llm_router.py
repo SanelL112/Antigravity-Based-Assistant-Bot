@@ -22,7 +22,8 @@ import requests
 from typing import Optional
 from config import (
     OPENROUTER_API_KEY, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL,
-    COST_LOG_FILE, AGENTAPI_BIN, OLLAMA_URL, OLLAMA_ORANGEPI_URL
+    COST_LOG_FILE, AGENTAPI_BIN, OLLAMA_URL, OLLAMA_ORANGEPI_URL,
+    OPENCODE_ZEN_API_KEY, OPENCODE_ZEN_URL
 )
 
 logger = logging.getLogger(__name__)
@@ -721,6 +722,97 @@ def stop_rpc_llama_server() -> bool:
         return True
     except Exception as e:
         logger.error(f"Failed to stop RPC server: {e}")
+        return False
+
+
+# ── Opencode Zen ─────────────────────────────────────────────────────────────
+def call_opencode(
+    prompt: str,
+    model: str = "opencode/gpt-5.5",
+    system_prompt: str = "",
+    max_tokens: int = 4000,
+    task: str = "general",
+    timeout: int = 120,
+    temperature: float = 0.0,
+) -> str:
+    """
+    Call OpenCode Zen — an AI model gateway with an OpenAI-compatible API.
+
+    Zen provides access to curated, optimized models for coding and general use.
+    Models include GPT-5.5, Gemini 3.5 Flash, and others with the "opencode/" prefix.
+
+    Args:
+        prompt: The user message
+        model: Model ID (e.g. "opencode/gpt-5.5", "opencode/gemini-3.5-flash")
+        system_prompt: Optional system message
+        max_tokens: Max output tokens
+        task: Label for cost tracking
+        timeout: HTTP timeout in seconds
+        temperature: 0.0 = deterministic, higher = creative
+
+    Returns:
+        Generated text, or empty string on failure.
+    """
+    if not OPENCODE_ZEN_API_KEY:
+        logger.error("Opencode Zen: no API key set (OPENCODE_ZEN_API_KEY)")
+        return ""
+
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
+    start = time.time()
+    try:
+        client = httpx.Client(
+            timeout=httpx.Timeout(connect=10.0, read=float(timeout), write=10.0),
+            headers={
+                "Authorization": f"Bearer {OPENCODE_ZEN_API_KEY}",
+                "Content-Type": "application/json",
+            },
+        )
+        resp = client.post(
+            f"{OPENCODE_ZEN_URL.rstrip('/')}/chat/completions",
+            json={
+                "model": model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            },
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            text = data["choices"][0]["message"]["content"].strip()
+            duration = time.time() - start
+            log_call(model, task, prompt, text, duration)
+            logger.info(
+                f"Opencode Zen ({model}): {len(text)} chars in {duration:.1f}s"
+            )
+            return text
+        else:
+            logger.error(f"Opencode Zen: HTTP {resp.status_code}: {resp.text[:200]}")
+            return ""
+    except httpx.TimeoutException:
+        logger.error(f"Opencode Zen: timed out after {timeout}s")
+        return ""
+    except Exception as e:
+        logger.error(f"Opencode Zen: call failed: {e}")
+        return ""
+
+
+def is_opencode_healthy() -> bool:
+    """Check if Opencode Zen API is reachable with the configured key."""
+    if not OPENCODE_ZEN_API_KEY:
+        return False
+    try:
+        # Call the models endpoint as a lightweight health check
+        client = httpx.Client(timeout=httpx.Timeout(10.0))
+        resp = client.get(
+            f"{OPENCODE_ZEN_URL.rstrip('/')}/models",
+            headers={"Authorization": f"Bearer {OPENCODE_ZEN_API_KEY}"},
+        )
+        return resp.status_code == 200
+    except Exception:
         return False
 
 
