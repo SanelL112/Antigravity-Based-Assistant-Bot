@@ -99,7 +99,13 @@ def get_canvas_pages():
                     lines.append(f"- [{course.name}] {title}" + (f" (updated {updated[:10]})" if updated else ""))
                     found += 1
             except Exception as e:
-                logger.warning(f"Could not fetch pages for {course.name}: {e}")
+                # Pages endpoint returns 404 for archived/concluded courses — expected.
+                # Only log at INFO level to avoid noisy warnings.
+                err_msg = str(e).lower()
+                if "404" in err_msg or "not found" in err_msg:
+                    logger.info(f"No pages available for {course.name} (course may be archived)")
+                else:
+                    logger.warning(f"Could not fetch pages for {course.name}: {e}")
 
         if found == 0:
             return ""

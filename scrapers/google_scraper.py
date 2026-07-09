@@ -32,11 +32,14 @@ logger = logging.getLogger(__name__)
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/classroom.courses.readonly',
-    'https://www.googleapis.com/auth/classroom.coursework.me.readonly',
+    'https://www.googleapis.com/auth/classroom.student-submissions.me.readonly',
     'https://www.googleapis.com/auth/classroom.announcements.readonly',
     'https://www.googleapis.com/auth/documents.readonly',
     'https://www.googleapis.com/auth/drive.readonly',
     'https://www.googleapis.com/auth/calendar.events'
+    # TODO: add classroom.coursework.me.readonly in Google Cloud Console
+    # → https://console.cloud.google.com/apis/credentials/consent → project unique-sentinel-486019-r1
+    # then re-add: 'https://www.googleapis.com/auth/classroom.coursework.me.readonly',
 ]
 
 CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), '..', 'credentials.json')
@@ -75,20 +78,29 @@ def get_google_credentials():
                         if attempt < 2:
                             _time.sleep(2 ** attempt)
                         else:
-                            logger.error(f"Failed to refresh token after 3 attempts: {e}")
-                            creds = None
+                            logger.error(
+                                f"Failed to refresh Google token after 3 attempts: {e}. "
+                                "The refresh token may have been revoked. "
+                                "Run 'python3 google_auth_setup.py' on a machine with a browser to regenerate token.json."
+                            )
+                            return None
             
             if not creds or not creds.valid:
-                # Token missing or scopes changed — re-authenticate via local server flow
-                logger.info("Re-authenticating with Google (local server flow)...")
-                flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_PATH, SCOPES)
-                creds = flow.run_local_server(host='127.0.0.1', port=8080, prompt='consent', open_browser=False)
-                with open(TOKEN_PATH, 'w') as token_file:
-                    token_file.write(creds.to_json())
-                logger.info("Google authentication successful with new scopes.")
+                # Token refresh failed — cannot auto-re-auth on headless server.
+                # Run google_auth_setup.py on a machine with a browser, then copy
+                # token.json back to the server.
+                logger.error(
+                    "Google token expired and cannot be auto-refreshed on a headless server. "
+                    "Run 'python3 google_auth_setup.py' on a machine with a browser, "
+                    "then copy token.json to the server and restart the bot."
+                )
+                return None
 
         if not creds:
-            logger.error("Token is missing or failed to refresh.")
+            logger.error(
+                "Google credentials unavailable. Run 'python3 google_auth_setup.py' on a "
+                "machine with a browser to generate token.json, then copy it to the server."
+            )
             return None
 
         with open(TOKEN_PATH, 'w') as token:
