@@ -255,6 +255,25 @@ def call_openrouter(
             log_call(m, task, prompt, f"(error: {e})", duration)
             continue
 
+    # ── Opencode Zen cross-provider fallback ──
+    # OpenRouter free models share one rate-limit bucket. When 429'd,
+    # Opencode Zen models (hy3-free, mimo-v2.5-free) are a separate provider
+    # with their own rate limits.
+    try:
+        from config import OPENCODE_ZEN_API_KEY
+        if OPENCODE_ZEN_API_KEY:
+            logger.info("OpenRouter chain exhausted — falling back to Opencode Zen")
+            return call_opencode(
+                model="hy3-free",
+                prompt=prompt,
+                task=task,
+                max_tokens=max_tokens,
+                system_prompt=system_prompt,
+                timeout=min(timeout, 120),
+            )
+    except Exception as e:
+        logger.warning(f"Opencode Zen fallback also failed: {e}")
+
     return "⚠️ All models failed to generate a response. Please try again."
 
 

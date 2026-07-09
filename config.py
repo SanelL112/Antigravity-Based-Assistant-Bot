@@ -71,8 +71,25 @@ ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
 # ── Orange Pi 5 NFS mounts ───────────────────────────────────────────────────
 ORANGEPI_CACHE_DIR = Path("/mnt/orangepi/cache")
 ORANGEPI_BACKUP_DIR = Path("/mnt/orangepi/backups")
-ORANGEPI_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-ORANGEPI_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+import threading as _threading
+def _safe_mkdir(path: Path) -> None:
+    """mkdir with a 3s timeout — NFS mount can hang."""
+    result = []
+
+    def _do() -> None:
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+            result.append(True)
+        except OSError:
+            pass
+
+    t = _threading.Thread(target=_do, daemon=True)
+    t.start()
+    t.join(timeout=3.0)
+    # If it didn't finish in 3s, leave it for the call-site fallback
+
+_safe_mkdir(ORANGEPI_CACHE_DIR)
+_safe_mkdir(ORANGEPI_BACKUP_DIR)
 
 # ── Rotation Limits ──────────────────────────────────────────────────────────
 MAX_COMBINED_SUMMARIES_CHARS = 50_000      # ~7 days of digests
