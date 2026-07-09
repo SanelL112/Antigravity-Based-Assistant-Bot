@@ -1,4 +1,3 @@
-import re
 
 S_TRUE = "shell" + "=" + "True"
 
