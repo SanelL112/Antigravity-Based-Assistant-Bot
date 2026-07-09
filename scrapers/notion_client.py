@@ -53,53 +53,61 @@ def task_exists(title: str, headers: dict, fuzzy: bool = True) -> bool:
     """
     Check if a task with this title (or similar) already exists.
 
-    When fuzzy=True, uses difflib to catch near-duplicates like
-    "Submit Day 10 homework" vs "submit day 10 homework (geometry formulas) video"
+    Fast path: exact match via Notion filter (O(1) query).
+    Slow path: fuzzy scan of all non-Done tasks (only if no exact match).
     """
     query_url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
+    norm_title = title.lower().strip()
 
-    # Fetch ALL non-Done tasks for fuzzy matching
-    payload = {
-        "page_size": 100,
+    # ── Fast path: exact match ──────────────────────────────────────────
+    exact_payload = {
+        "page_size": 1,
         "filter": {
-            "property": "Status",
-            "status": {"does_not_equal": "Done"}
+            "and": [
+                {"property": "Task name", "title": {"equals": title}},
+                {"property": "Status", "status": {"does_not_equal": "Done"}},
+            ]
         }
     }
     try:
-        res = _rate_limited_request("POST", query_url, headers=headers, json=payload, timeout=10)
+        res = _rate_limited_request("POST", query_url, headers=headers, json=exact_payload, timeout=10)
+        res.raise_for_status()
+        if len(res.json().get("results", [])) > 0:
+            logger.info(f"Task '{title}' already exists (exact match). Skipping.")
+            return True
+    except Exception as e:
+        logger.error(f"Notion exact-match query failed: {e}")
+
+    # ── Slow path: fuzzy scan of all non-Done tasks ─────────────────────
+    if not fuzzy:
+        return False
+
+    fuzzy_payload = {
+        "page_size": 100,
+        "filter": {"property": "Status", "status": {"does_not_equal": "Done"}}
+    }
+    try:
+        res = _rate_limited_request("POST", query_url, headers=headers, json=fuzzy_payload, timeout=10)
         res.raise_for_status()
         results = res.json().get("results", [])
 
-        if not results:
-            return False
-
-        norm_title = title.lower().strip()
-
+        import difflib
         for r in results:
             title_props = r.get("properties", {}).get("Task name", {}).get("title", [])
             existing = title_props[0].get("text", {}).get("content", "") if title_props else ""
             existing_norm = existing.lower().strip()
 
-            # Exact match
-            if norm_title == existing_norm:
-                logger.info(f"Task '{title}' already exists (exact match). Skipping.")
+            similarity = difflib.SequenceMatcher(None, norm_title, existing_norm).ratio()
+            if similarity > 0.75:
+                logger.info(
+                    f"Task '{title}' is {similarity:.0%} similar to existing "
+                    f"'{existing}' — skipping as duplicate."
+                )
                 return True
-
-            # Fuzzy match — catch near-duplicates
-            if fuzzy:
-                import difflib
-                similarity = difflib.SequenceMatcher(None, norm_title, existing_norm).ratio()
-                if similarity > 0.75:
-                    logger.info(
-                        f"Task '{title}' is {similarity:.0%} similar to existing "
-                        f"'{existing}' — skipping as duplicate."
-                    )
-                    return True
 
         return False
     except Exception as e:
-        logger.error(f"Failed to query Notion for existing task: {e}")
+        logger.error(f"Notion fuzzy-dedup query failed: {e}")
         return False
 
 
@@ -286,67 +294,67 @@ def archive_stale_tasks(dry_run: bool = False, max_age_days: int = 60) -> int:
     cutoff = now - timedelta(days=max_age_days)
     cutoff_str = cutoff.strftime("%Y-%m-%d")
 
-    # Query Not started tasks created before cutoff
-    payload = {
-        "page_size": 100,
-        "filter": {
-            "and": [
-                {"property": "Status", "status": {"equals": "Not started"}},
-                {"property": "Status", "status": {"equals": "In progress"}},
-                # Fallback: filter by created_time if available
-            ]
-        }
-    }
-
-    # Simpler filter: get all Not started tasks, filter client-side
+    # ── Paginate through all Not started tasks ─────────────────────────────
     payload = {
         "page_size": 100,
         "filter": {"property": "Status", "status": {"equals": "Not started"}}
     }
 
-    try:
-        res = _rate_limited_request("POST", query_url, headers=headers, json=payload, timeout=15)
-        res.raise_for_status()
-        results = res.json().get("results", [])
-    except Exception as e:
-        logger.error(f"Failed to query Notion for stale tasks: {e}")
-        return 0
-
     archived = 0
-    for task in results:
-        created = task.get("created_time", "")
-        if not created:
-            continue
-        created_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
-        age_days = (now - created_dt).days
+    has_more = True
+    start_cursor = None
+    checked = 0
 
-        if age_days < max_age_days:
-            continue
+    while has_more:
+        p = dict(payload)
+        if start_cursor:
+            p["start_cursor"] = start_cursor
+        try:
+            res = _rate_limited_request("POST", query_url, headers=headers, json=p, timeout=15)
+            res.raise_for_status()
+            data = res.json()
+            results = data.get("results", [])
+            has_more = data.get("has_more", False)
+            start_cursor = data.get("next_cursor")
+        except Exception as e:
+            logger.error(f"Failed to query Notion for stale tasks: {e}")
+            return archived
 
-        page_id = task["id"]
-        title = "unknown"
-        title_props = task.get("properties", {}).get("Task name", {}).get("title", [])
-        if title_props:
-            title = title_props[0].get("text", {}).get("content", "unknown")
+        for task in results:
+            checked += 1
+            created = task.get("created_time", "")
+            if not created:
+                continue
+            created_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+            age_days = (now - created_dt).days
 
-        if dry_run:
-            logger.info(f"[DRY RUN] Would archive: '{title}' ({age_days}d old)")
-            archived += 1
-        else:
-            update_data = {"properties": {"Status": {"status": {"name": "Done"}}}}
-            try:
-                update_res = _rate_limited_request(
-                    "PATCH",
-                    f"https://api.notion.com/v1/pages/{page_id}",
-                    headers=headers, json=update_data, timeout=15
-                )
-                if update_res.status_code == 200:
-                    logger.info(f"Archived stale task: '{title}' ({age_days}d old)")
-                    archived += 1
-                else:
-                    logger.warning(f"Failed to archive '{title}': HTTP {update_res.status_code}")
-            except Exception as e:
-                logger.error(f"Failed to archive '{title}': {e}")
+            if age_days < max_age_days:
+                continue
+
+            page_id = task["id"]
+            title = "unknown"
+            title_props = task.get("properties", {}).get("Task name", {}).get("title", [])
+            if title_props:
+                title = title_props[0].get("text", {}).get("content", "unknown")
+
+            if dry_run:
+                logger.info(f"[DRY RUN] Would archive: '{title}' ({age_days}d old)")
+                archived += 1
+            else:
+                update_data = {"properties": {"Status": {"status": {"name": "Done"}}}}
+                try:
+                    update_res = _rate_limited_request(
+                        "PATCH",
+                        f"https://api.notion.com/v1/pages/{page_id}",
+                        headers=headers, json=update_data, timeout=15
+                    )
+                    if update_res.status_code == 200:
+                        logger.info(f"Archived stale task: '{title}' ({age_days}d old)")
+                        archived += 1
+                    else:
+                        logger.warning(f"Failed to archive '{title}': HTTP {update_res.status_code}")
+                except Exception as e:
+                    logger.error(f"Failed to archive '{title}': {e}")
 
     logger.info(f"Archive complete: {archived} tasks marked Done ({'DRY RUN' if dry_run else 'LIVE'})")
     return archived
