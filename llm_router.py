@@ -544,11 +544,13 @@ def call_agy_local(prompt: str, model: str = "flash", timeout: int = 180) -> str
 # ── RPC config (override via env vars) ───────────────────────────────────────
 LLAMACPP_RPC_URL = os.getenv("LLAMACPP_RPC_URL", "http://localhost:8080")
 RPC_WORKER_URL = os.getenv("RPC_WORKER_URL", "10.10.10.2:50052")
-# Default model path on server — pull with: ollama pull qwen2.5:7b-instruct-q4_K_M
-# then find the blob: ls ~/.ollama/models/blobs/sha256-*
+# Default model path on server — pull with: ollama pull qwen2.5:7b-instruct-q3_K_M
+# Q3_K_M quant (~3.2GB) fits in 5.7GB — no RPC needed for 7B.
+# For 14B+ models, switch to Q4_K_M and enable RPC.
+# Find the blob: ls ~/.ollama/models/blobs/sha256-*
 RPC_MODEL_PATH = os.getenv(
     "RPC_MODEL_PATH",
-    "/home/sanel/.ollama/models/blobs/sha256-*qwen2.5-7b*"
+    "/home/sanel/.ollama/models/blobs/sha256-*qwen2.5*7b*"
 )
 
 
