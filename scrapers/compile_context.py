@@ -59,8 +59,10 @@ async def compile_bot_context():
             with open(out_file, "w", encoding="utf-8") as f:
                 f.write(context_str)
             logger.info("Successfully compiled bot_context.txt")
+        elif response.status_code == 404:
+            logger.info("Ollama is not running (404) — skipping context compilation")
         else:
-            logger.error(f"Failed to generate context, status {response.status_code}")
+            logger.warning(f"Failed to generate context, status {response.status_code}")
     except Exception as e:
         logger.error(f"Error compiling context: {e}")
 

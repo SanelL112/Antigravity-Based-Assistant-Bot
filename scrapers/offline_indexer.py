@@ -14,7 +14,7 @@ def chunk_text(text, chunk_size=8000):
     for i in range(0, len(text), chunk_size):
         yield text[i:i + chunk_size]
 
-async def process_chunk(chunk, chunk_index, source_name, max_retries=3):
+async def process_chunk(chunk, chunk_index, source_name, max_retries=2):
     prompt = (
         "You are a highly meticulous academic data curator. Read the following chunk of raw data extracted from the student's learning platforms.\n"
         "You MUST provide an EXHAUSTIVE index of EVERY SINGLE file, document, announcement, and assignment found in this chunk. DO NOT ignore or skip anything, regardless of whether you think it is important or not.\n"
@@ -27,6 +27,7 @@ async def process_chunk(chunk, chunk_index, source_name, max_retries=3):
         f"DATA:\n{chunk}"
     )
     
+    last_status = None
     for attempt in range(max_retries):
         try:
             import httpx
@@ -44,12 +45,18 @@ async def process_chunk(chunk, chunk_index, source_name, max_retries=3):
                 )
                 if response.status_code == 200:
                     return response.json().get("response", "")
-                else:
-                    logger.warning(f"Ollama returned {response.status_code}. Retrying...")
-                    await asyncio.sleep(5)
+                last_status = response.status_code
+                # 404 means Ollama is down — no point retrying
+                if response.status_code == 404:
+                    logger.warning(f"Ollama is not running (404). Skipping offline indexing.")
+                    return None
+                logger.warning(f"Ollama returned {response.status_code}. Retrying ({attempt+1}/{max_retries})...")
+                await asyncio.sleep(5)
         except Exception as e:
             logger.error(f"Error communicating with Ollama: {e}")
             await asyncio.sleep(5)
+    
+    logger.warning(f"Ollama indexing failed after {max_retries} attempts (last status: {last_status})")
     return None
 
 async def run_indexing():
@@ -74,7 +81,13 @@ async def run_indexing():
     total_chunks = len(chunks)
     
     success_count = 0
+    ollama_failed = False
     for i, chunk in enumerate(chunks):
+        # Circuit breaker: if Ollama is down, stop processing all remaining chunks
+        if ollama_failed:
+            logger.warning(f"Skipping chunk {i+1}/{total_chunks} — Ollama is not available")
+            continue
+
         logger.info(f"Processing chunk {i+1}/{total_chunks} for delta_export...")
         result = await process_chunk(chunk, i+1, "delta_export")
         if result:
@@ -82,6 +95,9 @@ async def run_indexing():
                 out_f.write(f"\n\n## Source: Nightly Delta (Part {i+1}/{total_chunks})\n\n")
                 out_f.write(result)
             success_count += 1
+        elif i == 0:
+            # First chunk failed — Ollama is likely down. Circuit-break.
+            ollama_failed = True
                 
     if success_count == total_chunks:
         open(delta_file, 'w').close()
