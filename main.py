@@ -134,20 +134,28 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
     from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
     
     logger.info("Watchdog: Scraping sources...")
-    def _run_watchdog_scrape():
-        return (
-            get_all_canvas_data(),
-            get_classroom_assignments(),
-            get_classroom_announcements(),
-            get_unread_emails(),
-            get_latest_messages("102851186")
-        )
 
-    try:
-        canvas, classroom, classroom_ann, gmail, groupme = await asyncio.to_thread(_run_watchdog_scrape)
-    except Exception as e:
-        logger.error(f"Watchdog scrape error: {e}")
-        return
+    # ── Scrape each source independently so one failure doesn't kill the watchdog ──
+    async def _safe_scrape(name, func, *args):
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(func, *args),
+                timeout=60
+            )
+        except Exception as e:
+            err_msg = str(e)[:120]
+            # Suppress known noise: CSRF warnings from expired Google tokens
+            if "CSRF" in err_msg or "mismatching_state" in err_msg:
+                logger.info(f"Watchdog: Skipping {name} — Google token expired (run google_auth_setup.py to fix)")
+            else:
+                logger.warning(f"Watchdog: Scraper '{name}' failed: {err_msg}")
+            return f"(⚠️ {name} unavailable: {err_msg})"
+
+    canvas      = await _safe_scrape("canvas", get_all_canvas_data)
+    classroom   = await _safe_scrape("classroom", get_classroom_assignments)
+    classroom_ann = await _safe_scrape("classroom_ann", get_classroom_announcements)
+    gmail       = await _safe_scrape("gmail", get_unread_emails)
+    groupme     = await _safe_scrape("groupme", get_latest_messages, "102851186")
 
     raw_data = f"CANVAS:\n{canvas}\n\nCLASSROOM:\n{classroom}\n\nCLASSROOM ANNOUNCEMENTS:\n{classroom_ann}\n\nGMAIL:\n{gmail}\n\nGROUPME:\n{groupme}"
     
