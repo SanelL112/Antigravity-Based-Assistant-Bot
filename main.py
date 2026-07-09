@@ -704,6 +704,15 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
         except Exception: pass
         await run_nightly_job(context.bot, chat_id)
         
+        # 1.5. Clean up stale Notion tasks (archive >60d)
+        try:
+            from scrapers.notion_client import archive_stale_tasks
+            archived = await asyncio.to_thread(archive_stale_tasks, dry_run=False, max_age_days=60)
+            if archived > 0:
+                logger.info(f"Nightly: archived {archived} stale Notion tasks")
+        except Exception as e:
+            logger.warning(f"Nightly: Notion archive failed (non-critical): {e}")
+        
         # 2. Consolidate raw logs into curated_brain.md
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text="💤 **Sleep Cycle:**\n✅ PDFs Processed.\n2️⃣ Consolidating short-term memory into `curated_brain.md`...", parse_mode="Markdown")
         except Exception: pass
@@ -798,7 +807,7 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
         await asyncio.to_thread(subprocess.run, [python_bin, builder_script, dynamic_topic], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         
-        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"💤 **Sleep Cycle Complete:**\n✅ PDFs Processed\n✅ Memory Consolidated\n✅ Deep Research Complete\n✅ Web Pre-cached\n✅ SAT Guide Updated\n✅ '{dynamic_topic}' Guide Generated!\n\nGood night! 🌙", parse_mode="Markdown")
+        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=f"💤 **Sleep Cycle Complete:**\n✅ PDFs Processed\n✅ Notion Cleaned\n✅ Memory Consolidated\n✅ Deep Research Complete\n✅ Web Pre-cached\n✅ SAT Guide Updated\n✅ '{dynamic_topic}' Guide Generated!\n\nGood night! 🌙", parse_mode="Markdown")
         except Exception: pass
         
     except Exception as e:

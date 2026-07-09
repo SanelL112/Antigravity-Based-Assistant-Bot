@@ -49,22 +49,55 @@ PRIORITY_OPTIONS = {"high", "medium", "low"}
 STATUS_OPTIONS   = {"Not started", "In progress", "Done"}
 
 
-def task_exists(title: str, headers: dict) -> bool:
-    """Check if a task with this title already exists in the Tracker database."""
+def task_exists(title: str, headers: dict, fuzzy: bool = True) -> bool:
+    """
+    Check if a task with this title (or similar) already exists.
+
+    When fuzzy=True, uses difflib to catch near-duplicates like
+    "Submit Day 10 homework" vs "submit day 10 homework (geometry formulas) video"
+    """
     query_url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
+
+    # Fetch ALL non-Done tasks for fuzzy matching
     payload = {
+        "page_size": 100,
         "filter": {
-            "property": "Task name",
-            "title": {
-                "equals": title
-            }
+            "property": "Status",
+            "status": {"does_not_equal": "Done"}
         }
     }
     try:
         res = _rate_limited_request("POST", query_url, headers=headers, json=payload, timeout=10)
         res.raise_for_status()
         results = res.json().get("results", [])
-        return len(results) > 0
+
+        if not results:
+            return False
+
+        norm_title = title.lower().strip()
+
+        for r in results:
+            title_props = r.get("properties", {}).get("Task name", {}).get("title", [])
+            existing = title_props[0].get("text", {}).get("content", "") if title_props else ""
+            existing_norm = existing.lower().strip()
+
+            # Exact match
+            if norm_title == existing_norm:
+                logger.info(f"Task '{title}' already exists (exact match). Skipping.")
+                return True
+
+            # Fuzzy match — catch near-duplicates
+            if fuzzy:
+                import difflib
+                similarity = difflib.SequenceMatcher(None, norm_title, existing_norm).ratio()
+                if similarity > 0.75:
+                    logger.info(
+                        f"Task '{title}' is {similarity:.0%} similar to existing "
+                        f"'{existing}' — skipping as duplicate."
+                    )
+                    return True
+
+        return False
     except Exception as e:
         logger.error(f"Failed to query Notion for existing task: {e}")
         return False
@@ -230,15 +263,110 @@ def update_notion_task(page_id: str, priority: str = None, status: str = None, s
         return False
 
 
+def archive_stale_tasks(dry_run: bool = False, max_age_days: int = 60) -> int:
+    """
+    Archive (mark as Done) tasks that are Not started + older than max_age_days.
+
+    Returns the number of tasks archived.
+    """
+    if not NOTION_API_KEY or NOTION_API_KEY == "your_notion_api_key":
+        logger.error("Notion API key not configured.")
+        return 0
+
+    from datetime import datetime, timezone, timedelta
+
+    headers = {
+        "Authorization": f"Bearer {NOTION_API_KEY}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28",
+    }
+
+    query_url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=max_age_days)
+    cutoff_str = cutoff.strftime("%Y-%m-%d")
+
+    # Query Not started tasks created before cutoff
+    payload = {
+        "page_size": 100,
+        "filter": {
+            "and": [
+                {"property": "Status", "status": {"equals": "Not started"}},
+                {"property": "Status", "status": {"equals": "In progress"}},
+                # Fallback: filter by created_time if available
+            ]
+        }
+    }
+
+    # Simpler filter: get all Not started tasks, filter client-side
+    payload = {
+        "page_size": 100,
+        "filter": {"property": "Status", "status": {"equals": "Not started"}}
+    }
+
+    try:
+        res = _rate_limited_request("POST", query_url, headers=headers, json=payload, timeout=15)
+        res.raise_for_status()
+        results = res.json().get("results", [])
+    except Exception as e:
+        logger.error(f"Failed to query Notion for stale tasks: {e}")
+        return 0
+
+    archived = 0
+    for task in results:
+        created = task.get("created_time", "")
+        if not created:
+            continue
+        created_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+        age_days = (now - created_dt).days
+
+        if age_days < max_age_days:
+            continue
+
+        page_id = task["id"]
+        title = "unknown"
+        title_props = task.get("properties", {}).get("Task name", {}).get("title", [])
+        if title_props:
+            title = title_props[0].get("text", {}).get("content", "unknown")
+
+        if dry_run:
+            logger.info(f"[DRY RUN] Would archive: '{title}' ({age_days}d old)")
+            archived += 1
+        else:
+            update_data = {"properties": {"Status": {"status": {"name": "Done"}}}}
+            try:
+                update_res = _rate_limited_request(
+                    "PATCH",
+                    f"https://api.notion.com/v1/pages/{page_id}",
+                    headers=headers, json=update_data, timeout=15
+                )
+                if update_res.status_code == 200:
+                    logger.info(f"Archived stale task: '{title}' ({age_days}d old)")
+                    archived += 1
+                else:
+                    logger.warning(f"Failed to archive '{title}': HTTP {update_res.status_code}")
+            except Exception as e:
+                logger.error(f"Failed to archive '{title}': {e}")
+
+    logger.info(f"Archive complete: {archived} tasks marked Done ({'DRY RUN' if dry_run else 'LIVE'})")
+    return archived
+
+
 if __name__ == "__main__":
-    print("Testing Notion Tracker push...")
-    success = add_task_to_notion(
-        title="Test Task from Bot",
-        source="Canvas",
-        due_date="2026-06-30",
-        priority="high",
-        status="Not started",
-        start_value=0,
-        end_value=100,
-    )
-    print("✅ Success! Check your Notion Tracker." if success else "❌ Failed.")
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "archive":
+        dry = "--dry-run" in sys.argv
+        count = archive_stale_tasks(dry_run=dry)
+        print(f"{'Would archive' if dry else 'Archived'} {count} stale tasks.")
+    else:
+        print("Testing Notion Tracker push...")
+        success = add_task_to_notion(
+            title="Test Task from Bot",
+            source="Canvas",
+            due_date="2026-06-30",
+            priority="high",
+            status="Not started",
+            start_value=0,
+            end_value=100,
+        )
+        print("✅ Success! Check your Notion Tracker." if success else "❌ Failed.")
