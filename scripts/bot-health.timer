@@ -1,0 +1,12 @@
+[Unit]
+Description=Bot Health Monitor Timer (every 4 hours)
+Requires=bot-health.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=4h
+RandomizedDelaySec=60
+Persistent=true
+
+[Install]
+WantedBy=timers.target

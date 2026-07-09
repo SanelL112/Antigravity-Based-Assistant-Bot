@@ -1,0 +1,10 @@
+[Unit]
+Description=Bot Health Monitor Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/bot-health-check.sh
+StandardOutput=journal
+StandardError=journal
