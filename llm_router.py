@@ -923,7 +923,7 @@ def call_opencode(
     start = time.time()
     try:
         client = httpx.Client(
-            timeout=httpx.Timeout(connect=10.0, read=float(timeout), write=10.0),
+            timeout=httpx.Timeout(float(timeout), connect=10.0, write=10.0, pool=5.0),
             headers={
                 "Authorization": f"Bearer {OPENCODE_ZEN_API_KEY}",
                 "Content-Type": "application/json",
