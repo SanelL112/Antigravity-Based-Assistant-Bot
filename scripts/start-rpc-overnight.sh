@@ -28,7 +28,6 @@ set -euo pipefail
 RPC_WORKER="${RPC_WORKER:-10.10.10.2:50052}"
 RPC_PORT="${RPC_PORT:-8080}"
 CTX_SIZE="${CTX_SIZE:-4096}"
-NGPU_LAYERS="${NGPU_LAYERS:-99}"
 THREADS="${THREADS:-2}"
 
 # Find the largest matching GGUF model (by size, not name — blob filenames are hashes)
