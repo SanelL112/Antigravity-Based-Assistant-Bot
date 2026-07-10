@@ -1,5 +1,3 @@
-import re
-
 def fix_bot_commands():
     with open('bot/commands.py', 'r') as f:
         content = f.read()
@@ -12,30 +10,30 @@ def fix_bot_commands():
 
     # _get_mc_status
     mc_status_old = (
-"""    try:
-        import subprocess
-        res = subprocess.check_output("systemctl is-active minecraft || echo 'inactive'", shell=True, text=True).strip()
-        return f"⛏️ **Minecraft Server**\\nStatus: `{res}`"
-    except Exception as e: return str(e)"""  # nosec B602 B604 B605 B607
-)
+        "    try:\n"
+        "        import subprocess\n"
+        "        res = subprocess.check_output(\"systemctl is-active minecraft || echo 'inactive'\", shell=True, text=True).strip()\n"  # nosec B602 B604 B605 B607
+        "        return f\"⛏️ **Minecraft Server**\\nStatus: `{res}`\"\n"
+        "    except Exception as e: return str(e)"
+    )
     mc_status_new = """    try:
         import subprocess
         try:
             res = subprocess.check_output(["systemctl", "is-active", "minecraft"], text=True).strip()
         except subprocess.CalledProcessError:
             res = "inactive"
-        return f"⛏️ **Minecraft Server**\\nStatus: `{res}`"
+        return f"⛏️ **Minecraft Server**\nStatus: `{res}`"
     except Exception as e: return str(e)"""
     content = content.replace(mc_status_old, mc_status_new)
 
     # _get_embed_status
     embed_status_old = (
-"""    try:
-        import subprocess
-        res = subprocess.check_output("tail -n 10 /tmp/embed_build4.log || echo 'No log found'", shell=True, text=True).strip()
-        return f"🧠 **Embedding Progress**\\n```\\n{res}\\n```"
-    except Exception as e: return str(e)"""  # nosec B602 B604 B605 B607
-)
+        "    try:\n"
+        "        import subprocess\n"
+        "        res = subprocess.check_output(\"tail -n 10 /tmp/embed_build4.log || echo 'No log found'\", shell=True, text=True).strip()\n"  # nosec B602 B604 B605 B607
+        "        return f\"🧠 **Embedding Progress**\\n```\\n{res}\\n```\"\n"
+        "    except Exception as e: return str(e)"
+    )
     embed_status_new = """    try:
         import os
         log_path = "/tmp/embed_build4.log"
@@ -45,23 +43,23 @@ def fix_bot_commands():
             res = "".join(lines[-10:]).strip()
         else:
             res = "No log found"
-        return f"🧠 **Embedding Progress**\\n```\\n{res}\\n```"
+        return f"🧠 **Embedding Progress**\n```\n{res}\n```"
     except Exception as e: return str(e)"""
     content = content.replace(embed_status_old, embed_status_new)
 
     # _get_bot_status
     bot_status_old = (
-"""    try:
-        import subprocess
-        res = subprocess.check_output("systemctl status antigravity-bot | head -n 5", shell=True, text=True).strip()
-        return f"🤖 **Bot Service**\\n```\\n{res}\\n```"
-    except Exception as e: return str(e)"""  # nosec B602 B604 B605 B607
-)
+        "    try:\n"
+        "        import subprocess\n"
+        "        res = subprocess.check_output(\"systemctl status antigravity-bot | head -n 5\", shell=True, text=True).strip()\n"  # nosec B602 B604 B605 B607
+        "        return f\"🤖 **Bot Service**\\n```\\n{res}\\n```\"\n"
+        "    except Exception as e: return str(e)"
+    )
     bot_status_new = """    try:
         import subprocess
         res = subprocess.check_output(["systemctl", "status", "antigravity-bot"], text=True)
-        res = "\\n".join(res.splitlines()[:5]).strip()
-        return f"🤖 **Bot Service**\\n```\\n{res}\\n```"
+        res = "\n".join(res.splitlines()[:5]).strip()
+        return f"🤖 **Bot Service**\n```\n{res}\n```"
     except Exception as e: return str(e)"""
     content = content.replace(bot_status_old, bot_status_new)
 
@@ -79,17 +77,17 @@ def fix_bot_commands():
 
     # _get_services_status
     services_old = (
-"""    try:
-        import subprocess
-        res = subprocess.check_output("systemctl list-units --type=service --state=running | head -n 10", shell=True, text=True).strip()
-        return f"⚙️ **Services**\\n```\\n{res}\\n```"
-    except Exception as e: return str(e)"""  # nosec B602 B604 B605 B607
-)
+        "    try:\n"
+        "        import subprocess\n"
+        "        res = subprocess.check_output(\"systemctl list-units --type=service --state=running | head -n 10\", shell=True, text=True).strip()\n"  # nosec B602 B604 B605 B607
+        "        return f\"⚙️ **Services**\\n```\\n{res}\\n```\"\n"
+        "    except Exception as e: return str(e)"
+    )
     services_new = """    try:
         import subprocess
         res = subprocess.check_output(["systemctl", "list-units", "--type=service", "--state=running"], text=True)
-        res = "\\n".join(res.splitlines()[:10]).strip()
-        return f"⚙️ **Services**\\n```\\n{res}\\n```"
+        res = "\n".join(res.splitlines()[:10]).strip()
+        return f"⚙️ **Services**\n```\n{res}\n```"
     except Exception as e: return str(e)"""
     content = content.replace(services_old, services_new)
 
