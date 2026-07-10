@@ -76,14 +76,16 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         brain_context = "No offline memory consolidated yet."
 
     # ── PII CHECK: Fast regex scan before any cloud touch ──
-    # If PII is detected, route the ENTIRE request to Orange Pi Ollama
-    # (qwen2:0.5b, ~53 tok/s) so no data ever reaches a cloud API.
+    # If PII is detected, route the ENTIRE request to Orange Pi Ollama.
+    # Primary: qwen2:0.5b (fast, ~53 tok/s)
+    # Fallback: qwen2.5:3b-instruct-q4_K_M (capable, ~15 tok/s)
+    # If both fail, fall through to cloud path with regex-scrubbed message.
     from utils import check_pii
     is_safe, scrubbed_message, pii_types = check_pii(user_message)
 
     if not is_safe:
         pii_str = ", ".join(pii_types)
-        logger.info(f"PII detected ({pii_str}) — routing entirely via Pi Ollama (qwen2:0.5b)")
+        logger.info(f"PII detected ({pii_str}) — routing entirely via Pi Ollama")
         if status_msg and context:
             try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🛡️ PII detected ({pii_str}) — keeping it local on Pi")
             except Exception: pass
@@ -94,22 +96,28 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             "Keep your response concise and natural. Do not mention that you are an AI.\n\n"
             f"User: {scrubbed_message}"
         )
-        try:
-            pi_result = await asyncio.wait_for(
-                asyncio.get_running_loop().run_in_executor(
-                    None,
-                    lambda: call_ollama(pi_prompt, model="qwen2:0.5b", timeout=120)
-                ),
-                timeout=125,
-            )
-            if pi_result:
-                logger.info(f"Pi Ollama responded: {len(pi_result)} chars")
-                return pi_result
-            else:
-                logger.warning("Pi Ollama returned empty — falling through to cloud path with scrubbed data")
-        except Exception as e:
-            logger.warning(f"Pi Ollama failed ({e}) — falling through to cloud path with scrubbed data")
+        pi_models = [
+            ("qwen2:0.5b", "Pi 0.5B"),
+            ("qwen2.5:3b-instruct-q4_K_M", "Pi 3.1B"),
+        ]
+        pi_result = ""
+        for pi_model, pi_label in pi_models:
+            try:
+                pi_result = await asyncio.wait_for(
+                    asyncio.get_running_loop().run_in_executor(
+                        None,
+                        lambda m=pi_model: call_ollama(pi_prompt, model=m, timeout=60)
+                    ),
+                    timeout=65,
+                )
+                if pi_result:
+                    logger.info(f"{pi_label} responded: {len(pi_result)} chars")
+                    return pi_result
+                logger.warning(f"{pi_label} returned empty")
+            except Exception as e:
+                logger.warning(f"{pi_label} failed ({e})")
 
+        logger.warning("All Pi models failed — falling through to cloud path with scrubbed data")
         # Replace original message with scrubbed version for the rest of this function
         user_message = scrubbed_message
 
