@@ -357,6 +357,183 @@ Parallel lines preserve angle measures in similar figures. Used in coordinate ge
 
 ---
 
+## 📅 Update: 2026-07-10 - New Concepts from July Classroom Materials
+
+### 🔴 NEW: Area & Volume Formulas (from AreaVol_L3)
+*Extracted from 2026 Summer SAT/ACT @ AHA AreaVol_L3pdf (July 9, 2026)*
+
+#### 2D Area Formulas (Must Memorize)
+| Shape | Formula | Notes |
+|-------|---------|-------|
+| Rectangle | $A = l \times w$ | On reference sheet |
+| Triangle | $A = \frac{1}{2} b h$ | On reference sheet |
+| Parallelogram | $A = b h$ | Height ⟂ base |
+| Trapezoid | $A = \frac{1}{2} (b_1 + b_2) h$ | Average of bases × height |
+| Circle | $A = \pi r^2$ | On reference sheet |
+| Sector | $A = \frac{\theta}{360} \pi r^2$ | Fraction of circle |
+| Rhombus/Kite | $A = \frac{1}{2} d_1 d_2$ | Diagonals ⟂ |
+
+#### 3D Volume Formulas (Must Memorize)
+| Solid | Volume Formula | Surface Area (if needed) |
+|-------|----------------|---------------------------|
+| Rectangular Prism | $V = l w h$ | $SA = 2(lw + lh + wh)$ |
+| Cube | $V = s^3$ | $SA = 6s^2$ |
+| Cylinder | $V = \pi r^2 h$ | $SA = 2\pi r^2 + 2\pi rh$ |
+| Sphere | $V = \frac{4}{3} \pi r^3$ | $SA = 4\pi r^2$ |
+| Cone | $V = \frac{1}{3} \pi r^2 h$ | $SA = \pi r^2 + \pi r \ell$ ($\ell$ = slant height) |
+| Pyramid | $V = \frac{1}{3} B h$ | $B$ = base area |
+| Right Prism (any base) | $V = B h$ | $B$ = base area |
+
+#### SAT-Specific Volume/SA Problem Types
+**Type 1: Direct Plug-in** - Given dimensions, compute V or SA
+**Type 2: Find Missing Dimension** - $V = 120, l=5, w=4 \rightarrow h = 120/(5×4) = 6$
+**Type 3: Scale Factor** - If dimensions scale by $k$, $V$ scales by $k^3$, $SA$ scales by $k^2$
+**Type 4: Composite Solids** - Add/subtract volumes of simple shapes
+**Type 5: Inscribed/Circumscribed** - Sphere in cube, cylinder in sphere, etc.
+
+#### Practice Problems (AreaVol_L3)
+1. Cylinder $r=3, h=10$. Volume? Surface area?
+   - $V = \pi(9)(10) = 90\pi$
+   - $SA = 2\pi(9) + 2\pi(3)(10) = 18\pi + 60\pi = 78\pi$
+
+2. Cube volume = $64$. Surface area?
+   - $s = 4$, $SA = 6(16) = 96$
+
+3. Cone and hemisphere share base $r=4$. Total volume?
+   - Cone $h=3$: $V = \frac{1}{3}\pi(16)(3) = 16\pi$
+   - Hemisphere: $V = \frac{1}{2}(\frac{4}{3}\pi(64)) = \frac{128}{3}\pi$
+   - Total: $\frac{176}{3}\pi$
+
 ---
 
-*Last Updated: 2026-07-08 | Generated from 16_Lines and Angles.pdf classroom materials and SAT/ACT curriculum*
+### 🔴 NEW: Central Idea & Details for Math-Infused Passages (from CI Details_L2)
+*Extracted from 2026 Summer SAT/ACT @ AHA CI Details_L2 1pdf (July 9, 2026)*
+
+While primarily reading content, these concepts apply to **Problem Solving and Data Analysis** questions with text:
+
+#### Interpreting Quantitative Claims in Text
+- **Central Claim with Data**: "Study shows 60% reduction" → treatment group had 60% fewer events than control
+- **Correlation vs. Causation Language**: "Associated with" ≠ "caused"; "linked to" ≠ "resulted from"
+- **Margin of Error in Text**: "45% ± 3%" means true value likely between 42%-48%
+- **Sample Size Claims**: "Based on 500 participants" → assess reliability (larger = more reliable)
+
+#### Detail Questions Strategy for Math-Infused Passages
+1. **Identify the specific claim** being referenced
+2. **Locate the supporting data** in the passage (numbers, percentages, study details)
+3. **Match precisely** - watch for "most" vs "all", "increased" vs "increased by"
+4. **Reject** answers that add info not in text or misinterpret the data
+
+---
+
+### 🔴 NEW: Lines, Angles & Triangles Advanced (from LiAngTri_L2)
+*Extracted from 2026 Summer SAT/ACT @ AHA LiAngTri_L2pdf (July 9, 2026)*
+
+#### Advanced Angle Theorems
+| Theorem | Statement | Application |
+|---------|-----------|-------------|
+| **Exterior Angle Theorem** | Exterior angle = sum of two remote interior angles | Find missing angles fast |
+| **Triangle Inequality** | $a + b > c$, $|a - b| < c$ | Determine if sides form triangle |
+| **Hinge Theorem** | Larger angle → longer opposite side | Compare side lengths |
+| **Angle Bisector Theorem** | $\frac{AB}{AC} = \frac{BD}{DC}$ | Proportional segments |
+
+#### Special Triangle Centers (Coordinate Geometry)
+| Center | Construction | Coordinates (if vertices known) | Key Property |
+|--------|--------------|----------------------------------|--------------|
+| **Centroid** | Medians intersect | $(\frac{x_1+x_2+x_3}{3}, \frac{y_1+y_2+y_3}{3})$ | Divides medians 2:1 |
+| **Circumcenter** | Perpendicular bisectors | Equidistant from vertices | Center of circumscribed circle |
+| **Incenter** | Angle bisectors | Weighted by side lengths | Center of inscribed circle |
+| **Orthocenter** | Altitudes intersect | - | Acute: inside; Right: at vertex; Obtuse: outside |
+
+#### Euler Line
+- Centroid, circumcenter, orthocenter are **collinear**
+- Centroid is 2/3 of the way from orthocenter to circumcenter
+- **Only equilateral triangles** have all centers coincide
+
+#### Practice Problems (LiAngTri_L2 style)
+1. Triangle vertices: $(0,0), (6,0), (0,8)$. Find centroid.
+   - $(\frac{0+6+0}{3}, \frac{0+0+8}{3}) = (2, \frac{8}{3})$
+
+2. Sides: 7, 10, $x$. Possible integer values of $x$?
+   - $7+10 > x \rightarrow x < 17$
+   - $10-7 < x \rightarrow x > 3$
+   - $x \in \{4,5,6,...,16\}$ → 13 values
+
+3. 30-60-90 triangle, short leg = 5. Area?
+   - Long leg = $5\sqrt{3}$, Area = $\frac{1}{2}(5)(5\sqrt{3}) = \frac{25\sqrt{3}}{2}$
+
+---
+
+### 🔴 NEW: Quadratics & Systems Advanced (from Math_H2)
+*Extracted from 2026 Summer SAT/ACT @ AHA Math_H2pdf (July 9, 2026)*
+
+#### Quadratic Forms & Strategic Rewriting
+| Form | Equation | Best For |
+|------|----------|----------|
+| **Standard** | $ax^2 + bx + c$ | Factoring, quadratic formula, $c$ = y-intercept |
+| **Vertex** | $a(x-h)^2 + k$ | Vertex $(h,k)$, max/min, transformations |
+| **Factored** | $a(x-r_1)(x-r_2)$ | Roots/zeros, x-intercepts, sign analysis |
+
+#### Converting Between Forms
+- **Standard → Vertex**: Complete the square
+  - $x^2 + 6x + 2 = (x^2 + 6x + 9) - 9 + 2 = (x+3)^2 - 7$
+- **Standard → Factored**: Factor or use quadratic formula to find roots
+- **Vertex → Standard**: Expand $(x-h)^2$
+
+#### Systems: Linear-Quadratic & Quadratic-Quadratic
+**Strategy**: Substitute linear into quadratic → solve → back-substitute
+- **0 solutions**: Line misses parabola (discriminant < 0)
+- **1 solution**: Line tangent (discriminant = 0)
+- **2 solutions**: Line intersects twice (discriminant > 0)
+
+**Example**: $y = x+1$ and $y = x^2 - 2x + 3$
+- $x+1 = x^2 - 2x + 3 \rightarrow x^2 - 3x + 2 = 0 \rightarrow (x-1)(x-2) = 0$
+- Solutions: $(1,2)$ and $(2,3)$
+
+#### Vieta's Formulas (Sum/Product of Roots)
+For $ax^2 + bx + c = 0$ with roots $r_1, r_2$:
+- **Sum**: $r_1 + r_2 = -\frac{b}{a}$
+- **Product**: $r_1 r_2 = \frac{c}{a}$
+
+**Application**: Find $r_1^2 + r_2^2$ without solving
+- $(r_1 + r_2)^2 = r_1^2 + r_2^2 + 2r_1 r_2$
+- $r_1^2 + r_2^2 = (-\frac{b}{a})^2 - 2(\frac{c}{a})$
+
+#### Discriminant Analysis
+$\Delta = b^2 - 4ac$
+- $\Delta > 0$: Two distinct real roots
+- $\Delta = 0$: One real root (double/tangent)
+- $\Delta < 0$: No real roots (complex)
+- **Perfect square** → rational roots → factorable over integers
+
+#### Practice Problems (Math_H2 style)
+1. $2x^2 - 7x + 3 = 0$. Sum of roots? Product?
+   - Sum = $7/2$, Product = $3/2$
+
+2. $y = -2(x-3)^2 + 5$. Vertex? Max or min? y-intercept?
+   - Vertex $(3,5)$, opens down → **max** = 5
+   - y-int: $x=0 \rightarrow y = -2(9)+5 = -13$
+
+3. System: $y = 2x+1$ and $y = x^2 - 4x + 7$. How many solutions?
+   - $2x+1 = x^2 - 4x + 7 \rightarrow x^2 - 6x + 6 = 0$
+   - $\Delta = 36 - 24 = 12 > 0$ → **2 solutions**
+
+4. Find $k$ so $x^2 + kx + 9 = 0$ has exactly one solution.
+   - $\Delta = 0 \rightarrow k^2 - 36 = 0 \rightarrow k = \pm 6$
+
+---
+
+### 📊 PRACTICE SET: Mixed New Material (July 2026)
+
+**Geometry:**
+1. Sector area $24\pi$, radius $8$. Central angle?
+2. Rectangular prism $V=240$, $l=8$, $w=5$. Find $h$, then $SA$.
+3. Triangle sides 9, 12, $x$. Range of $x$ for obtuse triangle?
+
+**Quadratics:**
+4. $3x^2 - 12x + 7 = 0$. Vertex form? Vertex? Roots?
+5. Find quadratic with roots summing to 6, product -7.
+6. System: $y = x^2 - 4x + 3$ and $y = -x + 5$. Solve.
+
+**Statistics (from prior):**
+7. Two-way table: P(A|B) vs P(B|A). When are they equal?
+8. Data set with outlier: which measure of center is most affected?

@@ -1,22 +1,10 @@
-🧠 **ULTIMATE CHUNKED STUDY GUIDE: SAT Reading Comprehension Master Guide**
+# 🧠 **ULTIMATE CHUNKED STUDY GUIDE: SAT Reading Comprehension Master Guide**
 
 *(Generated dynamically via a 10-part LLM Generation & Verification Pipeline to bypass limits)*
 
-
-
-⚠️ All models failed to generate a response. Please try again.
-
 ---
 
-
-⚠️ All models failed to generate a response. Please try again.
-
----
-
-
-⚠️ All models failed to generate a response. Please try again.
-
----
+## 📅 Update: 2026-07-10 - New Reading Strategies from July Classroom Materials
 
 
 ⚠️ All models failed to generate a response. Please try again.
@@ -440,6 +428,182 @@ Digital SAT Reading/Writing: **64 minutes, 54 questions** (2 modules of 32 min, 
 6. **Vocab**: Predict first, then match. Use context clues (contrast, cause/effect, definition, example).
 
 7. **Time**: ~71 sec/q average. Fast on vocab/conventions, invest time on cross-text/synthesis.
+---
+
+## 📅 Update: 2026-07-10 - New Reading Strategies from July Classroom Materials
+
+### 🔴 NEW: Advanced Inference Techniques (from Inferences_L2/L3)
+*Extracted from 2026 Summer SAT/ACT @ AHA Inferences_L2/L3 (July 9, 2026)*
+
+#### The 3-Level Inference Hierarchy
+| Level | Description | Example Stem | Difficulty |
+|-------|-------------|--------------|------------|
+| **L1: Direct** | One-step logical deduction | "The passage states that X. What must be true?" | Easy |
+| **L2: Synthesis** | Combine 2+ pieces of text | "Based on lines 12-15 and 28-30, what can be inferred?" | Medium |
+| **L3: Abstract** | Apply passage logic to new scenario | "Which situation is most analogous to the author's argument?" | Hard |
+
+#### Inference "Must Be True" Validation Checklist
+For every answer choice, ask:
+- ☐ **Supported by text?** Direct quote or combination possible?
+- ☐ **Logically forced?** Not just "could be true" - MUST be true
+- ☐ **No outside knowledge?** Answer uses ONLY passage information
+- ☐ **Right scope?** Doesn't go beyond passage's specific claim
+- ☐ **Tone match?** Matches author's degree of certainty
+
+#### New Inference Question Patterns (Digital SAT)
+1. **"Which choice best completes the text?"** - Fill in logical consequence
+2. **"The passage most strongly suggests..."** - Strongest supported inference
+3. **"Based on the text, which assumption underlies..."** - Identify hidden premise
+4. **"If true, which would most strengthen/weaken the inference?"** - Logical reasoning
+
+---
+
+### 🔴 NEW: Cross-Text Connections Mastery (from Cross_Text_L2/L3)
+*Extracted from 2026 Summer SAT/ACT @ AHA Cross_Text_L2/L3 (July 9, 2026)*
+
+#### The Comparison Mapping Framework
+Create a 2×2 grid while reading:
+| | **Passage 1** | **Passage 2** |
+|---|---|---|
+| **Main Claim** | | |
+| **Evidence Type** | Data / Anecdote / Authority / Logic | |
+| **Tone** | Objective / Critical / Tentative / Enthusiastic | |
+| **Scope** | Broad / Narrow / Historical / Contemporary | |
+| **Key Terms** | Define differently? Same definition? | |
+
+#### 6 Cross-Text Relationship Types (Memorize These)
+1. **Direct Contradiction** - P1 says X, P2 says not-X
+2. **Qualified Agreement** - P1 says X, P2 says "X, but only when Y"
+3. **Different Evidence, Same Conclusion** - Both conclude Z, different support
+4. **Different Focus** - P1: causes; P2: effects/solutions
+5. **Extension/Application** - P2 applies P1's theory to new context
+6. **Methodological Debate** - Disagree on HOW to study the issue
+
+#### Cross-Text Question Translation Table
+| Question Stem | What It's Really Asking |
+|---------------|------------------------|
+| "How would Author 2 respond to Author 1's claim?" | Apply P2's framework to evaluate P1's claim |
+| "The passages differ in their..." | Identify specific point of divergence |
+| "Both passages suggest..." | Find common ground (often implicit) |
+| "Which describes the relationship?" | Classify as one of 6 types above |
+| "Author 1 mentions X primarily to..." | Function of detail in P1's argument |
+
+#### Cross-Text Strategy: The 3-Pass Method
+1. **Pass 1**: Read Passage 1 → identify main claim + tone
+2. **Pass 2**: Read Passage 2 → identify main claim + tone + how it relates to P1
+3. **Pass 3**: Answer questions, constantly referencing BOTH passages
+
+---
+
+### 🔴 NEW: Rhetorical Synthesis - The Bullet-to-Essay Engine (from Rhetorical_Synthesis_L3)
+*Extracted from 2026 Summer SAT/ACT @ AHA Rhetorical_Synthesis_L3 (July 9, 2026)*
+
+#### The 4-Step Selection Process
+**Step 1: Decode the Goal**
+- "Emphasize the difference" → Contrast structure needed
+- "Summarize the finding" → Concise statement of result
+- "Make a recommendation" → Action-oriented, "should" language
+- "Illustrate the point" → Specific example from notes
+- "Show the relationship" → Cause/effect, comparison, or correlation
+
+**Step 2: Tag Each Bullet**
+- 🟢 **Core finding** = main result/data point
+- 🔵 **Context** = background, methodology, sample
+- 🟡 **Interpretation** = researcher's take, implications
+- 🔴 **Distractor** = irrelevant detail (often 1-2 bullets)
+
+**Step 3: Eliminate by Goal Mismatch**
+- Goal = contrast → Kill answers that only show similarity
+- Goal = recommend → Kill answers without action language
+- Goal = summarize → Kill answers adding new interpretation
+
+**Step 4: Verify Faithfulness to Notes**
+- No outside info
+- No overstatement ("proves" vs "suggests")
+- All key elements from relevant bullets included
+
+#### Common Rhetorical Synthesis Trap Patterns
+| Trap | Example | Why It's Wrong |
+|------|---------|----------------|
+| **Overclaim** | "Proves X causes Y" | Notes say "correlation found" |
+| **Missing Contrast** | Lists both findings without "however" | Goal was "emphasize difference" |
+| **Added Fluff** | "Important discovery that will change..." | Not in notes |
+| **Wrong Focus** | Summarizes methodology when goal is result | Misread goal |
+
+#### Practice: Rhetorical Synthesis Drill
+**Goal**: Emphasize the unexpected nature of the finding
+**Notes**:
+- 500 teens studied, screen time vs sleep
+- Hypothesis: More screen → less sleep
+- Result: 4+ hrs screen = 7.2 hrs sleep; <1 hr = 6.8 hrs sleep
+- Researchers: "Counterintuitive, warrants further study"
+
+**Correct Pattern**: "Contrary to the hypothesis that screen time reduces sleep, teens with 4+ hours averaged 7.2 hours vs 6.8 hours for low-screen teens - a counterintuitive finding the researchers flagged for further study."
+
+---
+
+### 🔴 NEW: Central Idea & Text Structure Precision (from Central_Idea_L2/L3, Text_Struc_Pur_L2)
+*Extracted from 2026 Summer SAT/ACT @ AHA CI Details_L2, Text_Struc_Pur_L2 (July 9, 2026)*
+
+#### Central Idea vs. Details: The Discrimination Protocol
+**Central Idea** = The ONE sentence the author would tweet as their thesis
+- Appears in: first paragraph, last paragraph, or topic sentences
+- Language: "The main argument is..." "The passage primarily concerns..."
+
+**Key Detail** = Specific evidence supporting the central idea
+- Appears in: body paragraphs, examples, data, anecdotes
+- Language: "According to the passage..." "The passage states..."
+
+**Trap**: Answer choices that are TRUE but are DETAILS not the CENTRAL IDEA
+
+#### Text Structure & Purpose Mapping
+| Structure | Purpose | Signal Words | SAT Question Stem |
+|-----------|---------|--------------|-------------------|
+| **Problem-Solution** | Present issue → propose fix | "issue," "solution," "address," "resolve" | "The passage primarily serves to..." |
+| **Cause-Effect** | Explain why X → Y | "because," "led to," "resulted in," "consequence" | "The structure of the passage..." |
+| **Compare-Contrast** | Examine similarities/differences | "similarly," "however," "in contrast," "while" | "The author organizes the text by..." |
+| **Chronological/Narrative** | Tell sequence of events | "first," "then," "subsequently," "eventually" | "The passage is structured as..." |
+| **Argument-Counterargument** | Thesis → objection → rebuttal | "critics argue," "however," "nevertheless" | "The function of paragraph 3..." |
+
+#### Paragraph Function Identification
+- **Thesis paragraph**: States main claim
+- **Evidence paragraph**: Provides data/examples
+- **Counterargument paragraph**: Addresses opposing view
+- **Concession paragraph**: Grants valid point to other side
+- **Synthesis/Conclusion**: Reconciles or extends argument
+- **Analogy paragraph**: Uses comparison to clarify
+
+---
+
+### 📝 PRACTICE SET: Mixed New Reading Material (July 2026)
+
+**Inferences:**
+1. Passage: "Species A declined 40% in polluted areas. Species B increased 15% in same areas." 
+   - What MUST be true? (Pollution affects species differently / Species B tolerates pollution better)
+
+2. "The author describes the policy as 'well-intentioned but misguided.'"
+   - Inference about author's attitude? (Critical of execution, not intent)
+
+**Cross-Text:**
+3. P1: Argues for regulation using economic data. P2: Argues against regulation using liberty principles.
+   - Relationship? (Methodological debate / Different foundational values)
+
+4. P1: Study shows meditation reduces stress. P2: Explains neurological mechanism of stress reduction.
+   - Relationship? (Extension/Application - P2 explains mechanism behind P1's finding)
+
+**Rhetorical Synthesis:**
+5. Goal: Make a recommendation based on findings
+   Notes: - 30% productivity increase with 4-day week
+   - Employee satisfaction up 45%
+   - Revenue maintained
+   - CEO: "Model worthy of broader adoption"
+   → Choose answer with "should implement" or "recommended for"
+
+**Central Idea/Structure:**
+6. Passage describes problem with current education, proposes 3 reforms, addresses cost objections.
+   - Structure? (Problem-solution with counterargument)
+   - Central idea? (Three specific reforms can fix education without excessive cost)
+
 ---
 
 ## 📅 Update: 2026-07-08 - New Concepts from Summer SAT/ACT Class (Days 12-13)
