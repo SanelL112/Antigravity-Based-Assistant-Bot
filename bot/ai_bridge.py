@@ -75,6 +75,44 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
     except Exception:
         brain_context = "No offline memory consolidated yet."
 
+    # ── PII CHECK: Fast regex scan before any cloud touch ──
+    # If PII is detected, route the ENTIRE request to Orange Pi Ollama
+    # (qwen2:0.5b, ~53 tok/s) so no data ever reaches a cloud API.
+    from utils import check_pii
+    is_safe, scrubbed_message, pii_types = check_pii(user_message)
+
+    if not is_safe:
+        pii_str = ", ".join(pii_types)
+        logger.info(f"PII detected ({pii_str}) — routing entirely via Pi Ollama (qwen2:0.5b)")
+        if status_msg and context:
+            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🛡️ PII detected ({pii_str}) — keeping it local on Pi")
+            except Exception: pass
+
+        from llm_router import call_ollama
+        pi_prompt = (
+            "You are a helpful, knowledgeable personal assistant. "
+            "Keep your response concise and natural. Do not mention that you are an AI.\n\n"
+            f"User: {scrubbed_message}"
+        )
+        try:
+            pi_result = await asyncio.wait_for(
+                asyncio.get_running_loop().run_in_executor(
+                    None,
+                    lambda: call_ollama(pi_prompt, model="qwen2:0.5b", timeout=120)
+                ),
+                timeout=125,
+            )
+            if pi_result:
+                logger.info(f"Pi Ollama responded: {len(pi_result)} chars")
+                return pi_result
+            else:
+                logger.warning("Pi Ollama returned empty — falling through to cloud path with scrubbed data")
+        except Exception as e:
+            logger.warning(f"Pi Ollama failed ({e}) — falling through to cloud path with scrubbed data")
+
+        # Replace original message with scrubbed version for the rest of this function
+        user_message = scrubbed_message
+
     if status_msg and context:
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="🔍 Classifying topic...")
         except Exception: pass
@@ -333,17 +371,30 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                         else:
                             raise Exception("empty")
                     except Exception as ze:
-                        logger.warning(f"Opencode Zen also failed ({ze}). Falling back to local G1 Flash...")
+                        logger.warning(f"Opencode Zen also failed ({ze}). Trying Hack Club AI...")
                         try:
-                            result = await asyncio.wait_for(
-                                asyncio.get_running_loop().run_in_executor(
-                                    None,
-                                    lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                                ), timeout=RESPONSE_TIMEOUT + 5)
-                            out = result.stdout.strip()
-                            actual_model_used = "flash (local fallback)"
-                        except Exception as e3:
-                            out = f"⚠️ Fallback to G1 Exception: {e3}"
+                            from llm_router import call_hackclub
+                            hc_out = await asyncio.get_running_loop().run_in_executor(
+                                None,
+                                lambda: call_hackclub("qwen/qwen3-32b", full_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
+                            )
+                            if hc_out:
+                                out = hc_out
+                                actual_model_used = "qwen3-32b (Hack Club AI)"
+                            else:
+                                raise Exception("empty")
+                        except Exception as he:
+                            logger.warning(f"Hack Club AI also failed ({he}). Falling back to local G1 Flash...")
+                            try:
+                                result = await asyncio.wait_for(
+                                    asyncio.get_running_loop().run_in_executor(
+                                        None,
+                                        lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
+                                    ), timeout=RESPONSE_TIMEOUT + 5)
+                                out = result.stdout.strip()
+                                actual_model_used = "flash (local fallback)"
+                            except Exception as e3:
+                                out = f"⚠️ Fallback to G1 Exception: {e3}"
         except Exception as e:
             if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
                 from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
@@ -379,17 +430,30 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                         else:
                             raise Exception("empty")
                     except Exception as ze:
-                        logger.warning(f"Opencode Zen also failed ({ze}). Falling back to local G1 Flash...")
+                        logger.warning(f"Opencode Zen also failed ({ze}). Trying Hack Club AI...")
                         try:
-                            result = await asyncio.wait_for(
-                                asyncio.get_running_loop().run_in_executor(
-                                    None,
-                                    lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                                ), timeout=RESPONSE_TIMEOUT + 5)
-                            out = result.stdout.strip()
-                            actual_model_used = "flash (local fallback)"
-                        except Exception as e3:
-                            out = f"⚠️ Fallback to G1 Exception: {e3}"
+                            from llm_router import call_hackclub
+                            hc_out = await asyncio.get_running_loop().run_in_executor(
+                                None,
+                                lambda: call_hackclub("qwen/qwen3-32b", full_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
+                            )
+                            if hc_out:
+                                out = hc_out
+                                actual_model_used = "qwen3-32b (Hack Club AI)"
+                            else:
+                                raise Exception("empty")
+                        except Exception as he:
+                            logger.warning(f"Hack Club AI also failed ({he}). Falling back to local G1 Flash...")
+                            try:
+                                result = await asyncio.wait_for(
+                                    asyncio.get_running_loop().run_in_executor(
+                                        None,
+                                        lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
+                                    ), timeout=RESPONSE_TIMEOUT + 5)
+                                out = result.stdout.strip()
+                                actual_model_used = "flash (local fallback)"
+                            except Exception as e3:
+                                out = f"⚠️ Fallback to G1 Exception: {e3}"
             else:
                 out = f"⚠️ OpenRouter Exception: {e}"
 

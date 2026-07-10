@@ -217,8 +217,10 @@ def call_openrouter(
     """
     Unified OpenRouter caller with retry, fallback, cost tracking.
 
-    SECURITY: Only call this with NON-PII, general/academic prompts.
-    Private data should go through call_agy() or call_ollama() instead.
+    SECURITY: PII is scrubbed at THIS entry point so ALL providers
+    (OpenRouter models, Opencode Zen, Hack Club AI) receive scrubbed
+    data. Callers do not need to scrub preemptively — but they still can
+    for defense-in-depth.
 
     Args:
         model: OpenRouter model ID (e.g. "openrouter/owl-alpha")
@@ -232,27 +234,40 @@ def call_openrouter(
     Returns:
         Generated text string
     """
+    # SECURITY: Scrub PII at the entry point so ALL providers get scrubbed data.
+    # This covers even the fallback chain models, Opencode Zen, and Hack Club AI.
+    from utils import scrub_pii
+    scrubbed_prompt = scrub_pii(prompt)
+    if scrubbed_prompt != prompt:
+        logger.info(f"scrubbed PII from {task} prompt")
+    scrubbed_system = scrub_pii(system_prompt) if system_prompt else ""
+
     chain = [model] + (fallback_chain or [])
 
     for i, m in enumerate(chain):
         start = time.time()
+        # Brief delay between fallback attempts to let rate limits cool down
+        if i > 0:
+            delay = min(3 * i, 10)  # 3s, 6s, 9s... capped at 10s
+            logger.info(f"Waiting {delay}s before trying fallback {m}...")
+            time.sleep(delay)
         try:
-            result = _do_call(m, prompt, task, max_tokens, system_prompt, timeout,
+            result = _do_call(m, scrubbed_prompt, task, max_tokens, scrubbed_system, timeout,
                               stream_to_status if i == 0 else None)
             duration = time.time() - start
 
             if is_valid_response(result):
-                log_call(m, task, prompt, result, duration)
+                log_call(m, task, scrubbed_prompt, result, duration)
                 return result
             else:
                 logger.warning(f"Model {m} returned invalid response, trying fallback...")
-                log_call(m, task, prompt, "(invalid)", duration)
+                log_call(m, task, scrubbed_prompt, "(invalid)", duration)
                 continue
 
         except Exception as e:
             duration = time.time() - start
             logger.warning(f"Model: {e} ({duration:.1f}s)")
-            log_call(m, task, prompt, f"(error: {e})", duration)
+            log_call(m, task, scrubbed_prompt, f"(error: {e})", duration)
             continue
 
     # ── Opencode Zen cross-provider fallback ──
@@ -265,14 +280,30 @@ def call_openrouter(
             logger.info("OpenRouter chain exhausted — falling back to Opencode Zen")
             return call_opencode(
                 model="hy3-free",
-                prompt=prompt,
+                prompt=scrubbed_prompt,
                 task=task,
                 max_tokens=max_tokens,
-                system_prompt=system_prompt,
+                system_prompt=scrubbed_system,
                 timeout=min(timeout, 120),
             )
     except Exception as e:
         logger.warning(f"Opencode Zen fallback also failed: {e}")
+
+    # ── Hack Club AI (another provider, separate rate-limit bucket) ──
+    try:
+        from config import HACKCLUB_AI_API_KEY
+        if HACKCLUB_AI_API_KEY:
+            logger.info("Previous providers exhausted — falling back to Hack Club AI")
+            return call_hackclub(
+                model="qwen/qwen3-32b",
+                prompt=scrubbed_prompt,
+                task=task,
+                max_tokens=min(max_tokens, 8000),
+                system_prompt=scrubbed_system,
+                timeout=min(timeout, 120),
+            )
+    except Exception as e:
+        logger.warning(f"Hack Club AI fallback also failed: {e}")
 
     return "⚠️ All models failed to generate a response. Please try again."
 
@@ -934,10 +965,17 @@ def call_opencode(
         logger.error("Opencode Zen: no API key set (OPENCODE_ZEN_API_KEY)")
         return ""
 
+    # SECURITY: Scrub PII from cloud-bound prompts
+    from utils import scrub_pii
+    scrubbed_prompt = scrub_pii(prompt)
+    if scrubbed_prompt != prompt:
+        logger.info(f"scrubbed PII from {task} prompt")
+
     messages = []
     if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": prompt})
+        scrubbed_system = scrub_pii(system_prompt)
+        messages.append({"role": "system", "content": scrubbed_system})
+    messages.append({"role": "user", "content": scrubbed_prompt})
 
     start = time.time()
     try:
@@ -1024,6 +1062,102 @@ def is_agy_healthy(model: str = "flash") -> bool:
         return result.returncode == 0 and len(result.stdout.strip()) > 0
     except Exception:
         return False
+
+
+# ── Hack Club AI (separate provider via ai.hackclub.com) ─────────────────────
+# Shared OpenRouter proxy with a $25.26/24h shared pool. Reserved as a LAST
+# resort fallback after all free-tier providers (OpenRouter + Opencode Zen) fail.
+
+
+def call_hackclub(
+    prompt: str,
+    model: str = "qwen/qwen3-32b",
+    system_prompt: str = "",
+    max_tokens: int = 4000,
+    task: str = "general",
+    timeout: int = 120,
+    temperature: float = 0.0,
+) -> str:
+    """
+    Call Hack Club AI (ai.hackclub.com) — an OpenRouter-like shared proxy.
+    Uses the shared pool ($25.26/day budget). Use sparingly; only as a last resort.
+
+    SECURITY: PII is scrubbed before sending to the cloud API.
+
+    Models (tested):
+      - "qwen/qwen3-32b"       — default, cheap, fast (default)
+      - "qwen/qwen3-235b-a22b" — stronger, for study guides
+
+    Args:
+        prompt: The user message
+        model: Model ID
+        system_prompt: Optional system message
+        max_tokens: Max output tokens
+        task: Label for cost tracking
+        timeout: HTTP timeout in seconds
+        temperature: 0.0 = deterministic, higher = creative
+
+    Returns:
+        Generated text, or empty string on failure.
+    """
+    from config import HACKCLUB_AI_API_KEY, HACKCLUB_AI_BASE_URL
+
+    if not HACKCLUB_AI_API_KEY:
+        logger.error("Hack Club AI: no API key set (HACKCLUB_AI_API_KEY)")
+        return ""
+
+    # SECURITY: Scrub PII from cloud-bound prompts
+    from utils import scrub_pii
+    scrubbed_prompt = scrub_pii(prompt)
+    if scrubbed_prompt != prompt:
+        logger.info(f"scrubbed PII from {task} prompt")
+
+    messages = []
+    if system_prompt:
+        scrubbed_system = scrub_pii(system_prompt)
+        messages.append({"role": "system", "content": scrubbed_system})
+    messages.append({"role": "user", "content": scrubbed_prompt})
+
+    start = time.time()
+    try:
+        client = httpx.Client(
+            timeout=httpx.Timeout(float(timeout), connect=10.0, write=10.0, pool=5.0),
+            headers={
+                "Authorization": f"Bearer {HACKCLUB_AI_API_KEY}",
+                "Content-Type": "application/json",
+            },
+        )
+        resp = client.post(
+            f"{HACKCLUB_AI_BASE_URL.rstrip('/')}/chat/completions",
+            json={
+                "model": model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            },
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            raw_content = data["choices"][0]["message"].get("content")
+            if raw_content is None:
+                # Some models (e.g. deepseek-style reasoning) put output in reasoning field
+                raw_content = data["choices"][0]["message"].get("reasoning", "")
+            text = raw_content.strip() if raw_content else ""
+            duration = time.time() - start
+            log_call(model, task, scrubbed_prompt, text, duration)
+            logger.info(
+                f"Hack Club AI ({model}): {len(text)} chars in {duration:.1f}s"
+            )
+            return text
+        else:
+            logger.error(f"Hack Club AI: HTTP {resp.status_code}: {resp.text[:200]}")
+            return ""
+    except httpx.TimeoutException:
+        logger.error(f"Hack Club AI: timed out after {timeout}s")
+        return ""
+    except Exception as e:
+        logger.error(f"Hack Club AI: call failed: {e}")
+        return ""
 
 
 # ── Health Check on Import ─────────────────────────────────────────────────
