@@ -9712,3 +9712,298 @@ $\Delta = b^2 - 4ac$
 8. Data set with outlier: which measure of center is most affected?
 
 ---
+---
+
+## 📅 Update: 2026-07-11 - New Concepts from Summer SAT/ACT Classroom Materials
+
+### 🔵 CIRCLES GEOMETRY (from 19_Circles.pdf & SAT Geometry Problems.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (July 2026)*
+
+#### Essential Circle Theorems & Formulas
+| Concept | Formula/Rule | When to Use |
+|---------|-------------|-------------|
+| **Circumference** | C = 2πr = πd | Perimeter problems |
+| **Area** | A = πr² | Area problems, shaded regions |
+| **Arc Length** | L = (θ/360) · 2πr | Partial circle perimeter |
+| **Sector Area** | A = (θ/360) · πr² | Partial circle area |
+| **Central Angle** | ∠AOB = arc AB | Angle = intercepted arc |
+| **Inscribed Angle** | ∠ACB = ½ arc AB | Vertex on circle |
+| **Tangent-Radius** | Radius ⟂ Tangent at point of tangency | Right angle at contact |
+| **Chord Perpendicular** | Radius ⟂ chord ⇒ bisects chord | Finding chord lengths |
+| **Intersecting Chords** | AE · EB = CE · ED | Segments inside circle |
+| **Secant-Tangent** | PA² = PB · PC | Tangent from external point |
+| **Two Secants** | PA · PB = PC · PD | Two secants from external point |
+| **Equation of Circle** | (x-h)² + (y-k)² = r² | Coordinate geometry |
+
+#### Circle Problem-Solving Strategies
+1. **Draw radii to tangency points** — creates right triangles
+2. **Label everything** — radius r, chord halves, central angles
+3. **Use coordinate geometry** — complete the square to find center/radius
+4. **Shaded regions** = sector − triangle (usually 30-60-90 or 45-45-90)
+5. **Power of a Point** — unify all external segment theorems
+
+#### Practice Problems (SAT Geometry Problems.pdf style)
+1. Circle: (x-3)² + (y+2)² = 25. Tangent at (6,2). Slope of tangent?
+   - Radius slope = (2-(-2))/(6-3) = 4/3 → Tangent slope = **-3/4** (negative reciprocal)
+
+2. Chord length 16, distance from center = 6. Radius?
+   - Half-chord = 8, right triangle: r² = 6² + 8² = 100 → **r = 10**
+
+3. Central angle 120°, radius = 9. Sector area?
+   - (120/360) · π · 81 = 27π
+
+4. Circle x² + y² - 6x + 8y = 0. Center? Radius?
+   - Complete square: (x-3)² + (y+4)² = 25 → Center (3,-4), **r = 5**
+
+---
+
+### 📊 STATISTICS & DATA ANALYSIS (from 8_Statistics.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Core Statistical Concepts
+| Concept | Formula | SAT Application |
+|---------|---------|-----------------|
+| **Mean** | x̄ = Σxᵢ/n | Average, missing value problems |
+| **Median** | Middle value (or avg of 2 middle) | Center, resistant to outliers |
+| **Mode** | Most frequent value | Categorical data |
+| **Range** | Max - Min | Spread |
+| **Standard Deviation** | σ = √(Σ(x-μ)²/n) | Spread, comparing consistency |
+| **IQR** | Q₃ - Q₁ | Spread, resistant to outliers |
+| **Z-score** | z = (x-μ)/σ | Standardized position |
+
+#### DSAT-Specific Statistics Topics
+- **Margin of Error**: ME = z · σ/√n (usually z=2 for 95% confidence)
+- **Sampling Methods**: Random, stratified, cluster, systematic — know strengths/weaknesses
+- **Correlation vs Causation**: Scatterplots, line of best fit, r value interpretation
+- **Two-Way Tables**: Conditional probability, P(A|B) = P(A∩B)/P(B)
+- **Standard Deviation Comparison**: Larger SD = more spread; don't compute, just compare visually
+
+#### Practice Problems
+1. Data set: {12, 15, 18, 18, 20, 22, 25}. Mean? Median? Mode? Range?
+   - Mean = 130/7 ≈ 18.57, Median = 18, Mode = 18, Range = 13
+
+2. Sample of 100 students, mean SAT = 1100, SD = 200. Margin of error (95%)?
+   - ME = 2 · 200/√100 = 40 → Interval: **1060 to 1140**
+
+3. Two sets: Set A SD=5, Set B SD=12. Which is more consistent? **Set A**
+
+---
+
+### 📐 ADVANCED TRIANGLES & RIGHT TRIANGLE TRIG (from 17_Triangles.pdf, 16_Lines and Angles.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Special Right Triangles (MEMORIZE)
+| Triangle | Side Ratio | Angles | Area Formula |
+|----------|------------|--------|--------------|
+| **45-45-90** | x : x : x√2 | 45, 45, 90 | x²/2 |
+| **30-60-90** | x : x√3 : 2x | 30, 60, 90 | x²√3/2 |
+| **3-4-5** | 3k : 4k : 5k | ~37, ~53, 90 | 6k² |
+| **5-12-13** | 5k : 12k : 13k | ~23, ~67, 90 | 30k² |
+
+#### Trigonometric Ratios (SOH-CAH-TOA)
+- sin θ = opp/hyp, cos θ = adj/hyp, tan θ = opp/adj
+- **Complementary angles**: sin θ = cos(90° - θ)
+
+#### Law of Sines & Cosines (Advanced)
+- **Law of Sines**: a/sin A = b/sin B = c/sin C (AAS, ASA, SSA)
+- **Law of Cosines**: c² = a² + b² - 2ab cos C (SAS, SSS)
+
+#### Triangle Centers (Coordinate Geometry)
+| Center | Construction | Coordinates (A, B, C vertices) | Key Property |
+|--------|--------------|--------------------------------|--------------|
+| **Centroid** | Medians intersect | ((x₁+x₂+x₃)/3, (y₁+y₂+y₃)/3) | Divides medians 2:1 |
+| **Circumcenter** | Perpendicular bisectors | Equidistant from vertices | Center of circumscribed circle |
+| **Incenter** | Angle bisectors | Weighted by side lengths | Center of inscribed circle |
+| **Orthocenter** | Altitudes intersect | — | Acute: inside; Right: at vertex; Obtuse: outside |
+
+#### Practice Problems
+1. 30-60-90 triangle, hypotenuse = 14. Short leg? Long leg? Area?
+   - Short = 7, Long = 7√3, Area = 49√3/2
+
+2. △ABC, A(0,0), B(6,0), C(0,8). Centroid?
+   - ((0+6+0)/3, (0+0+8)/3) = (2, 8/3)
+
+3. Right triangle, sin A = 3/5. cos A? tan A?
+   - cos A = 4/5, tan A = 3/4 (3-4-5 triangle)
+
+4. Triangle sides 7, 10, x. Possible integer values of x?
+   - 7+10 > x ⇒ x < 17
+   - |10-7| < x ⇒ x > 3
+   - x ∈ {4,5,6,...,16} → **13 values**
+
+---
+
+### 📈 SYSTEMS OF EQUATIONS: LINEAR & NON-LINEAR (from B_PT1_M2.pdf, B_PT1_M (Ans).pdf, 3A_Systems Only (Ans).png)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### System Types & Solution Methods
+| System Type | Method | Number of Solutions |
+|-------------|--------|---------------------|
+| Linear × Linear | Substitution, elimination, graphing | 0, 1, or ∞ |
+| Linear × Quadratic | Substitute linear into quadratic | 0, 1, or 2 |
+| Quadratic × Quadratic | Substitution, elimination | 0, 1, 2, 3, or 4 |
+
+#### Discriminant Analysis for Linear-Quadratic Systems
+For y = mx + b and y = ax² + bx + c:
+- Substitute: mx + b = ax² + bx + c ⇒ ax² + (b-m)x + (c-b) = 0
+- Discriminant Δ = (b-m)² - 4a(c-b)
+  - Δ > 0: **2 solutions** (line cuts parabola twice)
+  - Δ = 0: **1 solution** (line tangent)
+  - Δ < 0: **0 solutions** (line misses parabola)
+
+#### Special Cases to Recognize
+1. **Parallel lines** → No solution (same slope, different intercept)
+2. **Same line** → Infinite solutions (same slope, same intercept)
+3. **Vertex of parabola on line** → 1 solution (tangent)
+4. **Circle + Line** → Substitute, solve quadratic → 0, 1, 2 solutions
+
+#### Practice Problems
+1. System: y = 2x + 1 and y = x² - 4x + 7. Number of solutions?
+   - 2x+1 = x² - 4x + 7 ⇒ x² - 6x + 6 = 0
+   - Δ = 36 - 24 = 12 > 0 → **2 solutions**
+
+2. Find k so y = kx + 3 is tangent to y = x².
+   - kx + 3 = x² ⇒ x² - kx - 3 = 0
+   - Tangent ⇒ Δ = 0: k² - 4(1)(-3) = 0 ⇒ k² = -12 → **No real k** (line can't be tangent, y-int above vertex)
+
+3. System: x² + y² = 25 and y = x + 1. Solutions?
+   - x² + (x+1)² = 25 ⇒ 2x² + 2x - 24 = 0 ⇒ x² + x - 12 = 0
+   - (x+4)(x-3) = 0 ⇒ x = -4, 3
+   - Points: **(-4,-3) and (3,4)**
+
+---
+
+### 🔄 QUADRATICS: FORMS, VERTEX, ROOTS & VIETA'S (from 16_Quadratics.pdf, 11_Quadratics.pdf, Quadratics.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Three Forms of Quadratic Functions
+| Form | Equation | Reveals | Best For |
+|------|----------|---------|----------|
+| **Standard** | y = ax² + bx + c | y-intercept c | Quadratic formula, factoring |
+| **Vertex** | y = a(x-h)² + k | Vertex (h,k), max/min | Graphing, optimization |
+| **Factored** | y = a(x-r₁)(x-r₂) | Roots/zeros r₁, r₂ | x-intercepts, sign analysis |
+
+#### Converting Between Forms
+- **Standard → Vertex**: Complete the square
+  - x² + 6x + 2 = (x² + 6x + 9) - 9 + 2 = (x+3)² - 7
+- **Standard → Factored**: Factor or use quadratic formula to find roots
+- **Vertex → Standard**: Expand (x-h)²
+
+#### Vieta's Formulas (Sum/Product of Roots)
+For ax² + bx + c = 0 with roots r₁, r₂:
+- **Sum**: r₁ + r₂ = -b/a
+- **Product**: r₁ r₂ = c/a
+
+**Applications without solving:**
+- r₁² + r₂² = (r₁ + r₂)² - 2r₁ r₂ = (-b/a)² - 2(c/a)
+- 1/r₁ + 1/r₂ = (r₁ + r₂)/(r₁ r₂) = -b/c
+- |r₁ - r₂| = √((r₁ + r₂)² - 4r₁ r₂) = √(b² - 4ac)/|a|
+
+#### Discriminant Deep Dive
+Δ = b² - 4ac
+- Δ > 0, perfect square → **2 rational roots** (factorable)
+- Δ > 0, not perfect square → **2 irrational roots**
+- Δ = 0 → **1 real root** (double/tangent)
+- Δ < 0 → **0 real roots** (complex)
+
+#### Practice Problems
+1. y = -2(x-3)² + 5. Vertex? Opens? Max/Min? y-intercept?
+   - Vertex (3,5), opens **down**, **maximum** = 5
+   - y-int: x=0 ⇒ y = -2(9)+5 = -13
+
+2. 2x² - 7x + 3 = 0. Sum of roots? Product? r₁² + r₂²?
+   - Sum = 7/2, Product = 3/2
+   - r₁² + r₂² = (7/2)² - 2(3/2) = 49/4 - 3 = 37/4
+
+3. x² + kx + 9 = 0 has exactly one real solution. k?
+   - Δ = 0 ⇒ k² - 36 = 0 ⇒ k = ±6
+
+4. y = x² - 4x + 7 and y = 2x + 1. Solutions?
+   - x² - 4x + 7 = 2x + 1 ⇒ x² - 6x + 6 = 0
+   - Δ = 36 - 24 = 12 > 0 → **2 solutions**
+
+---
+
+### ⚖️ RATIOS, RATES, PROPORTIONS & PERCENTS (from 4_Proportion.pdf, 5_Rates.pdf, 6_Ratios and Rates.pdf, 7_Percent.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Core Formulas
+| Concept | Formula | Key Insight |
+|---------|---------|-------------|
+| **Ratio** | a:b or a/b | Order matters! |
+| **Proportion** | a/b = c/d | Cross-multiply: ad = bc |
+| **Rate** | quantity₁/quantity₂ | Units must match |
+| **Unit Rate** | Rate with denominator 1 | Compare rates easily |
+| **Percent Change** | (New - Old)/Old × 100% | Use original as base |
+| **Compound Percent** | P(1+r)ᵗ | Growth/decay over periods |
+
+#### DSAT Problem Types
+1. **Direct Variation**: y = kx (passes through origin)
+2. **Inverse Variation**: y = k/x (product constant)
+3. **Joint Variation**: y = kxz
+4. **Mixture Problems**: Weighted average (n₁x₁ + n₂x₂)/(n₁ + n₂)
+5. **Work Problems**: 1/t₁ + 1/t₂ = 1/t_combined
+6. **Distance-Rate-Time**: d = rt (watch units!)
+
+#### Percent Traps
+- **Successive percents**: 20% increase then 20% decrease ≠ original (net -4%)
+- **Percent of vs Percent more than**: "50 is 20% more than what?" → 50 = 1.2x
+- **Base confusion**: "What percent of 80 is 20?" vs "20 is what percent more than 80?"
+
+#### Practice Problems
+1. y varies directly with x. y=12 when x=3. Find y when x=7.
+   - k = 12/3 = 4, y = 4(7) = 28
+
+2. 15 workers complete job in 8 days. How many days for 20 workers?
+   - Inverse: 15 · 8 = 20 · d ⇒ d = 6 days
+
+3. Price increased 25%, then decreased 20%. Net change?
+   - 100 → 125 → 100 → **0% change** (back to original)
+
+4. 30% acid solution mixed with 50% acid to get 40% acid. Ratio?
+   - Alligation: 50-40=10, 40-30=10 → **1:1 ratio**
+
+5. Car travels 60 mph for 2 hrs, then 40 mph for 3 hrs. Average speed?
+   - Total distance = 120 + 120 = 240, total time = 5 → **48 mph** (NOT 50!)
+
+---
+
+### 🎯 ADVANCED SAT MATH STRATEGIES (from Day 10-12 homework, DSAT practice tests)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Desmos Calculator Mastery (DSAT Built-in)
+1. **Graph y = f(x) and y = g(x)** → Find intersections visually
+2. **Regression**: Type y₁ ~ mx₁ + b for linear, y₁ ~ ax₁² + bx₁ + c for quadratic
+3. **Tables**: Type x₁ = [1,2,3...] and y₁ = f(x₁) to see values
+4. **Sliders**: Type y = mx + b, click "add slider" for m, b to explore
+5. **Statistics**: Type data in table, use mean(), median(), stdev(), mad()
+
+#### Time Management: Module-Adaptive Strategy
+- **Module 1**: 35 min / 22 questions = ~95 sec/q. **Accuracy > Speed**. Flag hard, return.
+- **Module 2**: Adapted difficulty. Harder M2 = higher ceiling. Don't panic on hard questions.
+- **Flag & Move**: Don't spend >2 min on any question. Guess, flag, return.
+
+#### Common DSAT Traps
+| Trap | Example | Defense |
+|------|---------|---------|
+| **Unit mismatch** | cm vs m, hours vs minutes | Circle units, convert first |
+| **"Which MUST be true?"** | Could be true vs must be true | Test counterexamples |
+| **Variable in denominator** | 1/(x-2) | Check x ≠ 2 |
+| **Extraneous solutions** | √x = -2 | Always check in original equation |
+| **Percent of vs Percent more** | "50% more than 80" = 120, not 40 | Read carefully |
+
+#### Practice Problem Set (DSAT Style)
+1. If f(x) = 3x² - 2x + 1 and g(x) = x + 4, what is f(g(2))?
+   - g(2) = 6, f(6) = 3(36) - 12 + 1 = 108 - 12 + 1 = 97
+
+2. The graph of y = a(x-2)² + 3 passes through (4,11). Find a.
+   - 11 = a(4-2)² + 3 = 4a + 3 ⇒ 4a = 8 ⇒ a = 2
+
+3. x² + y² = 25 and y = 3. Number of intersection points?
+   - x² + 9 = 25 ⇒ x² = 16 ⇒ x = ±4 → **2 points**
+
+4. Probability of rain = 0.3, probability of traffic = 0.4. If independent, P(rain AND traffic)?
+   - 0.3 × 0.4 = 0.12
+
+5. f(x) = (x² - 9)/(x - 3) for x ≠ 3. lim(x→3) f(x)?
+   - Factor: (x-3)(x+3)/(x-3) = x+3 for x ≠ 3 → Limit = **6**

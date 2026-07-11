@@ -1456,4 +1456,332 @@ From Standard English Conventions 3 (10_W, 11_W).
 
 6. **Conciseness**: Shorter is usually better IF it keeps the meaning. Watch for "due to the fact that," "in order to," passive voice.
 
-7. **Process of Elimination**: On "which is best" questions, eliminate grammar errors first, then choose most concise correct version.
+7. **Process of Elimination**: On "which is best" questions, eliminate grammar errors first, then choose most concise correct version.---
+
+## 📅 Update: 2026-07-11 - New Concepts from Summer SAT/ACT Classroom Materials
+
+### 📝 STANDARD ENGLISH CONVENTIONS: BOUNDARIES (from 8_W, 9_W, 10_W, 11_W - Standard English Conventions 1-3)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (July 2026)*
+
+#### Sentence Boundaries: Complete vs Incomplete Thoughts
+| Concept | Rule | Example |
+|---------|------|---------|
+| **Independent Clause** | Subject + verb + complete thought | "She studies hard." |
+| **Dependent Clause** | Subordinating conjunction + subject + verb | "Because she studies hard" |
+| **Run-on** | Two independent clauses joined incorrectly | "She studies hard she gets good grades." |
+| **Comma Splice** | Two independent clauses joined by only comma | "She studies hard, she gets good grades." |
+| **Fused Sentence** | Two independent clauses with no punctuation | "She studies hard she gets good grades." |
+
+#### Correct Boundary Fixes
+| Error Type | Fix 1: Period | Fix 2: Semicolon | Fix 3: Comma + FANBOYS | Fix 4: Subordinating Conjunction |
+|------------|---------------|------------------|------------------------|----------------------------------|
+| **Run-on/Comma Splice** | "She studies hard. She gets good grades." | "She studies hard; she gets good grades." | "She studies hard, so she gets good grades." | "Because she studies hard, she gets good grades." |
+
+#### FANBOYS (Coordinating Conjunctions)
+**For, And, Nor, But, Or, Yet, So** — always need comma before when joining two independent clauses
+
+#### Subordinating Conjunctions (Common)
+**because, since, although, though, while, if, unless, until, when, whenever, where, wherever, as, as if, as though, before, after, once**
+
+#### Practice Problems (Standard English Conventions 1-3 style)
+1. "The experiment failed the hypothesis was incorrect."
+   - Fix: "The experiment failed; the hypothesis was incorrect." OR "The experiment failed because the hypothesis was incorrect."
+
+2. "She wanted to attend the concert, however, she had to work."
+   - Fix: "She wanted to attend the concert; however, she had to work." (Conjunctive adverb needs semicolon before, comma after)
+
+3. "Running down the street, the bus was missed by him."
+   - Fix: **Dangling modifier** — "Running down the street, he missed the bus."
+
+---
+
+### 📝 MODIFIERS: PLACEMENT & AGREEMENT (from 5_Modifiers.pdf, 5_(Ans) Modifiers.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Modifier Types & Rules
+| Modifier Type | Rule | Correct Example | Error Example |
+|---------------|------|-----------------|---------------|
+| **Present Participle (-ing)** | Modifies subject of main clause | "Walking home, **I** saw a cat." | "Walking home, **the cat** was seen by me." ❌ |
+| **Past Participle (-ed/-en)** | Modifies subject of main clause | "Exhausted from work, **she** fell asleep." | "Exhausted from work, **the bed** welcomed her." ❌ |
+| **Appositive** | Renames noun immediately before/after | "My brother, **a doctor**, lives nearby." | "My brother a doctor lives nearby." ❌ (needs commas) |
+| **Prepositional Phrase** | Place next to word it modifies | "The book **on the table** is mine." | "On the table, the book is mine." (misplaced) |
+| **Relative Clause** | "who/which/that" — place next to antecedent | "The student **who studied** passed." | "The student passed who studied." ❌ |
+
+#### Dangling Modifier Checklist
+1. Find the -ing/-ed phrase at start of sentence
+2. Identify the **subject** of the main clause
+3. Ask: Does the subject DO the action in the modifier?
+   - YES → Correct
+   - NO → Dangling! Rewrite so subject performs action
+
+#### Practice Problems
+1. "Having finished the test, the proctor collected the papers."
+   - Error: **Dangling** (proctor didn't finish the test, student did)
+   - Fix: "Having finished the test, **the student** handed in the papers."
+
+2. "Covered in mud, the dog shook water everywhere."
+   - Error: **Misplaced** (dog is covered in mud, not the shaking)
+   - Fix: "The dog, **covered in mud**, shook water everywhere."
+
+3. "To succeed in college, good study habits are essential."
+   - Error: **Dangling infinitive** (habits don't succeed, students do)
+   - Fix: "To succeed in college, **students need** good study habits."
+
+---
+
+### 📝 PARALLELISM & COMPARISONS (from 4_(Ans) Subject Verb Agreement.pdf, 13_Tenses.pdf, 13_(Ans) Tenses.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Parallel Structure Rules
+| Structure | Rule | Correct | Incorrect |
+|-----------|------|---------|-----------|
+| **List/Series** | Same grammatical form | "She likes **reading, writing, and swimming**." | "She likes **reading, to write, and swim**." |
+| **Correlative Pairs** | Both sides parallel | "**Not only** smart **but also** kind" | "**Not only** is she smart **but also** kind" |
+| **Comparisons** | Compare like with like | "The cost of **X is less than that of Y**" | "The cost of **X is less than Y**" (missing "that of") |
+| **Verb Forms** | Consistent tense/form | "He **planned, drafted, and revised**." | "He **planned, drafting, and revised**." |
+
+#### Comparison Traps
+| Trap | Wrong | Right |
+|------|-------|-------|
+| **Missing "that of/those of"** | "The GDP of Japan is higher than China." | "The GDP of Japan is higher than **that of** China." |
+| **Illogical comparison** | "She runs faster than anyone." | "She runs faster than **anyone else**." |
+| **Double comparative** | "more better" | "better" |
+| **Less vs Fewer** | "Less people" | "Fewer people" (countable) |
+
+#### Verb Tense Consistency
+- **Same time frame** → same tense
+- **Sequence of events** → past perfect for earlier, simple past for later
+- **General truths** → present tense ("Water boils at 100°C")
+- **Hypothetical/Counterfactual** → subjunctive ("If I **were** you...")
+
+#### Practice Problems
+1. "The committee **recommends** that the policy **is changed**."
+   - Subjunctive: "**recommends that the policy be changed**"
+
+2. "By the time we arrived, the movie **already started**."
+   - Past perfect: "**had already started**"
+
+3. "Neither the students nor the teacher **were** prepared."
+   - Proximity rule: "Neither the students nor the teacher **was** prepared."
+
+4. "The data **shows** a clear trend."
+   - Data = plural (Latin plural): "**show** a clear trend"
+
+---
+
+### 📝 COMMAS, DASHES, COLONS & SEMICOLONS (from 14_Commas, Dashes, Colons.pdf, 14_(Ans) Commas, Dashes, Colons.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Comma Rules (DSAT High-Yield)
+| Rule | Example |
+|------|---------|
+| **1. Independent clauses + FANBOYS** | "I studied, **so** I passed." |
+| **2. Introductory element** | "**After the test**, I relaxed." |
+| **3. Non-essential clause/appositive** | "My brother, **a doctor**, called." |
+| **4. Essential clause** — NO commas | "The student **who studied** passed." |
+| **5. Between coordinate adjectives** | "A **long, difficult** test" (test: can reverse? "difficult, long" ✓) |
+| **6. Items in series (Oxford comma)** | "Apples, oranges**,** and bananas" |
+| **7. Direct address/Yes-No/Tag** | "**Yes**, I agree." / "Thanks, **Mom**." |
+| **8. Quotations** | "She said, **"I'm ready."** |
+
+#### Semicolon (;) Rules
+1. **Two independent clauses, no conjunction** — "She studied; she passed."
+2. **Two independent clauses + conjunctive adverb** — "She studied; **therefore**, she passed."
+3. **Complex list with internal commas** — "We visited Paris, France; Rome, Italy; and Madrid, Spain."
+
+#### Colon (:) Rules
+1. **After complete sentence → list/explanation** — "She bought three things: apples, bread, and milk."
+2. **After complete sentence → emphasis** — "There is one rule: study."
+3. **Ratios, time, titles** — "3:1", "10:30", "Chapter 1: Introduction"
+
+#### Dash (—) Rules
+1. **Emphasis/apposition** — "The answer — **42** — surprised everyone."
+2. **Sudden break/afterthought** — "I was going to say — never mind."
+3. **Summary/restatement** — "Study hard, sleep well, repeat — **the formula for success**."
+
+#### Practice Problems
+1. "The researchers tested three variables temperature pressure and volume."
+   - Fix: "The researchers tested three variables: **temperature, pressure, and volume.**"
+
+2. "He wanted to go however he was too tired."
+   - Fix: "He wanted to go; **however**, he was too tired."
+
+3. "My favorite subjects are math, science and history."
+   - Fix: "My favorite subjects are math, science**,** and history." (Oxford comma)
+
+4. "The winner — the one who studied hardest — received the prize."
+   - Correct! Dashes for emphasis/apposition.
+
+---
+
+### 📝 PRONOUN AGREEMENT & CASE (from Form_L2.pdf, Boundaries_L2.pdf)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Pronoun-Antecedent Agreement
+| Antecedent Type | Pronoun | Example |
+|-----------------|---------|---------|
+| **Singular indefinite** (everyone, each, neither, anyone) | **Singular** (he/she/they*) | "Everyone brought **his or her / their** book." |
+| **Collective noun** (team, committee, family) | Singular (US) / Plural (UK) | "The team **won its** game." |
+| **Compound with "or/nor"** | Agrees with **closer** noun | "Neither the coach nor the players **brought their** gear." |
+| **Compound with "and"** | Plural | "The coach and the players **brought their** gear." |
+
+*DSAT accepts singular "they" for gender-neutral singular antecedents.
+
+#### Pronoun Case
+| Function | Subject Case | Object Case | Possessive |
+|----------|--------------|-------------|------------|
+| **Personal** | I, he, she, we, they, who | me, him, her, us, them, whom | my, his, her, our, their, whose |
+| **Usage** | Subject of verb | Object of verb/preposition | Shows ownership |
+
+#### Who vs Whom Trick
+- **Who** = he/she/they (subject) → "Who called?" → "He called." ✓
+- **Whom** = him/her/them (object) → "Whom did you call?" → "You called him." ✓
+
+#### Practice Problems
+1. "Between you and **I**, the test was hard."
+   - Fix: "Between you and **me**" (object of preposition)
+
+2. "Each of the students brought **their** calculator."
+   - Traditional: "Each... brought **his or her**"
+   - Modern DSAT: "**their**" accepted (singular they)
+
+3. "**Who/Whom** did the committee select?"
+   - "The committee selected **him**" → **Whom**
+
+4. "The team celebrated **its/their** victory."
+   - US English: "**its**" (collective noun singular)
+
+---
+
+### 📝 TRANSITIONS: LOGIC & PUNCTUATION (from Transitions_and_Text_Structure)
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
+
+#### Transition Categories & Punctuation
+| Category | Transitions | Punctuation Before | Punctuation After |
+|----------|-------------|-------------------|-------------------|
+| **Addition** | furthermore, moreover, additionally, also, besides | Period or semicolon | Comma |
+| **Contrast** | however, nevertheless, conversely, on the other hand | Period or semicolon | Comma |
+| **Cause-Effect** | therefore, consequently, thus, as a result, hence | Period or semicolon | Comma |
+| **Example** | for example, for instance, specifically, namely | Period or semicolon | Comma |
+| **Sequence** | first, then, subsequently, finally, meanwhile | Period or semicolon | Comma |
+| **Concession** | admittedly, granted, although, even though | Comma (if mid-sentence) | Comma |
+| **Summary** | in conclusion, ultimately, in short, to summarize | Period or semicolon | Comma |
+
+#### Transition Selection Strategy
+1. **Read both sentences** — identify relationship
+2. **Match category** — which logical relationship?
+3. **Check punctuation** — semicolon/period + comma for most
+4. **Eliminate "also/and/but"** as standalone transitions (they're conjunctions)
+
+#### Practice Problems
+1. "The experiment failed; **______**, the team learned valuable lessons."
+   - Relationship: Contrast (failure vs learning) → **however/nevertheless**
+
+2. "Costs rose 20%. **______**, profits declined."
+   - Relationship: Cause-Effect → **consequently/therefore/as a result**
+
+3. "The theory is elegant. **______**, it lacks empirical support."
+   - Relationship: Concession → **admittedly/granted/though**
+
+---
+
+### 📝 ADVANCED GRAMMAR: REDUNDANCY, CONCISENESS & IDIOMS
+*Extracted from Day 6-12 homework, DSAT practice tests*
+
+#### Conciseness Principles
+| Wordy Phrase | Concise Version |
+|--------------|-----------------|
+| due to the fact that | because |
+| in order to | to |
+| at this point in time | now |
+| a number of | many/some |
+| is able to | can |
+| make a decision | decide |
+| conduct an investigation | investigate |
+| give consideration to | consider |
+
+#### Common Idioms (Testable on DSAT)
+| Correct | Incorrect |
+|---------|-----------|
+| **prefer X to Y** | prefer X over Y / prefer X than Y |
+| **not only X but also Y** | not only X but Y |
+| **between X and Y** | between X or Y |
+| **different from** | different than / different to |
+| **identical to** | identical with |
+| **independent of** | independent from |
+| **prohibit X from Y** | prohibit X to Y |
+| **require X to Y** | require X to do Y |
+
+#### Practice Problems
+1. "The reason **is because** the server crashed."
+   - Fix: "The reason **is that** the server crashed." OR "The server crashed."
+
+2. "She **not only** passed the test **but** aced it."
+   - Fix: "She **not only** passed the test **but also** aced it."
+
+3. "The book is **different than** the movie."
+   - Fix: "The book is **different from** the movie."
+
+4. "He is **prohibited to enter** the building."
+   - Fix: "He is **prohibited from entering** the building."
+
+---
+
+### 🎯 DSAT WRITING STRATEGIES & TIME MANAGEMENT
+*Extracted from Day 6-12 homework, DSAT practice tests*
+
+#### Question Type Prioritization
+| Question Type | Frequency | Difficulty | Strategy |
+|---------------|-----------|------------|----------|
+| **Boundaries** | Very High | Medium | Fix run-ons, splices, fragments first |
+| **Subject-Verb Agreement** | Very High | Medium | Cross out prepositional phrases |
+| **Modifiers** | High | Medium-High | Who does the -ing/-ed action? |
+| **Punctuation** | High | Medium | Semicolon=period, Colon=after complete sentence |
+| **Parallelism** | High | Medium-High | Circle trigger word (and/or/but/than) |
+| **Transitions** | Medium | Medium | Identify logical relationship |
+| **Pronouns** | Medium | Medium | Agreement + Case |
+| **Verb Tense/Form** | Medium | Medium-High | Time markers + consistency |
+| **Conciseness/Style** | Medium | Low | Shorter = better if grammatically correct |
+
+#### Process of Elimination Order
+1. **Grammar errors** — eliminate anything with clear error
+2. **Punctuation errors** — eliminate wrong punctuation
+3. **Logic errors** — illogical comparisons, wrong transitions
+4. **Wordiness** — choose most concise correct option
+
+#### Time Allocation
+- **Standard English Conventions** (grammar/punctuation): ~40 sec/q
+- **Expression of Ideas** (transitions, structure, synthesis): ~60 sec/q
+- **Total Writing section**: 35 min / 44 questions = ~48 sec/q average
+- **Flag & Move**: Don't spend >90 sec on any question
+
+#### Practice Problem Set (DSAT Style)
+1. "The committee **recommends** that the policy **is changed**."
+   - Fix: "**recommends that the policy be changed**" (subjunctive)
+
+2. "**Having finished the test**, the proctor collected the papers."
+   - Fix: "**Having finished the test, the student** handed in the papers." (dangling)
+
+3. "The data **shows** a clear trend."
+   - Fix: "The data **show** a clear trend." (plural)
+
+4. "Between you and **I**, this is difficult."
+   - Fix: "Between you and **me**" (object of preposition)
+
+5. "She runs faster than **anyone**."
+   - Fix: "She runs faster than **anyone else**." (illogical comparison)
+
+6. "The book is **different than** the movie."
+   - Fix: "The book is **different from** the movie." (idiom)
+
+7. "He is **prohibited to enter** the building."
+   - Fix: "He is **prohibited from entering** the building." (idiom)
+
+8. "**Not only** did she pass **but** she aced it."
+   - Fix: "**Not only** did she pass **but also** she aced it." (correlative pair)
+
+9. "The reason **is because** it rained."
+   - Fix: "The reason **is that** it rained." OR "It rained."
+
+10. "A **number of** students **is** absent."
+    - Fix: "A **number of** students **are** absent." ("A number of" = plural)

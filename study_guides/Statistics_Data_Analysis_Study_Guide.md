@@ -1,732 +1,401 @@
-# 📊 STATISTICS & DATA ANALYSIS MASTER STUDY GUIDE
-## Complete SAT/ACT Coverage: Measures of Center, Spread, Probability, Sampling, and Data Displays
+# 📊 Statistics & Data Analysis Study Guide
+
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (8_Statistics.pdf, classroom homework Days 9-12)*
 
 ---
 
-*Generated: 2026-07-03 | Source: Summer SAT/ACT Class (8_Statistics.pdf, Problem-Solving materials, ACT Practice)*
+## 📚 Overview
+
+Statistics & Data Analysis comprise **~15% of SAT Math** (Problem Solving and Data Analysis domain). DSAT emphasizes **interpretation over calculation** — you rarely compute standard deviation by hand; instead, you compare spreads, interpret margins of error, and evaluate study designs.
+
+**Key Topics:**
+- Measures of center & spread
+- Sampling methods & surveys
+- Margin of error & confidence intervals
+- Scatterplots, correlation, & lines of best fit
+- Two-way tables & conditional probability
+- Standard deviation comparison (visual)
+- Experimental vs. observational studies
 
 ---
 
-## 📈 MEASURES OF CENTER
+## 🎯 Measures of Center & Spread
 
-| Measure | Definition | Calculation | Key Properties |
-|---------|------------|-------------|----------------|
-| **Mean** (Average) | Sum of all values ÷ count | Σx / n | • Affected by outliers<br>• Sum = Mean × n<br>• "Balance point" |
-| **Median** | Middle value when ordered | Order data → middle (avg 2 middle if even n) | • Resistant to outliers<br>• 50% above, 50% below |
-| **Mode** | Most frequent value | Count frequencies | • Can be multiple or none<br>• Only measure for categorical data |
+### Center
 
-### Skewness & Center Relationships
-| Distribution Shape | Mean vs Median | Visual |
-|-------------------|----------------|--------|
-| **Symmetric** | Mean ≈ Median | Bell curve |
-| **Right-Skewed** (tail right) | Mean > Median | Income data |
-| **Left-Skewed** (tail left) | Mean < Median | Easy test scores |
+| Measure | Formula | When to Use | Resistance to Outliers |
+|---------|---------|-------------|------------------------|
+| **Mean** | x̄ = Σx/n | Symmetric distributions | Low (affected by outliers) |
+| **Median** | Middle value (or avg of 2 middle) | Skewed distributions, outliers | High (resistant) |
+| **Mode** | Most frequent value | Categorical data | High |
 
-> 💡 **SAT Pattern:** "The mean is greater than the median" → Distribution is **right-skewed** (has high outliers pulling mean up).
+**DSAT Tip:** If mean > median → right-skewed. If mean < median → left-skewed.
 
-### Weighted Mean
-**Formula:** (w₁x₁ + w₂x₂ + ... + wₙxₙ) / (w₁ + w₂ + ... + wₙ)
+### Spread
 
-**Example:** Class A: 20 students, avg 85. Class B: 30 students, avg 90. Overall average?  
-(20×85 + 30×90) / 50 = (1700 + 2700) / 50 = 4400 / 50 = **88**
+| Measure | Formula/Concept | When to Use |
+|---------|-----------------|-------------|
+| **Range** | Max - Min | Quick spread check |
+| **IQR** | Q₃ - Q₁ | Resistant spread (with median) |
+| **Standard Deviation (SD)** | √[Σ(x-x̄)²/n] | Symmetric distributions |
+| **Variance** | SD² | Rarely used directly on SAT |
 
----
-
-## 📏 MEASURES OF SPREAD
-
-| Measure | Definition | SAT Context |
-|---------|------------|-------------|
-| **Range** | Maximum - Minimum | Quick spread check; very sensitive to outliers |
-| **IQR** (Interquartile Range) | Q3 - Q1 | Middle 50% spread; **resistant to outliers** |
-| **Standard Deviation** (SD) | √[Σ(x-μ)²/n] | **Conceptual only** — SAT never asks you to calculate |
-
-### Standard Deviation: What You Need to Know
-| Concept | Rule |
-|---------|------|
-| **Larger SD** | More spread out data |
-| **Smaller SD** | Data clustered near mean |
-| **Add constant to all values** | SD **unchanged** (shift doesn't change spread) |
-| **Multiply all values by k** | SD **multiplies by \|k\|** |
-| **SD = 0** | All values identical |
-
-> 🚫 **You will NEVER calculate SD on the SAT.** You only interpret it.
-
-### Quartiles & Box Plots
-- **Q1** = 25th percentile (median of lower half)
-- **Q2** = Median (50th percentile)
-- **Q3** = 75th percentile (median of upper half)
-- **IQR = Q3 - Q1**
-- **Outlier thresholds:** Q1 - 1.5×IQR, Q3 + 1.5×IQR
+**DSAT Key:** You **compare** SDs visually (dot plots, histograms) — larger spread = larger SD. Don't calculate by hand.
 
 ---
 
-## 📊 DATA DISPLAYS & HOW TO READ THEM
+## 📊 Five-Number Summary & Box Plots
 
-### 1. Scatterplots
-| Feature | What to Look For |
-|---------|------------------|
-| **Trend** | Positive / Negative / No correlation |
-| **Strength** | Tight cluster (strong) vs. diffuse (weak) |
-| **Line of Best Fit** | y = mx + b; slope = rate of change |
-| **Outliers** | Points far from trend |
-| **Predictions** | Plug x into line equation |
+**Five-Number Summary:** Minimum, Q₁, Median (Q₂), Q₃, Maximum
 
-**SAT Questions:** "According to the line of best fit, what is y when x = 5?" → Substitute into equation.
+**Outlier Rule (1.5 × IQR):**
+- Lower fence = Q₁ - 1.5 × IQR
+- Upper fence = Q₃ + 1.5 × IQR
+- Points beyond fences = outliers
 
-### 2. Two-Way Tables (Contingency Tables)
-| Term | Definition | Formula |
-|------|------------|---------|
-| **Joint Frequency** | Count in a cell | — |
-| **Marginal Frequency** | Row/column totals | — |
-| **Joint Relative Frequency** | Cell / Grand total | Cell / N |
-| **Marginal Relative Frequency** | Row/col total / N | Row total / N |
-| **Conditional Relative Frequency** | Cell / Row (or column) total | Cell / Row total |
-
-**Key Question Types:**
-- **P(A)** = Marginal relative frequency
-- **P(A and B)** = Joint relative frequency
-- **P(A | B)** = Conditional relative frequency = P(A and B) / P(B)
-
-> 💡 **"Given" = denominator.** P(Prefers Brand A | From Group X) = (Group X & Brand A) / (Total Group X)
-
-### 3. Histograms
-- **Shape:** Symmetric, skewed left/right, uniform, bimodal
-- **Center:** Where the "bulk" is (median ≈ peak for symmetric)
-- **Spread:** Range of x-axis covered
-- **Gaps/Outliers:** Separated bars
-
-### 4. Box Plots (Box-and-Whisker)
-- **Box** = IQR (Q1 to Q3)
-- **Line in box** = Median
-- **Whiskers** = Min to Max (excluding outliers)
-- **Dots beyond whiskers** = Outliers
-- **Compare:** Medians (center), IQRs (spread), symmetry
-
-### 5. Bar Graphs / Line Graphs
-- **Bar:** Categorical data (compare groups)
-- **Line:** Trends over time (continuous)
-- **SAT:** "Greatest increase," "Rate of change," "Approximate value"
+**Box Plot Interpretation:**
+- Box = IQR (middle 50%)
+- Line in box = median
+- Whiskers = min/max (or fences)
+- Symmetric box + median centered ≈ symmetric data
+- Median off-center in box ≈ skewed data
 
 ---
 
-## 🎲 PROBABILITY & SAMPLING
+## 🗳️ Sampling Methods
 
-### Basic Probability Rules
-| Rule | Formula | When |
-|------|---------|------|
-| **P(A)** | Favorable / Total | Single event |
-| **P(not A)** | 1 - P(A) | Complement |
-| **P(A and B)** | P(A) × P(B \| A) | Dependent |
-| **P(A and B)** | P(A) × P(B) | Independent |
-| **P(A or B)** | P(A) + P(B) - P(A and B) | Any overlap |
-| **P(A or B)** | P(A) + P(B) | Mutually exclusive |
-| **P(A \| B)** | P(A and B) / P(B) | Conditional |
+| Method | Description | Pros | Cons |
+|--------|-------------|------|------|
+| **Simple Random (SRS)** | Every group of n equally likely | Unbiased, representative | Impractical for large populations |
+| **Stratified** | Divide into strata, SRS from each | Ensures subgroup representation | Requires strata knowledge |
+| **Cluster** | Divide into clusters, randomly select clusters, survey all in chosen clusters | Cost-effective for geographic | Less precise (clusters similar internally) |
+| **Systematic** | Every k-th individual | Easy to implement | Risk of periodicity bias |
+| **Convenience** | Whoever is available | Cheap, easy | **Biased** — not representative |
+| **Voluntary Response** | Self-selection | Easy | **Highly biased** (strong opinions) |
 
-### Independence vs. Dependence
-- **Independent:** P(A \| B) = P(A) — knowing B doesn't change A's probability
-- **Dependent:** P(A \| B) ≠ P(A) — knowing B changes A's probability
-- **Without replacement** → Dependent
-- **With replacement** → Independent
-
-### Sampling & Inference (CRITICAL for SAT)
-| Concept | Key Idea |
-|---------|----------|
-| **Random Sample** | Every member has equal chance; **can generalize to population** |
-| **Random Assignment** | Subjects randomly assigned to groups; **can infer causation** |
-| **Observational Study** | No control; shows **association, not causation** |
-| **Experiment** | Control + random assignment; **can infer causation** |
-| **Margin of Error** | Sample stat ± margin = confidence interval for population parameter |
-| **Confidence Level** | Usually 95%: "We're 95% confident true parameter is in interval" |
-
-### Correlation vs. Causation
-| Scenario | Conclusion |
-|----------|------------|
-| **Observational study** | Correlation only — **cannot claim causation** |
-| **Randomized experiment** | Can claim causation (if well-designed) |
-| **Correlation + mechanism + temporal order** | Suggests but doesn't prove causation |
-
-> ⚠️ **SAT Trap:** "Study shows X correlates with Y. Therefore X causes Y." → **WRONG** unless it's a randomized experiment.
+**DSAT Must-Know:**
+- **Random sampling** → allows generalization to population
+- **Random assignment** → allows cause-effect conclusions
+- **Neither** → neither generalization nor causation
 
 ---
 
-## 📝 PRACTICE PROBLEMS (from 8_Statistics.pdf & Class Materials)
+## 📈 Margin of Error & Confidence Intervals
 
-### Set A: Measures of Center & Skewness
-1. **Data:** {12, 15, 18, 18, 20, 22, 25, 100}  
-   Find mean, median. Describe skew.  
-   *Mean = 230/8 = 28.75; Median = (18+20)/2 = 19; Right-skewed (outlier 100)*
-
-2. **Class of 30:** 10 students scored 80, 15 scored 90, 5 scored 100. Find mean.  
-   *(10×80 + 15×90 + 5×100) / 30 = (800+1350+500)/30 = 2650/30 = 88.33*
-
-3. **True/False:** In a right-skewed distribution, the median is greater than the mean.  
-   *False. Mean > Median in right-skewed.*
-
-4. **Data set A:** {10, 20, 30, 40, 50}  
-   **Data set B:** {10, 20, 30, 40, 50, 100}  
-   Compare mean, median, SD.  
-   *A: Mean=30, Med=30; B: Mean=41.7, Med=30. B has larger SD (outlier).*
-
-### Set B: Two-Way Tables
-**Table: 200 students surveyed on Sports Participation and Grade Level**
-
-| | Grade 9 | Grade 10 | Grade 11 | Grade 12 | Total |
-|---|---|---|---|---|---|
-| **Plays Sport** | 30 | 25 | 20 | 15 | 90 |
-| **No Sport** | 20 | 30 | 35 | 25 | 110 |
-| **Total** | 50 | 55 | 55 | 40 | 200 |
-
-5. **P(Plays Sport)** = 90/200 = 0.45
-6. **P(Grade 11)** = 55/200 = 0.275
-7. **P(Plays Sport | Grade 9)** = 30/50 = 0.60
-8. **P(Grade 12 | No Sport)** = 25/110 ≈ 0.227
-9. **Are "Plays Sport" and "Grade 9" independent?**  
-   P(Sport) = 0.45, P(Sport|Grade 9) = 0.60 → Not equal → **Dependent**
-
-### Set C: Probability
-10. **Bag has 5 red, 3 blue, 2 green marbles.** Draw 2 **without replacement**. P(both red)?  
-    *P(R₁) = 5/10; P(R₂|R₁) = 4/9; P = (5/10)×(4/9) = 20/90 = 2/9*
-
-11. **Same bag.** Draw 2 **with replacement**. P(both red)?  
-    *(5/10)×(5/10) = 1/4*
-
-12. **P(A) = 0.4, P(B) = 0.5, P(A and B) = 0.2.** Find P(A or B).  
-    *0.4 + 0.5 - 0.2 = 0.7*
-
-13. **P(A) = 0.3, P(B) = 0.6. A and B independent.** P(A and B)?  
-    *0.3 × 0.6 = 0.18*
-
-### Set D: Sampling & Margin of Error
-14. **Survey of 400 voters: 52% support Candidate A, margin of error ±3%.**  
-    What's the 95% confidence interval?  
-    *49% to 55% (52% ± 3%)*
-
-15. **Same survey.** Can we conclude Candidate A will win?  
-    *No — interval includes values below 50%. Also, sample ≠ population guarantee.*
-
-16. **Study:** "Students who eat breakfast have higher grades."  
-    **Design:** Surveyed 500 students about breakfast habits and GPA.  
-    **Can we conclude breakfast causes higher grades?**  
-    *No — observational study, not experiment. Could be confounding variables (socioeconomic status, study habits, etc.)*
-
-### Set E: Standard Deviation Interpretation
-17. **Data Set X:** Mean 50, SD 2. **Data Set Y:** Mean 50, SD 10.  
-    Which has more variability?  
-    *Y (larger SD = more spread)*
-
-18. **All values in a data set are multiplied by 3.** What happens to SD?  
-    *SD is multiplied by 3.*
-
-19. **5 is added to every value in a data set.** What happens to SD?  
-    *SD unchanged.*
-
----
-
-## 🎯 SAT-SPECIFIC STRATEGIES
-
-### 1. **Two-Way Tables: Always Check "Given"**
-- Circle the word "given" or "if"
-- Denominator = the "given" group total
-- Numerator = the overlap cell
-
-### 2. **Scatterplots: Use the Line Equation**
-- If line of best fit given: y = mx + b
-- Slope (m) = rate of change per unit x
-- Intercept (b) = y when x = 0
-- **Predict:** Plug x into equation
-
-### 3. **Margin of Error: It's a Range, Not a Point**
-- "52% ± 3%" means true value between 49% and 55%
-- If interval crosses 50%, can't declare majority
-
-### 4. **Causation Requires Random Assignment**
-- Observational → Association only
-- Experiment with random assignment → Causation possible
-- **Keyword trigger:** "randomly assigned" = causation OK
-
-### 5. **SD: Conceptual Comparison Only**
-- Larger SD = more spread
-- Adding constant → no change
-- Multiplying → scales SD
-
-### 6. **Skewness: Mean Follows the Tail**
-- Right tail → Mean > Median
-- Left tail → Mean < Median
-- Symmetric → Mean ≈ Median
-
----
-
-## 📋 QUICK-REFERENCE FORMULA CARD
-
+### Formula (Given on SAT)
 ```
-MEASURES OF CENTER
-─────────────────────────────────
-Mean = Σx / n
-Median = middle value (ordered)
-Mode = most frequent
-Weighted Mean = Σ(wx) / Σw
-
-SKEWNESS
-─────────────────────────────────
-Symmetric: Mean ≈ Median
-Right-skewed: Mean > Median
-Left-skewed: Mean < Median
-
-MEASURES OF SPREAD
-─────────────────────────────────
-Range = Max - Min
-IQR = Q3 - Q1
-SD: CONCEPTUAL ONLY
-  • Larger SD = more spread
-  • Add constant → SD unchanged
-  • Multiply by k → SD × |k|
-
-TWO-WAY TABLE PROBABILITIES
-─────────────────────────────────
-P(A) = Row total / Grand total
-P(A and B) = Cell / Grand total
-P(A | B) = Cell / Column total (B is given)
-P(B | A) = Cell / Row total (A is given)
-
-BASIC PROBABILITY
-─────────────────────────────────
-P(not A) = 1 - P(A)
-P(A and B) = P(A) × P(B|A) [dependent]
-P(A and B) = P(A) × P(B) [independent]
-P(A or B) = P(A) + P(B) - P(A and B)
-P(A | B) = P(A and B) / P(B)
-
-SAMPLING & INFERENCE
-─────────────────────────────────
-Random Sample → Generalize to population
-Random Assignment → Infer causation
-Observational Study → Association only
-Margin of Error: Stat ± Margin = CI
-95% CI: "95% confident true param in interval"
-
-CAUSATION CHECKLIST
-─────────────────────────────────
-✓ Randomized experiment
-✓ Control group
-✓ Random assignment
-✗ Observational study → NO causation
-✗ Survey → NO causation
-✗ Correlation alone → NO causation
+Margin of Error = z × (σ / √n)
 ```
+- **z** = critical value (usually 2 for 95% confidence)
+- **σ** = population standard deviation (or sample SD if σ unknown)
+- **n** = sample size
+
+### Key Relationships
+| Change | Effect on Margin of Error |
+|--------|---------------------------|
+| Increase n | Decreases (√n in denominator) |
+| Increase confidence level | Increases (larger z) |
+| Increase σ | Increases |
+
+### Confidence Interval
+```
+CI = Sample Statistic ± Margin of Error
+```
+**Interpretation:** "We are 95% confident the true population parameter is between [lower, upper]."
+
+**DSAT Trap:** Confidence level ≠ probability the parameter is in THIS interval. It's about the method's long-run success rate.
 
 ---
 
-## ❌ COMMON TRAPS TO AVOID
+## 📉 Scatterplots, Correlation & Regression
 
-| Trap | Wrong Answer | Correct Reasoning |
-|------|--------------|-------------------|
-| **Mean vs Median** | "Mean is always best" | Median better for skewed data |
-| **Conditional Prob** | P(A|B) = P(A) | Only if independent! |
-| **Causation** | "Correlation = causation" | Need random assignment |
-| **Margin of Error** | "52% ± 3% means 52% is exact" | It's a RANGE: 49%-55% |
-| **SD Calculation** | Trying to compute SD | Never asked! Compare conceptually |
-| **Independence** | Assuming without replacement = independent | Without replacement = DEPENDENT |
-| **Two-Way Table** | Using grand total as denominator for conditional | Use the "given" group's total |
+### Scatterplot Features
+| Feature | Description |
+|---------|-------------|
+| **Direction** | Positive (↗), Negative (↘), None |
+| **Form** | Linear, Curved, Clusters |
+| **Strength** | Strong (tight), Moderate, Weak (scattered) |
+| **Outliers** | Points far from pattern |
 
----
+### Correlation Coefficient (r)
+| r Value | Strength | Direction |
+|---------|----------|-----------|
+| 0.8 to 1.0 | Strong | Positive |
+| 0.5 to 0.8 | Moderate | Positive |
+| -0.5 to 0.5 | Weak/None | — |
+| -0.8 to -0.5 | Moderate | Negative |
+| -1.0 to -0.8 | Strong | Negative |
 
-## 📅 STUDY PLAN
+**Key Properties of r:**
+- -1 ≤ r ≤ 1
+- **Unitless** (doesn't change with unit conversion)
+- **Only measures linear association**
+- r = 0 → no LINEAR relationship (could be curved)
+- **Correlation ≠ Causation**
 
-| Day | Focus | Time |
-|-----|-------|------|
-| 1 | Mean, median, mode, skew, weighted mean | 30 min |
-| 2 | Range, IQR, SD interpretation, box plots | 30 min |
-| 3 | Two-way tables (all 4 probability types) | 45 min |
-| 4 | Scatterplots, line of best fit, predictions | 30 min |
-| 5 | Probability rules, independence, conditional | 30 min |
-| 6 | Sampling, margin of error, causation vs correlation | 30 min |
-| 7 | Mixed practice + timed set | 60 min |
+### Line of Best Fit (Least Squares Regression)
+**Equation:** ŷ = a + bx
+- **b (slope)** = r × (sᵧ/sₓ)
+- **a (intercept)** = ȳ - b×x̄
+- Passes through (x̄, ȳ)
 
----
+**Interpretation:**
+- **Slope:** For each 1 unit increase in x, y increases by b units (on average)
+- **Intercept:** Predicted y when x = 0 (may not make sense contextually)
 
-## ✅ MASTERY CHECKLIST
-
-- [ ] Calculate mean, median, mode from data set
-- [ ] Identify skew direction from mean/median comparison
-- [ ] Calculate weighted mean
-- [ ] Interpret box plot (median, IQR, outliers)
-- [ ] Read two-way table: joint, marginal, conditional probabilities
-- [ ] Distinguish P(A|B) vs P(B|A) vs P(A and B)
-- [ ] Apply probability rules (and, or, not, conditional)
-- [ ] Identify independent vs dependent events
-- [ ] Interpret margin of error as confidence interval
-- [ ] Distinguish observational study vs experiment
-- [ ] Know when causation can/cannot be claimed
-- [ ] Compare SD conceptually (no calculation)
-- [ ] Complete 15 mixed problems in < 20 minutes
+### Residuals
+**Residual = Observed y - Predicted ŷ**
+- Residual plot: Random scatter → linear model appropriate
+- Pattern in residuals → non-linear relationship
+- **Sum of residuals = 0** (for least squares)
 
 ---
 
-*End of Statistics & Data Analysis Study Guide*  
-*Next: Right Triangle Trigonometry Guide*
+## 📋 Two-Way Tables & Conditional Probability
+
+### Table Structure
+| | Category A | Category B | Total |
+|---|------------|------------|-------|
+| **Group 1** | a | b | a+b |
+| **Group 2** | c | d | c+d |
+| **Total** | a+c | b+d | n |
+
+### Probability Types
+| Probability | Formula | Example |
+|-------------|---------|---------|
+| **Joint** | P(A and B) = a/n | P(Group 1 and Category A) |
+| **Marginal** | P(A) = (a+c)/n | P(Category A) |
+| **Conditional** | P(A|B) = P(A∩B)/P(B) | P(Category A | Group 1) = a/(a+b) |
+
+### Conditional Probability Key
+- **P(A|B)** = "Probability of A **given** B"
+- Denominator = Total of the "given" condition (row or column total)
+- Numerator = Intersection cell
 
 ---
 
-## 📅 Update: 2026-07-10 - New Concepts from July Classroom Materials
+## 🔬 Study Design: Experiment vs. Observational
 
-### 🔴 NEW: Area & Volume Formulas (from AreaVol_L3)
-*Extracted from 2026 Summer SAT/ACT @ AHA AreaVol_L3pdf (July 9, 2026)*
+| Feature | **Experiment** | **Observational Study** |
+|---------|----------------|-------------------------|
+| **Treatment imposed?** | Yes | No |
+| **Random assignment?** | Yes (to treatment groups) | No |
+| **Control group?** | Yes | No |
+| **Blinding?** | Often (single/double-blind) | N/A |
+| **Causation?** | **Yes** (if well-designed) | **No** (only association) |
+| **Confounding?** | Controlled by randomization | **Major concern** |
 
-#### 2D Area Formulas (Must Memorize)
-| Shape | Formula | Notes |
-|-------|---------|-------|
-| Rectangle | $A = l \times w$ | On reference sheet |
-| Triangle | $A = \frac{1}{2} b h$ | On reference sheet |
-| Parallelogram | $A = b h$ | Height ⟂ base |
-| Trapezoid | $A = \frac{1}{2} (b_1 + b_2) h$ | Average of bases × height |
-| Circle | $A = \pi r^2$ | On reference sheet |
-| Sector | $A = \frac{\theta}{360} \pi r^2$ | Fraction of circle |
-| Rhombus/Kite | $A = \frac{1}{2} d_1 d_2$ | Diagonals ⟂ |
-
-#### 3D Volume Formulas (Must Memorize)
-| Solid | Volume Formula | Surface Area (if needed) |
-|-------|----------------|---------------------------|
-| Rectangular Prism | $V = l w h$ | $SA = 2(lw + lh + wh)$ |
-| Cube | $V = s^3$ | $SA = 6s^2$ |
-| Cylinder | $V = \pi r^2 h$ | $SA = 2\pi r^2 + 2\pi rh$ |
-| Sphere | $V = \frac{4}{3} \pi r^3$ | $SA = 4\pi r^2$ |
-| Cone | $V = \frac{1}{3} \pi r^2 h$ | $SA = \pi r^2 + \pi r \ell$ ($\ell$ = slant height) |
-| Pyramid | $V = \frac{1}{3} B h$ | $B$ = base area |
-| Right Prism (any base) | $V = B h$ | $B$ = base area |
-
-#### SAT-Specific Volume/SA Problem Types
-**Type 1: Direct Plug-in** - Given dimensions, compute V or SA
-**Type 2: Find Missing Dimension** - $V = 120, l=5, w=4 \rightarrow h = 120/(5×4) = 6$
-**Type 3: Scale Factor** - If dimensions scale by $k$, $V$ scales by $k^3$, $SA$ scales by $k^2$
-**Type 4: Composite Solids** - Add/subtract volumes of simple shapes
-**Type 5: Inscribed/Circumscribed** - Sphere in cube, cylinder in sphere, etc.
-
-#### Practice Problems (AreaVol_L3)
-1. Cylinder $r=3, h=10$. Volume? Surface area?
-   - $V = \pi(9)(10) = 90\pi$
-   - $SA = 2\pi(9) + 2\pi(3)(10) = 18\pi + 60\pi = 78\pi$
-
-2. Cube volume = $64$. Surface area?
-   - $s = 4$, $SA = 6(16) = 96$
-
-3. Cone and hemisphere share base $r=4$. Total volume?
-   - Cone $h=3$: $V = \frac{1}{3}\pi(16)(3) = 16\pi$
-   - Hemisphere: $V = \frac{1}{2}(\frac{4}{3}\pi(64)) = \frac{128}{3}\pi$
-   - Total: $\frac{176}{3}\pi$
+### Key Terms
+- **Treatment:** Condition applied to experimental units
+- **Control Group:** Receives placebo/no treatment (baseline)
+- **Placebo Effect:** Improvement from belief in treatment
+- **Blinding:** Single-blind (subject unaware) / Double-blind (subject + researcher unaware)
+- **Blocking:** Group similar units, randomize within blocks
+- **Matched Pairs:** Each unit receives both treatments (or paired similar units)
 
 ---
 
-### 🔴 NEW: Central Idea & Details for Math-Infused Passages (from CI Details_L2)
-*Extracted from 2026 Summer SAT/ACT @ AHA CI Details_L2 1pdf (July 9, 2026)*
+## 📐 Standard Deviation: Visual Comparison
 
-While primarily reading content, these concepts apply to **Problem Solving and Data Analysis** questions with text:
+**DSAT does NOT require calculation.** You must:
+1. **Compare spreads** visually (dot plots, histograms, box plots)
+2. **Identify which has larger SD**
+3. **Understand properties:**
+   - SD = 0 → all values identical
+   - Adding constant → SD unchanged
+   - Multiplying by constant → SD multiplied by |constant|
+   - Outliers → increase SD significantly
 
-#### Interpreting Quantitative Claims in Text
-- **Central Claim with Data**: "Study shows 60% reduction" → treatment group had 60% fewer events than control
-- **Correlation vs. Causation Language**: "Associated with" ≠ "caused"; "linked to" ≠ "resulted from"
-- **Margin of Error in Text**: "45% ± 3%" means true value likely between 42%-48%
-- **Sample Size Claims**: "Based on 500 participants" → assess reliability (larger = more reliable)
-
-#### Detail Questions Strategy for Math-Infused Passages
-1. **Identify the specific claim** being referenced
-2. **Locate the supporting data** in the passage (numbers, percentages, study details)
-3. **Match precisely** - watch for "most" vs "all", "increased" vs "increased by"
-4. **Reject** answers that add info not in text or misinterpret the data
-
----
-
-### 🔴 NEW: Lines, Angles & Triangles Advanced (from LiAngTri_L2)
-*Extracted from 2026 Summer SAT/ACT @ AHA LiAngTri_L2pdf (July 9, 2026)*
-
-#### Advanced Angle Theorems
-| Theorem | Statement | Application |
-|---------|-----------|-------------|
-| **Exterior Angle Theorem** | Exterior angle = sum of two remote interior angles | Find missing angles fast |
-| **Triangle Inequality** | $a + b > c$, $|a - b| < c$ | Determine if sides form triangle |
-| **Hinge Theorem** | Larger angle → longer opposite side | Compare side lengths |
-| **Angle Bisector Theorem** | $\frac{AB}{AC} = \frac{BD}{DC}$ | Proportional segments |
-
-#### Special Triangle Centers (Coordinate Geometry)
-| Center | Construction | Coordinates (if vertices known) | Key Property |
-|--------|--------------|----------------------------------|--------------|
-| **Centroid** | Medians intersect | $(\frac{x_1+x_2+x_3}{3}, \frac{y_1+y_2+y_3}{3})$ | Divides medians 2:1 |
-| **Circumcenter** | Perpendicular bisectors | Equidistant from vertices | Center of circumscribed circle |
-| **Incenter** | Angle bisectors | Weighted by side lengths | Center of inscribed circle |
-| **Orthocenter** | Altitudes intersect | - | Acute: inside; Right: at vertex; Obtuse: outside |
-
-#### Euler Line
-- Centroid, circumcenter, orthocenter are **collinear**
-- Centroid is 2/3 of the way from orthocenter to circumcenter
-- **Only equilateral triangles** have all centers coincide
-
-#### Practice Problems (LiAngTri_L2 style)
-1. Triangle vertices: $(0,0), (6,0), (0,8)$. Find centroid.
-   - $(\frac{0+6+0}{3}, \frac{0+0+8}{3}) = (2, \frac{8}{3})$
-
-2. Sides: 7, 10, $x$. Possible integer values of $x$?
-   - $7+10 > x \rightarrow x < 17$
-   - $10-7 < x \rightarrow x > 3$
-   - $x \in \{4,5,6,...,16\}$ → 13 values
-
-3. 30-60-90 triangle, short leg = 5. Area?
-   - Long leg = $5\sqrt{3}$, Area = $\frac{1}{2}(5)(5\sqrt{3}) = \frac{25\sqrt{3}}{2}$
+**Visual Cues for Larger SD:**
+- Wider histogram
+- Longer box plot whiskers/box
+- More spread in dot plot
+- Points further from mean
 
 ---
 
-### 🔴 NEW: Quadratics & Systems Advanced (from Math_H2)
-*Extracted from 2026 Summer SAT/ACT @ AHA Math_H2pdf (July 9, 2026)*
+## 🧮 Practice Problems
 
-#### Quadratic Forms & Strategic Rewriting
-| Form | Equation | Best For |
-|------|----------|----------|
-| **Standard** | $ax^2 + bx + c$ | Factoring, quadratic formula, $c$ = y-intercept |
-| **Vertex** | $a(x-h)^2 + k$ | Vertex $(h,k)$, max/min, transformations |
-| **Factored** | $a(x-r_1)(x-r_2)$ | Roots/zeros, x-intercepts, sign analysis |
+### Problem 1: Mean vs Median
+**Data:** 5, 7, 8, 8, 9, 10, 50
+**Find:** Mean and median. Which better represents center?
 
-#### Converting Between Forms
-- **Standard → Vertex**: Complete the square
-  - $x^2 + 6x + 2 = (x^2 + 6x + 9) - 9 + 2 = (x+3)^2 - 7$
-- **Standard → Factored**: Factor or use quadratic formula to find roots
-- **Vertex → Standard**: Expand $(x-h)^2$
-
-#### Systems: Linear-Quadratic & Quadratic-Quadratic
-**Strategy**: Substitute linear into quadratic → solve → back-substitute
-- **0 solutions**: Line misses parabola (discriminant < 0)
-- **1 solution**: Line tangent (discriminant = 0)
-- **2 solutions**: Line intersects twice (discriminant > 0)
-
-**Example**: $y = x+1$ and $y = x^2 - 2x + 3$
-- $x+1 = x^2 - 2x + 3 \rightarrow x^2 - 3x + 2 = 0 \rightarrow (x-1)(x-2) = 0$
-- Solutions: $(1,2)$ and $(2,3)$
-
-#### Vieta's Formulas (Sum/Product of Roots)
-For $ax^2 + bx + c = 0$ with roots $r_1, r_2$:
-- **Sum**: $r_1 + r_2 = -\frac{b}{a}$
-- **Product**: $r_1 r_2 = \frac{c}{a}$
-
-**Application**: Find $r_1^2 + r_2^2$ without solving
-- $(r_1 + r_2)^2 = r_1^2 + r_2^2 + 2r_1 r_2$
-- $r_1^2 + r_2^2 = (-\frac{b}{a})^2 - 2(\frac{c}{a})$
-
-#### Discriminant Analysis
-$\Delta = b^2 - 4ac$
-- $\Delta > 0$: Two distinct real roots
-- $\Delta = 0$: One real root (double/tangent)
-- $\Delta < 0$: No real roots (complex)
-- **Perfect square** → rational roots → factorable over integers
-
-#### Practice Problems (Math_H2 style)
-1. $2x^2 - 7x + 3 = 0$. Sum of roots? Product?
-   - Sum = $7/2$, Product = $3/2$
-
-2. $y = -2(x-3)^2 + 5$. Vertex? Max or min? y-intercept?
-   - Vertex $(3,5)$, opens down → **max** = 5
-   - y-int: $x=0 \rightarrow y = -2(9)+5 = -13$
-
-3. System: $y = 2x+1$ and $y = x^2 - 4x + 7$. How many solutions?
-   - $2x+1 = x^2 - 4x + 7 \rightarrow x^2 - 6x + 6 = 0$
-   - $\Delta = 36 - 24 = 12 > 0$ → **2 solutions**
-
-4. Find $k$ so $x^2 + kx + 9 = 0$ has exactly one solution.
-   - $\Delta = 0 \rightarrow k^2 - 36 = 0 \rightarrow k = \pm 6$
+**Solution:**
+Mean = (5+7+8+8+9+10+50)/7 = 97/7 ≈ 13.9
+Median = 8 (4th value)
+**Median better** — outlier (50) skews mean right.
 
 ---
 
-### 📊 PRACTICE SET: Mixed New Material (July 2026)
+### Problem 2: Margin of Error
+**Sample:** n = 400, x̄ = 520, σ = 80
+**Find:** 95% margin of error
 
-**Geometry:**
-1. Sector area $24\pi$, radius $8$. Central angle?
-2. Rectangular prism $V=240$, $l=8$, $w=5$. Find $h$, then $SA$.
-3. Triangle sides 9, 12, $x$. Range of $x$ for obtuse triangle?
-
-**Quadratics:**
-4. $3x^2 - 12x + 7 = 0$. Vertex form? Vertex? Roots?
-5. Find quadratic with roots summing to 6, product -7.
-6. System: $y = x^2 - 4x + 3$ and $y = -x + 5$. Solve.
-
-**Statistics (from prior):**
-7. Two-way table: P(A|B) vs P(B|A). When are they equal?
-8. Data set with outlier: which measure of center is most affected?
+**Solution:**
+ME = 2 × (80/√400) = 2 × (80/20) = 2 × 4 = **8**
+CI: 520 ± 8 → (512, 528)
 
 ---
 
-## 📅 Update: 2026-07-10 - New Concepts from July Classroom Materials
+### Problem 3: Effect of Sample Size
+**Original:** n = 100, ME = 6
+**New:** n = 400
+**Find:** New ME (same confidence, same σ)
 
-### 🔴 NEW: Area & Volume Formulas (from AreaVol_L3)
-*Extracted from 2026 Summer SAT/ACT @ AHA AreaVol_L3pdf (July 9, 2026)*
-
-#### 2D Area Formulas (Must Memorize)
-| Shape | Formula | Notes |
-|-------|---------|-------|
-| Rectangle | $A = l \times w$ | On reference sheet |
-| Triangle | $A = \frac{1}{2} b h$ | On reference sheet |
-| Parallelogram | $A = b h$ | Height ⟂ base |
-| Trapezoid | $A = \frac{1}{2} (b_1 + b_2) h$ | Average of bases × height |
-| Circle | $A = \pi r^2$ | On reference sheet |
-| Sector | $A = \frac{\theta}{360} \pi r^2$ | Fraction of circle |
-| Rhombus/Kite | $A = \frac{1}{2} d_1 d_2$ | Diagonals ⟂ |
-
-#### 3D Volume Formulas (Must Memorize)
-| Solid | Volume Formula | Surface Area (if needed) |
-|-------|----------------|---------------------------|
-| Rectangular Prism | $V = l w h$ | $SA = 2(lw + lh + wh)$ |
-| Cube | $V = s^3$ | $SA = 6s^2$ |
-| Cylinder | $V = \pi r^2 h$ | $SA = 2\pi r^2 + 2\pi rh$ |
-| Sphere | $V = \frac{4}{3} \pi r^3$ | $SA = 4\pi r^2$ |
-| Cone | $V = \frac{1}{3} \pi r^2 h$ | $SA = \pi r^2 + \pi r \ell$ ($\ell$ = slant height) |
-| Pyramid | $V = \frac{1}{3} B h$ | $B$ = base area |
-| Right Prism (any base) | $V = B h$ | $B$ = base area |
-
-#### SAT-Specific Volume/SA Problem Types
-**Type 1: Direct Plug-in** - Given dimensions, compute V or SA
-**Type 2: Find Missing Dimension** - $V = 120, l=5, w=4 \rightarrow h = 120/(5×4) = 6$
-**Type 3: Scale Factor** - If dimensions scale by $k$, $V$ scales by $k^3$, $SA$ scales by $k^2$
-**Type 4: Composite Solids** - Add/subtract volumes of simple shapes
-**Type 5: Inscribed/Circumscribed** - Sphere in cube, cylinder in sphere, etc.
-
-#### Practice Problems (AreaVol_L3)
-1. Cylinder $r=3, h=10$. Volume? Surface area?
-   - $V = \pi(9)(10) = 90\pi$
-   - $SA = 2\pi(9) + 2\pi(3)(10) = 18\pi + 60\pi = 78\pi$
-
-2. Cube volume = $64$. Surface area?
-   - $s = 4$, $SA = 6(16) = 96$
-
-3. Cone and hemisphere share base $r=4$. Total volume?
-   - Cone $h=3$: $V = \frac{1}{3}\pi(16)(3) = 16\pi$
-   - Hemisphere: $V = \frac{1}{2}(\frac{4}{3}\pi(64)) = \frac{128}{3}\pi$
-   - Total: $\frac{176}{3}\pi$
+**Solution:**
+ME ∝ 1/√n
+n quadrupled → √n doubled → **ME halved = 3**
 
 ---
 
-### 🔴 NEW: Central Idea & Details for Math-Infused Passages (from CI Details_L2)
-*Extracted from 2026 Summer SAT/ACT @ AHA CI Details_L2 1pdf (July 9, 2026)*
-
-While primarily reading content, these concepts apply to **Problem Solving and Data Analysis** questions with text:
-
-#### Interpreting Quantitative Claims in Text
-- **Central Claim with Data**: "Study shows 60% reduction" → treatment group had 60% fewer events than control
-- **Correlation vs. Causation Language**: "Associated with" ≠ "caused"; "linked to" ≠ "resulted from"
-- **Margin of Error in Text**: "45% ± 3%" means true value likely between 42%-48%
-- **Sample Size Claims**: "Based on 500 participants" → assess reliability (larger = more reliable)
-
-#### Detail Questions Strategy for Math-Infused Passages
-1. **Identify the specific claim** being referenced
-2. **Locate the supporting data** in the passage (numbers, percentages, study details)
-3. **Match precisely** - watch for "most" vs "all", "increased" vs "increased by"
-4. **Reject** answers that add info not in text or misinterpret the data
+### Problem 4: Correlation Interpretation
+**Scatterplot shows:** r = -0.85, linear pattern
+**Statement:** "As x increases, y tends to decrease strongly."
+**Verdict:** **True** — strong negative linear association
 
 ---
 
-### 🔴 NEW: Lines, Angles & Triangles Advanced (from LiAngTri_L2)
-*Extracted from 2026 Summer SAT/ACT @ AHA LiAngTri_L2pdf (July 9, 2026)*
-
-#### Advanced Angle Theorems
-| Theorem | Statement | Application |
-|---------|-----------|-------------|
-| **Exterior Angle Theorem** | Exterior angle = sum of two remote interior angles | Find missing angles fast |
-| **Triangle Inequality** | $a + b > c$, $|a - b| < c$ | Determine if sides form triangle |
-| **Hinge Theorem** | Larger angle → longer opposite side | Compare side lengths |
-| **Angle Bisector Theorem** | $\frac{AB}{AC} = \frac{BD}{DC}$ | Proportional segments |
-
-#### Special Triangle Centers (Coordinate Geometry)
-| Center | Construction | Coordinates (if vertices known) | Key Property |
-|--------|--------------|----------------------------------|--------------|
-| **Centroid** | Medians intersect | $(\frac{x_1+x_2+x_3}{3}, \frac{y_1+y_2+y_3}{3})$ | Divides medians 2:1 |
-| **Circumcenter** | Perpendicular bisectors | Equidistant from vertices | Center of circumscribed circle |
-| **Incenter** | Angle bisectors | Weighted by side lengths | Center of inscribed circle |
-| **Orthocenter** | Altitudes intersect | - | Acute: inside; Right: at vertex; Obtuse: outside |
-
-#### Euler Line
-- Centroid, circumcenter, orthocenter are **collinear**
-- Centroid is 2/3 of the way from orthocenter to circumcenter
-- **Only equilateral triangles** have all centers coincide
-
-#### Practice Problems (LiAngTri_L2 style)
-1. Triangle vertices: $(0,0), (6,0), (0,8)$. Find centroid.
-   - $(\frac{0+6+0}{3}, \frac{0+0+8}{3}) = (2, \frac{8}{3})$
-
-2. Sides: 7, 10, $x$. Possible integer values of $x$?
-   - $7+10 > x \rightarrow x < 17$
-   - $10-7 < x \rightarrow x > 3$
-   - $x \in \{4,5,6,...,16\}$ → 13 values
-
-3. 30-60-90 triangle, short leg = 5. Area?
-   - Long leg = $5\sqrt{3}$, Area = $\frac{1}{2}(5)(5\sqrt{3}) = \frac{25\sqrt{3}}{2}$
+### Problem 5: Residual Plot
+**Residual plot shows:** Clear U-shaped pattern
+**Conclusion:** **Linear model NOT appropriate** — try quadratic
 
 ---
 
-### 🔴 NEW: Quadratics & Systems Advanced (from Math_H2)
-*Extracted from 2026 Summer SAT/ACT @ AHA Math_H2pdf (July 9, 2026)*
+### Problem 6: Two-Way Table
+| | Passed | Failed | Total |
+|---|--------|--------|-------|
+| **Studied** | 45 | 5 | 50 |
+| **Didn't Study** | 15 | 35 | 50 |
+| **Total** | 60 | 40 | 100 |
 
-#### Quadratic Forms & Strategic Rewriting
-| Form | Equation | Best For |
-|------|----------|----------|
-| **Standard** | $ax^2 + bx + c$ | Factoring, quadratic formula, $c$ = y-intercept |
-| **Vertex** | $a(x-h)^2 + k$ | Vertex $(h,k)$, max/min, transformations |
-| **Factored** | $a(x-r_1)(x-r_2)$ | Roots/zeros, x-intercepts, sign analysis |
+**Find:** P(Passed | Studied) and P(Studied | Passed)
 
-#### Converting Between Forms
-- **Standard → Vertex**: Complete the square
-  - $x^2 + 6x + 2 = (x^2 + 6x + 9) - 9 + 2 = (x+3)^2 - 7$
-- **Standard → Factored**: Factor or use quadratic formula to find roots
-- **Vertex → Standard**: Expand $(x-h)^2$
-
-#### Systems: Linear-Quadratic & Quadratic-Quadratic
-**Strategy**: Substitute linear into quadratic → solve → back-substitute
-- **0 solutions**: Line misses parabola (discriminant < 0)
-- **1 solution**: Line tangent (discriminant = 0)
-- **2 solutions**: Line intersects twice (discriminant > 0)
-
-**Example**: $y = x+1$ and $y = x^2 - 2x + 3$
-- $x+1 = x^2 - 2x + 3 \rightarrow x^2 - 3x + 2 = 0 \rightarrow (x-1)(x-2) = 0$
-- Solutions: $(1,2)$ and $(2,3)$
-
-#### Vieta's Formulas (Sum/Product of Roots)
-For $ax^2 + bx + c = 0$ with roots $r_1, r_2$:
-- **Sum**: $r_1 + r_2 = -\frac{b}{a}$
-- **Product**: $r_1 r_2 = \frac{c}{a}$
-
-**Application**: Find $r_1^2 + r_2^2$ without solving
-- $(r_1 + r_2)^2 = r_1^2 + r_2^2 + 2r_1 r_2$
-- $r_1^2 + r_2^2 = (-\frac{b}{a})^2 - 2(\frac{c}{a})$
-
-#### Discriminant Analysis
-$\Delta = b^2 - 4ac$
-- $\Delta > 0$: Two distinct real roots
-- $\Delta = 0$: One real root (double/tangent)
-- $\Delta < 0$: No real roots (complex)
-- **Perfect square** → rational roots → factorable over integers
-
-#### Practice Problems (Math_H2 style)
-1. $2x^2 - 7x + 3 = 0$. Sum of roots? Product?
-   - Sum = $7/2$, Product = $3/2$
-
-2. $y = -2(x-3)^2 + 5$. Vertex? Max or min? y-intercept?
-   - Vertex $(3,5)$, opens down → **max** = 5
-   - y-int: $x=0 \rightarrow y = -2(9)+5 = -13$
-
-3. System: $y = 2x+1$ and $y = x^2 - 4x + 7$. How many solutions?
-   - $2x+1 = x^2 - 4x + 7 \rightarrow x^2 - 6x + 6 = 0$
-   - $\Delta = 36 - 24 = 12 > 0$ → **2 solutions**
-
-4. Find $k$ so $x^2 + kx + 9 = 0$ has exactly one solution.
-   - $\Delta = 0 \rightarrow k^2 - 36 = 0 \rightarrow k = \pm 6$
+**Solution:**
+P(Passed | Studied) = 45/50 = **0.9**
+P(Studied | Passed) = 45/60 = **0.75**
 
 ---
 
-### 📊 PRACTICE SET: Mixed New Material (July 2026)
+### Problem 7: Study Design
+**Scenario:** Researchers survey 1000 adults about exercise and heart health. They find exercisers have lower heart disease rates.
+**Can they conclude exercise causes lower heart disease?**
+**No** — observational study (no treatment imposed). Confounding variables (diet, genetics, etc.) possible.
 
-**Geometry:**
-1. Sector area $24\pi$, radius $8$. Central angle?
-2. Rectangular prism $V=240$, $l=8$, $w=5$. Find $h$, then $SA$.
-3. Triangle sides 9, 12, $x$. Range of $x$ for obtuse triangle?
+---
 
-**Quadratics:**
-4. $3x^2 - 12x + 7 = 0$. Vertex form? Vertex? Roots?
-5. Find quadratic with roots summing to 6, product -7.
-6. System: $y = x^2 - 4x + 3$ and $y = -x + 5$. Solve.
+### Problem 8: Standard Deviation Comparison
+**Data Set A:** 10, 10, 10, 10, 10
+**Data Set B:** 5, 8, 10, 12, 15
+**Which has larger SD?**
 
-**Statistics (from prior):**
-7. Two-way table: P(A|B) vs P(B|A). When are they equal?
-8. Data set with outlier: which measure of center is most affected?
+**Solution:**
+A: All same → SD = 0
+B: Spread around 10 → SD > 0
+**B has larger SD**
+
+---
+
+### Problem 9: Sampling Method
+**Situation:** School surveys every 10th student entering cafeteria.
+**Method:** **Systematic sampling**
+**Potential bias:** If lunch periods correlate with grade level, may miss certain grades.
+
+---
+
+### Problem 10: Conditional Probability
+**P(A) = 0.4, P(B) = 0.5, P(A and B) = 0.2**
+**Find:** P(A|B)
+
+**Solution:**
+P(A|B) = P(A∩B)/P(B) = 0.2/0.5 = **0.4**
+Note: P(A|B) = P(A) → A and B independent!
+
+---
+
+## 🎯 DSAT-Specific Strategies
+
+### Desmos for Statistics
+1. **Mean/Median:** `mean([list])`, `median([list])`
+2. **SD:** `stdev([list])` (sample), `stdevp([list])` (population)
+3. **Regression:** `y₁ ~ mx₁ + b` (linear), `y₁ ~ ax₁² + bx₁ + c` (quadratic)
+4. **Residuals:** Plot residuals = y₁ - (mx₁ + b)
+5. **Tables:** Enter data, use `mean()`, `median()`, `stdev()`
+
+### Time-Saving Patterns
+- **Mean > Median** → right skew
+- **SD comparison** → visual spread check
+- **ME ∝ 1/√n** → 4× sample = ½ ME
+- **r near ±1** → strong linear
+- **Observational study** → no causation
+- **Random assignment** → causation possible
+
+### Common Traps
+| Trap | Example | Defense |
+|------|---------|---------|
+| **Causation from correlation** | "r = 0.9 so X causes Y" | Only experiment → causation |
+| **Convenience sample generalizing** | "Surveyed mall shoppers → all Americans" | Need random sampling |
+| **Confusing P(A|B) and P(B|A)** | P(sick|test+) vs P(test+|sick) | Denominator = "given" condition |
+| **Ignoring outliers in mean** | Mean = 100, median = 50 | Check for skew; use median |
+| **Extrapolation** | Predicting far outside data range | Only predict within data range |
+| **Margin of error = standard deviation** | ME = σ | ME = z×σ/√n (smaller!) |
+
+---
+
+## 📝 Formula Quick Reference
+
+| Category | Formula |
+|----------|---------|
+| **Mean** | x̄ = Σx/n |
+| **Median** | Middle value (sorted) |
+| **Range** | Max - Min |
+| **IQR** | Q₃ - Q₁ |
+| **Outlier Fences** | Q₁ - 1.5×IQR, Q₃ + 1.5×IQR |
+| **Margin of Error** | ME = z × σ/√n |
+| **Confidence Interval** | Statistic ± ME |
+| **Correlation (r)** | -1 ≤ r ≤ 1 |
+| **Regression Slope** | b = r(sᵧ/sₓ) |
+| **Regression Intercept** | a = ȳ - b×x̄ |
+| **Residual** | y - ŷ |
+| **Conditional Prob.** | P(A|B) = P(A∩B)/P(B) |
+| **Independence** | P(A|B) = P(A) or P(A∩B) = P(A)P(B) |
+| **Z-score** | z = (x - μ)/σ |
+| **Empirical Rule** | 68%/95%/99.7% within 1/2/3 SD |
+
+---
+
+## ⚠️ Error Checklist
+
+- [ ] Did I distinguish mean vs median for skewed data?
+- [ ] Is it an experiment (causation) or observational (association)?
+- [ ] For conditional probability: Is denominator the "given" condition?
+- [ ] Margin of error: Used σ/√n, not just σ?
+- [ ] Correlation: Only linear? r = 0 doesn't mean no relationship?
+- [ ] Sampling: Random? Allows generalization?
+- [ ] Residual plot: Random scatter = good model?
+- [ ] Extrapolation: Predicting within data range?
+- [ ] SD comparison: Visual, not calculation?
+- [ ] Confidence level interpretation correct?
+
+---
+
+## 🔄 Review Checklist
+
+- [ ] Calculate mean, median, mode
+- [ ] Identify skew from mean/median
+- [ ] Find five-number summary & make box plot
+- [ ] Identify outliers (1.5×IQR rule)
+- [ ] Classify sampling methods & biases
+- [ ] Calculate margin of error & CI
+- [ ] Interpret changes in n, confidence, σ on ME
+- [ ] Read scatterplot: direction, form, strength, outliers
+- [ ] Interpret r and r²
+- [ ] Find regression line & interpret slope/intercept
+- [ ] Analyze residual plot
+- [ ] Compute probabilities from two-way table
+- [ ] Distinguish experiment vs observational study
+- [ ] Compare SDs visually
+- [ ] Use Desmos for all calculations
+
+---
+
+*Last Updated: 2026-07-11 | Source: 2026 Summer SAT/ACT @ AHA classroom materials*
