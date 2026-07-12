@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import asyncio
 import subprocess
 import logging
@@ -153,8 +154,10 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pass
             
     await context.bot.delete_message(chat_id=chat_id, message_id=msg.message_id)
+    from utils import sanitize_markdown
+    safe_digest = sanitize_markdown(digest)
     try:
-        await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{safe_digest}", parse_mode="Markdown")
     except Exception:
         await context.bot.send_message(chat_id=chat_id, text=f"📊 **On-Demand Digest**\n\n{digest}")
         
@@ -162,9 +165,10 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     topics = ai_result.get("topics", [])
     if topics:
         topics_str = "\n".join([f"- {t}" for t in topics])
+        safe_topics_str = sanitize_markdown(topics_str)
         topic_msg = (
             f"🧠 **I detected you have upcoming assignments/tests for the following topics:**\n"
-            f"{topics_str}\n\n"
+            f"{safe_topics_str}\n\n"
             f"Would you like me to compile a Mega Study Guide for any of these? (Just reply 'Build a guide for...') 📚"
         )
         try:
@@ -262,8 +266,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 async def wait_for_future():
                     return await asyncio.wrap_future(future)
                 result = await _track_task(asyncio.create_task(wait_for_future()))
+                from utils import sanitize_markdown
+                safe_result = sanitize_markdown(result)
                 try:
-                    await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
+                    await context.bot.send_message(chat_id=chat_id, text=safe_result, parse_mode="Markdown")
                 except Exception:
                     await context.bot.send_message(chat_id=chat_id, text=result)
             except Exception as e:
@@ -320,8 +326,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             async def wait_for_future():
                 return await asyncio.wrap_future(future)
             result = await _track_task(asyncio.create_task(wait_for_future()))
+            from utils import sanitize_markdown
+            safe_result = sanitize_markdown(result)
             try:
-                await context.bot.send_message(chat_id=chat_id, text=result, parse_mode="Markdown")
+                await context.bot.send_message(chat_id=chat_id, text=safe_result, parse_mode="Markdown")
             except Exception:
                 await context.bot.send_message(chat_id=chat_id, text=result)
         except Exception as e:
@@ -410,9 +418,94 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• `/backup` - Create an immediate brain backup\n"
         "• `/restore` - List & restore backups\n"
         "• `/correlations` - Cross-source data correlation stats\n"
-        "• `/classroom` - Download PDFs from Google Classroom"
+        "• `/classroom` - Download PDFs from Google Classroom\n"
+        "• `/errors` - Scan logs for recent errors"
     )
     await update.message.reply_text(help_text, parse_mode="Markdown")
+
+
+async def errors_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Scan bot logs for recent errors and report findings."""
+    chat_id = update.effective_chat.id
+    if chat_id != SANEL_CHAT_ID:
+        await update.message.reply_text("Unauthorized.")
+        return
+
+    msg = await update.message.reply_text("🔍 Scanning logs for issues...")
+
+    # Parse optional hours argument
+    hours = 24
+    if context.args:
+        try:
+            hours = int(context.args[0])
+            hours = min(max(hours, 1), 168)
+        except ValueError:
+            pass
+
+    try:
+        import subprocess
+        scanner = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "log_scanner.py")
+        result = subprocess.run(
+            [sys.executable, scanner, "--hours", str(hours), "--json"],
+            capture_output=True, text=True, timeout=60
+        )
+
+        if result.returncode == 2:
+            severity = "🚨"
+        elif result.returncode == 0:
+            severity = "✅"
+        else:
+            severity = "⚠️"
+
+        data = json.loads(result.stdout)
+        count = data["count"]
+        errors = data["errors"]
+
+        # Build summary by category
+        from collections import Counter
+        cats = Counter(m["category"] for m in errors)
+        summary_parts = [f"{severity} **Log Scan ({hours}h): {count} issue(s)**"]
+        summary_parts.append(f"```")
+        cat_emoji = {
+            "TELEGRAM_PARSE": "📝", "TELEGRAM_FAIL": "📝",
+            "RESOURCE_WARN": "🔋", "SSL_LEAK": "🔌",
+            "CSRF_WARN": "🔑", "AUTH_FAIL": "🔒", "API_QUOTA": "🚫",
+            "FALLBACK_FAIL": "🤖", "OPENROUTER_FAIL": "🌐",
+            "OLLAMA_FAIL": "🦙", "AI_HALLUCINATION": "🤪",
+            "RECOVERY_AGENT": "🩺", "ALL_MODELS_FAIL": "💀",
+            "TIMEOUT": "⏰", "TRACEBACK": "🔥", "DOWNLOAD_FAIL": "⬇️",
+            "GUIDE_FAIL": "📚", "DIGEST_FAIL": "📊",
+            "RATE_LIMIT": "🐢", "NETWORK_ERR": "🌍",
+            "CMD_FAIL": "💻", "SCAN_ERR": "❓", "WATCHDOG_ERR": "👀",
+        }
+        for cat, n in cats.most_common():
+            emoji = cat_emoji.get(cat, "❓")
+            summary_parts.append(f"  {emoji} {cat}: {n}")
+        summary_parts.append("```")
+
+        # Show top 5 most interesting errors (non-ResourceWarning first)
+        interesting = [e for e in errors if e["category"] not in ("RESOURCE_WARN",)]
+        if not interesting:
+            interesting = errors[:3]
+
+        for e in interesting[:5]:
+            ts = e.get("timestamp", "?")[:19]
+            msg_text = e["message"][:250]
+            summary_parts.append(f"\n`{ts}` [{e['category']}]\n{msg_text}")
+
+        if len(errors) > 5:
+            summary_parts.append(f"\n_... and {len(errors) - 5} more issues. Use /errors <hours> to go deeper._")
+
+        await context.bot.edit_message_text(
+            chat_id=chat_id, message_id=msg.message_id,
+            text="\n".join(summary_parts)[:4000],
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        await context.bot.edit_message_text(
+            chat_id=chat_id, message_id=msg.message_id,
+            text=f"❌ Log scan failed: {e}"
+        )
 
 async def _get_server_overview():
     try:

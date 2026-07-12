@@ -421,12 +421,16 @@ def send_telegram_message(text: str, parse_mode: str = None) -> bool:
         logger.warning("No TELEGRAM_BOT_TOKEN configured")
         return False
     
+    # Sanitize markdown-breaking chars from dynamic content
+    from utils import sanitize_markdown
+    safe_text = sanitize_markdown(text) if parse_mode == "Markdown" else text
+    
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     
     # Split long messages
     max_len = 4000
-    for i in range(0, len(text), max_len):
-        chunk = text[i:i+max_len]
+    for i in range(0, len(safe_text), max_len):
+        chunk = safe_text[i:i+max_len]
         payload = {
             "chat_id": CHAT_ID,
             "text": chunk,

@@ -19,7 +19,7 @@ from zoneinfo import ZoneInfo
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
 from bot.security import require_auth
-from bot.commands import model_command, summary_command, bash_command, priority_command, ping_command, stats_command, backup_command, restore_command, correlations_command, classroom_pdfs_command, help_command, server_command, handle_callback
+from bot.commands import model_command, summary_command, bash_command, priority_command, ping_command, stats_command, backup_command, restore_command, correlations_command, classroom_pdfs_command, help_command, server_command, errors_command, handle_callback
 
 import config
 import tempfile
@@ -41,6 +41,9 @@ TRANSCRIPT_PATH     = os.getenv(
 )
 user_models = {}
 POLL_INTERVAL       = 2    # seconds between transcript polls
+
+# ── Data source toggle – switch between native scrapers and Composio ──
+USE_COMPOSIO = True  # True = use composio_fetcher (6mo OAuth), False = use existing scrapers (7-day tokens)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -129,9 +132,15 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
     chat_id = context.job.chat_id
     state = load_state()
     # sys.path already set at module level
-    from scrapers.canvas_scraper import get_all_canvas_data
+    if USE_COMPOSIO:
+        from scrapers.composio_fetcher import (
+            get_all_canvas_data, get_unread_emails,
+            get_classroom_assignments, get_classroom_announcements
+        )
+    else:
+        from scrapers.canvas_scraper import get_all_canvas_data
+        from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
     from scrapers.groupme_scraper import get_latest_messages
-    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements
     
     logger.info("Watchdog: Scraping sources...")
 
@@ -253,9 +262,11 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
         if (result and "NO_ALERT" not in result and len(result) > 10
                 and "All models failed" not in result):
             logger.info(f"Watchdog triggered: {result}")
+            from utils import sanitize_markdown
+            safe_result = sanitize_markdown(result)
             await context.bot.send_message(
-                chat_id=chat_id, 
-                text=f"🚨 **WATCHDOG ALERT** 🚨\n\n{result}",
+                chat_id=chat_id,
+                text=f"🚨 **WATCHDOG ALERT** 🚨\n\n{safe_result}",
                 parse_mode="Markdown"
             )
         elif result and "All models failed" in result:
@@ -280,9 +291,16 @@ async def _check_updates_impl(context: ContextTypes.DEFAULT_TYPE):
     chat_id = context.job.chat_id
     state = load_state()
     
-    from scrapers.canvas_scraper import get_all_canvas_data
+    if USE_COMPOSIO:
+        from scrapers.composio_fetcher import (
+            get_all_canvas_data, get_unread_emails,
+            get_classroom_assignments, get_classroom_announcements,
+            get_recent_google_docs
+        )
+    else:
+        from scrapers.canvas_scraper import get_all_canvas_data
+        from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
     from scrapers.groupme_scraper import get_latest_messages
-    from scrapers.google_scraper import get_unread_emails, get_classroom_assignments, get_classroom_announcements, get_recent_google_docs
     from ai_processor import process_all_sources
     from scrapers.notion_client import add_task_to_notion, update_notion_task
     
@@ -905,6 +923,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("classroom", classroom_pdfs_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("server", server_command))
+    app.add_handler(CommandHandler("errors", errors_command))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

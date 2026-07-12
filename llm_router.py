@@ -340,6 +340,12 @@ def _do_call(
         return _streaming_call(client, model, messages, task, max_tokens, timeout, stream_to_status)
     else:
         # Non-streaming (simpler, for everything else)
+        # Convert int timeout to httpx.Timeout if needed
+        if isinstance(timeout, int):
+            call_timeout = httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0)
+        else:
+            call_timeout = timeout
+
         resp = client.post(
             "https://openrouter.ai/api/v1/chat/completions",
             json={
@@ -347,7 +353,7 @@ def _do_call(
                 "messages": messages,
                 "max_tokens": max_tokens,
             },
-            timeout=timeout,
+            timeout=call_timeout,
         )
         if resp.status_code == 200:
             choice = resp.json()["choices"][0]
@@ -369,6 +375,12 @@ def _streaming_call(client, model, messages, task, max_tokens, timeout, stream_t
     last_edit = 0
 
     # Use httpx streaming with proper timeout
+    # Convert int timeout to httpx.Timeout if needed
+    if isinstance(timeout, int):
+        stream_timeout = httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0)
+    else:
+        stream_timeout = timeout
+        
     try:
         resp = client.post(
             "https://openrouter.ai/api/v1/chat/completions",
@@ -378,7 +390,7 @@ def _streaming_call(client, model, messages, task, max_tokens, timeout, stream_t
                 "max_tokens": max_tokens,
                 "stream": True,
             },
-            timeout=timeout,
+            timeout=stream_timeout,
         )
     except httpx.TimeoutException:
         raise Exception(f"OpenRouter streaming timeout after {timeout}s")
@@ -411,19 +423,23 @@ def _streaming_call(client, model, messages, task, max_tokens, timeout, stream_t
                         last_edit = now
                         try:
                             import asyncio
+                            from utils import sanitize_markdown
                             coro = None
                             if in_thought:
+                                disp = current_thought[-400:].strip()
+                                safe_disp = sanitize_markdown(disp)
                                 coro = context.bot.edit_message_text(
                                     chat_id=chat_id, message_id=status_msg.message_id,
-                                    text=f"🧠 **Thinking...**\n_{current_thought[-400:].strip()}_", parse_mode="Markdown"
+                                    text=f"🧠 **Thinking...**\n_{safe_disp}_", parse_mode="Markdown"
                                 )
                             else:
                                 final_text = full_response.split("</thought>")[-1] if "</thought>" in full_response else full_response
                                 disp = final_text[-800:].strip()
+                                safe_disp = sanitize_markdown(disp) if disp else ""
                                 if disp:
                                     coro = context.bot.edit_message_text(
                                         chat_id=chat_id, message_id=status_msg.message_id,
-                                        text=f"✍️ **Typing...**\n{disp}"
+                                        text=f"✍️ **Typing...**\n{safe_disp}"
                                     )
                             if coro:
                                 try:

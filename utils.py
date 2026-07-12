@@ -444,6 +444,27 @@ def check_pii(text: str) -> tuple:
     return (len(found_types) == 0, scrubbed, found_types)
 
 
+def sanitize_markdown(text: str) -> str:
+    """Escape Telegram MarkdownV1 control characters in dynamic/LLM-generated text.
+
+    Unpaired ``_``, ``*``, `` ` ``, ``[``, ``]`` in AI output cause Telegram
+    to reject the message with "Can't parse entities: can't find end of the
+    entity".  Backslash-escaping these chars renders them literally in V1.
+
+    Usage in f-strings::
+
+        text = f"**Bold header**\\n{sanitize_markdown(llm_output)}"
+    """
+    # Order matters: backslash first so we don't double-escape our own escapes
+    text = text.replace("\\", "\\\\")
+    text = text.replace("_", "\\_")
+    text = text.replace("*", "\\*")
+    text = text.replace("`", "\\`")
+    text = text.replace("[", "\\[")
+    text = text.replace("]", "\\]")
+    return text
+
+
 # ── Backup System (Feature 8) ────────────────────────────────────────────────
 def create_backup() -> Optional[str]:
     """
@@ -841,6 +862,18 @@ def get_httpx_client() -> httpx.Client:
             )
         return _cached_sessions['httpx']
 
+def get_async_httpx_client() -> httpx.AsyncClient:
+    """Get or create a shared async httpx client with connection pooling."""
+    global _cached_sessions
+    with _cached_sessions_lock:
+        if 'httpx_async' not in _cached_sessions:
+            timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)
+            _cached_sessions['httpx_async'] = httpx.AsyncClient(
+                timeout=timeout,
+                limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+            )
+        return _cached_sessions['httpx_async']
+
 def get_requests_session() -> requests.Session:
     """Get or create a shared requests session."""
     import requests
@@ -856,7 +889,18 @@ def _cleanup_caches():
     with _cached_sessions_lock:
         for name, session in _cached_sessions.items():
             try:
-                session.close()
+                if hasattr(session, 'aclose'):
+                    import asyncio
+                    try:
+                        loop = asyncio.get_event_loop()
+                        if loop.is_running():
+                            loop.create_task(session.aclose())
+                        else:
+                            loop.run_until_complete(session.aclose())
+                    except Exception:
+                        pass
+                else:
+                    session.close()
             except Exception:
                 pass
         _cached_sessions.clear()

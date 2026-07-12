@@ -315,7 +315,9 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                                                 try:
                                                     if in_thought:
                                                         disp = current_thought[-400:].strip()
-                                                        await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 **Thinking...**\n_{disp}_", parse_mode="Markdown")
+                                                        from utils import sanitize_markdown
+                                                        safe_disp = sanitize_markdown(disp)
+                                                        await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 **Thinking...**\n_{safe_disp}_", parse_mode="Markdown")
                                                     else:
                                                         final_text = full_response.split("</thought>")[-1] if "</thought>" in full_response else full_response
                                                         disp = final_text[-800:].strip()
@@ -607,7 +609,9 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                 )
                 summary_text = res.stdout.strip()
                 if summary_text:
-                    await context.bot.send_message(chat_id=chat_id_to_notify, text=f"🤖 **Verification ({OR_FALLBACK_MODEL}):**\n{summary_text}", parse_mode="Markdown")
+                    from utils import sanitize_markdown
+                    safe_summary = sanitize_markdown(summary_text)
+                    await context.bot.send_message(chat_id=chat_id_to_notify, text=f"🤖 **Verification ({OR_FALLBACK_MODEL}):**\n{safe_summary}", parse_mode="Markdown")
             except Exception as e:
                 logger.error(f"Verification Agent timeout or error: {e}")
 
