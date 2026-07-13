@@ -371,5 +371,31 @@ async def build_index(force_rebuild: bool = False):
     return True
 
 
+# ── Bootstrap ───────────────────────────────────────────────────────────────────
+
+async def rebuild_index_if_missing() -> bool:
+    """Bootstrap helper for the nightly pipeline: if `embedding_index.npz`
+    doesn't exist on disk, build it from scratch. Used at the start of the
+    nightly pipeline (in `memory_consolidation.consolidate_memory`) so a
+    freshly-cloned repo or a wiped `embedding_data/` dir doesn't leave
+    semantic retrieval disabled until Phase 5's nightly rebuild.
+
+    No-op + return True if the index is already present; rebuilds (via
+    `build_index(force_rebuild=True)`) + returns its result otherwise.
+    Logs at info when the bootstrap is skipped, warning when it fires.
+    Idempotent on repeated calls.
+    """
+    if os.path.exists(INDEX_PATH):
+        logger.info(
+            f"Embedding index already present at {INDEX_PATH} "
+            f"({os.path.getsize(INDEX_PATH)/1024:.1f} KB); bootstrap skipped."
+        )
+        return True
+    logger.warning(
+        f"Embedding index missing at {INDEX_PATH}; running bootstrap rebuild..."
+    )
+    return await build_index(force_rebuild=True)
+
+
 if __name__ == "__main__":
     asyncio.run(build_index())

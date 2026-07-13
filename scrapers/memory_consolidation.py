@@ -20,6 +20,18 @@ async def consolidate_memory():
     except Exception as e:
         logger.error(f"Failed to prepare system: {e}")
 
+    # Bootstrap: if the embedding index was lost (fresh clone, wiped
+    # embedding_data/, etc.), rebuild it from scratch so semantic retrieval
+    # isn't disabled until Phase 5's nightly incremental update. Cheap no-op
+    # if the npz is already on disk. Non-fatal: Phase 5 already handles rebuild
+    # failures and re-tries, so a bootstrap miss just means a degraded
+    # semantic-retrieval experience for one cycle.
+    try:
+        from scrapers.embedding_indexer import rebuild_index_if_missing
+        await rebuild_index_if_missing()
+    except Exception as e:
+        logger.warning(f"Embedding index bootstrap failed (non-critical): {e}")
+
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     source_cache_dir = os.path.join(base_dir, "scrapers", "source_cache")
     
@@ -55,7 +67,6 @@ async def consolidate_memory():
     )
     
     try:
-        import httpx
         async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
             response = await client.post(
                 "http://localhost:11434/api/generate",
@@ -96,7 +107,6 @@ async def consolidate_memory():
             # Merge old and new
             merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
             try:
-                import httpx
                 async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=5.0)) as client:
                     resp2 = await client.post(
                         "http://localhost:11434/api/generate",
