@@ -1,12 +1,141 @@
+# Statistics & Data Analysis Study Guide
+
 # 📊 Statistics & Data Analysis Study Guide
 
-*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (8_Statistics.pdf, classroom homework Days 9-12)*
+*Last Updated: 2026-07-11 | Source: 2026 Summer SAT/ACT @ AHA classroom materials (8_Statistics.pdf, classroom homework Days 9-12)*
 
----
+
+## 📅 Update: 2026-07-13 - New Statistics & Data Analysis from 8_Statistics.pdf & Problem-Solving 9
+
+### 🎯 Complete Statistics Reference for DSAT
+
+#### Measures of Center
+| Measure | Formula | When to Use | Outlier Resistance |
+|---------|---------|-------------|-------------------|
+| **Mean** | $\bar{x} = \frac{\sum x_i}{n}$ | Symmetric distributions | Low |
+| **Median** | Middle value (ordered) | Skewed, outliers | High |
+| **Mode** | Most frequent | Categorical data | High |
+
+**DSAT Tip:** Mean > Median → Right-skewed. Mean < Median → Left-skewed.
+
+#### Measures of Spread
+| Measure | Formula/Concept | When to Use |
+|---------|-----------------|-------------|
+| **Range** | $max - min$ | Quick check |
+| **IQR** | $Q_3 - Q_1$ | With median |
+| **Std Dev (σ/sₓ)** | $\sqrt{\frac{\sum(x-\bar{x})^2}{n}}$ | Symmetric |
+| **Variance** | $\sigma^2$ | Rarely direct |
+
+**DSAT Key:** Compare SDs visually (dot plots, histograms)  --  larger spread = larger SD. Don't calculate by hand.
+
+#### Five-Number Summary & Box Plots
+**Summary:** Minimum, Q₁, Median (Q₂), Q₃, Maximum
+
+**Outlier Rule (1.5 × IQR):**
+- Lower fence = $Q_1 - 1.5 \times IQR$
+- Upper fence = $Q_3 + 1.5 \times IQR$
+
+**Box Plot Reading:**
+- Box = IQR (middle 50%)
+- Line in box = median
+- Whiskers = min/max (or fences)
+- Symmetric box + centered median ≈ symmetric data
+- Off-center median ≈ skewed data
+
+#### Sampling Methods
+| Method | Description | Bias Risk |
+|--------|-------------|-----------|
+| **Simple Random (SRS)** | Every group of n equally likely | Low |
+| **Stratified** | Divide into strata, SRS from each | Low |
+| **Cluster** | Random clusters, survey all in chosen | Medium |
+| **Systematic** | Every k-th individual | Medium (periodicity) |
+| **Convenience** | Whoever is available | **High** |
+| **Voluntary Response** | Self-selection | **Very High** |
+
+**DSAT Must-Know:**
+- **Random sampling** → generalize to population
+- **Random assignment** → cause-effect conclusions
+- **Neither** → neither generalization nor causation
+
+#### Margin of Error & Confidence Intervals
+**Formula (Given on SAT):**
+```
+Margin of Error = z × (σ / √n)
+```
+- z = critical value (usually 2 for 95%)
+- σ = population SD (or sample SD)
+- n = sample size
+
+**Relationships:**
+| Change | Effect on MoE |
+|--------|---------------|
+| Increase n | Decreases (√n in denominator) |
+| Increase confidence level | Increases (larger z) |
+| Increase σ | Increases |
+
+**Confidence Interval:** $\bar{x} \pm \text{MoE}$
+
+#### Linear Regression (Desmos: `y1 ~ mx1 + b`)
+- **Equation:** $\hat{y} = a + bx$ or $y = mx + b$
+- **Slope $b$:** Change in $y$ per unit $x$
+- **Intercept $a$:** Predicted $y$ when $x=0$
+- **$R^2$:** % of $y$ variation explained by $x$
+- **Residual:** $y_{actual} - \hat{y}$
+
+#### Two-Way Tables & Conditional Probability
+| | Category A | Category B | Total |
+|---|---|---|---|
+| Group 1 | $a$ | $b$ | $a+b$ |
+| Group 2 | $c$ | $d$ | $c+d$ |
+| Total | $a+c$ | $b+d$ | $n$ |
+
+- **Joint:** $P(A \cap B) = \frac{a}{n}$
+- **Marginal:** $P(A) = \frac{a+c}{n}$
+- **Conditional:** $P(A|B) = \frac{a}{a+c}$
+
+
+### 🧮 Practice Problems from Classroom Materials
+
+#### From 8_Statistics.pdf
+
+1. **Data:** {8, 12, 12, 15, 18, 20, 22, 25, 30}. Find IQR.
+   - Q1=12, Q3=23.5, **IQR=11.5**
+
+2. **Normal dist:** μ=500, σ=100. % scoring 600-700?
+   - 600 = +1σ, 700 = +2σ
+   - 34% (0 to +1σ), 47.5% (0 to +2σ)
+   - **Answer: 13.5%**
+
+3. **Scatterplot:** $R^2 = 0.81$. Correlation?
+   - $r = \pm 0.9$ (positive slope → +0.9)
+
+4. **Two-way table:** P(A|B) vs P(B|A). When equal?
+   - When P(A) = P(B) or A and B independent with equal marginals
+
+5. **Outlier effect:** Data set with outlier. Which center most affected?
+   - **Mean** (least resistant)
+
+#### From SAT Geometry Problems & Problem-Solving 9
+
+6. **Circle equation:** $x^2 + y^2 - 10x + 6y + 18 = 0$. Center, radius?
+   - $(x-5)^2 + (y+3)^2 = 16$ → Center (5,-3), r=4
+
+7. **Central angle** = 110°. Inscribed angle?
+   - **55°**
+
+8. **Similar triangles:** Scale 2:5. Area ratio?
+   - $(2/5)^2 = 4/25$
+
+9. **30-60-90 triangle:** Long leg = $6\sqrt{3}$. Hypotenuse?
+   - Short leg = 6, Hypotenuse = 12
+
+
+*Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*
+
 
 ## 📚 Overview
 
-Statistics & Data Analysis comprise **~15% of SAT Math** (Problem Solving and Data Analysis domain). DSAT emphasizes **interpretation over calculation** — you rarely compute standard deviation by hand; instead, you compare spreads, interpret margins of error, and evaluate study designs.
+Statistics & Data Analysis comprise **~15% of SAT Math** (Problem Solving and Data Analysis domain). DSAT emphasizes **interpretation over calculation**  --  you rarely compute standard deviation by hand; instead, you compare spreads, interpret margins of error, and evaluate study designs.
 
 **Key Topics:**
 - Measures of center & spread
@@ -17,7 +146,6 @@ Statistics & Data Analysis comprise **~15% of SAT Math** (Problem Solving and Da
 - Standard deviation comparison (visual)
 - Experimental vs. observational studies
 
----
 
 ## 🎯 Measures of Center & Spread
 
@@ -40,9 +168,8 @@ Statistics & Data Analysis comprise **~15% of SAT Math** (Problem Solving and Da
 | **Standard Deviation (SD)** | √[Σ(x-x̄)²/n] | Symmetric distributions |
 | **Variance** | SD² | Rarely used directly on SAT |
 
-**DSAT Key:** You **compare** SDs visually (dot plots, histograms) — larger spread = larger SD. Don't calculate by hand.
+**DSAT Key:** You **compare** SDs visually (dot plots, histograms)  --  larger spread = larger SD. Don't calculate by hand.
 
----
 
 ## 📊 Five-Number Summary & Box Plots
 
@@ -60,7 +187,6 @@ Statistics & Data Analysis comprise **~15% of SAT Math** (Problem Solving and Da
 - Symmetric box + median centered ≈ symmetric data
 - Median off-center in box ≈ skewed data
 
----
 
 ## 🗳️ Sampling Methods
 
@@ -70,7 +196,7 @@ Statistics & Data Analysis comprise **~15% of SAT Math** (Problem Solving and Da
 | **Stratified** | Divide into strata, SRS from each | Ensures subgroup representation | Requires strata knowledge |
 | **Cluster** | Divide into clusters, randomly select clusters, survey all in chosen clusters | Cost-effective for geographic | Less precise (clusters similar internally) |
 | **Systematic** | Every k-th individual | Easy to implement | Risk of periodicity bias |
-| **Convenience** | Whoever is available | Cheap, easy | **Biased** — not representative |
+| **Convenience** | Whoever is available | Cheap, easy | **Biased**  --  not representative |
 | **Voluntary Response** | Self-selection | Easy | **Highly biased** (strong opinions) |
 
 **DSAT Must-Know:**
@@ -78,7 +204,6 @@ Statistics & Data Analysis comprise **~15% of SAT Math** (Problem Solving and Da
 - **Random assignment** → allows cause-effect conclusions
 - **Neither** → neither generalization nor causation
 
----
 
 ## 📈 Margin of Error & Confidence Intervals
 
@@ -105,7 +230,6 @@ CI = Sample Statistic ± Margin of Error
 
 **DSAT Trap:** Confidence level ≠ probability the parameter is in THIS interval. It's about the method's long-run success rate.
 
----
 
 ## 📉 Scatterplots, Correlation & Regression
 
@@ -122,7 +246,7 @@ CI = Sample Statistic ± Margin of Error
 |---------|----------|-----------|
 | 0.8 to 1.0 | Strong | Positive |
 | 0.5 to 0.8 | Moderate | Positive |
-| -0.5 to 0.5 | Weak/None | — |
+| -0.5 to 0.5 | Weak/None |  --  |
 | -0.8 to -0.5 | Moderate | Negative |
 | -1.0 to -0.8 | Strong | Negative |
 
@@ -149,7 +273,6 @@ CI = Sample Statistic ± Margin of Error
 - Pattern in residuals → non-linear relationship
 - **Sum of residuals = 0** (for least squares)
 
----
 
 ## 📋 Two-Way Tables & Conditional Probability
 
@@ -172,7 +295,6 @@ CI = Sample Statistic ± Margin of Error
 - Denominator = Total of the "given" condition (row or column total)
 - Numerator = Intersection cell
 
----
 
 ## 🔬 Study Design: Experiment vs. Observational
 
@@ -193,7 +315,6 @@ CI = Sample Statistic ± Margin of Error
 - **Blocking:** Group similar units, randomize within blocks
 - **Matched Pairs:** Each unit receives both treatments (or paired similar units)
 
----
 
 ## 📐 Standard Deviation: Visual Comparison
 
@@ -212,7 +333,6 @@ CI = Sample Statistic ± Margin of Error
 - More spread in dot plot
 - Points further from mean
 
----
 
 ## 🧮 Practice Problems
 
@@ -223,9 +343,8 @@ CI = Sample Statistic ± Margin of Error
 **Solution:**
 Mean = (5+7+8+8+9+10+50)/7 = 97/7 ≈ 13.9
 Median = 8 (4th value)
-**Median better** — outlier (50) skews mean right.
+**Median better**  --  outlier (50) skews mean right.
 
----
 
 ### Problem 2: Margin of Error
 **Sample:** n = 400, x̄ = 520, σ = 80
@@ -235,7 +354,6 @@ Median = 8 (4th value)
 ME = 2 × (80/√400) = 2 × (80/20) = 2 × 4 = **8**
 CI: 520 ± 8 → (512, 528)
 
----
 
 ### Problem 3: Effect of Sample Size
 **Original:** n = 100, ME = 6
@@ -246,20 +364,17 @@ CI: 520 ± 8 → (512, 528)
 ME ∝ 1/√n
 n quadrupled → √n doubled → **ME halved = 3**
 
----
 
 ### Problem 4: Correlation Interpretation
 **Scatterplot shows:** r = -0.85, linear pattern
 **Statement:** "As x increases, y tends to decrease strongly."
-**Verdict:** **True** — strong negative linear association
+**Verdict:** **True**  --  strong negative linear association
 
----
 
 ### Problem 5: Residual Plot
 **Residual plot shows:** Clear U-shaped pattern
-**Conclusion:** **Linear model NOT appropriate** — try quadratic
+**Conclusion:** **Linear model NOT appropriate**  --  try quadratic
 
----
 
 ### Problem 6: Two-Way Table
 | | Passed | Failed | Total |
@@ -274,14 +389,12 @@ n quadrupled → √n doubled → **ME halved = 3**
 P(Passed | Studied) = 45/50 = **0.9**
 P(Studied | Passed) = 45/60 = **0.75**
 
----
 
 ### Problem 7: Study Design
 **Scenario:** Researchers survey 1000 adults about exercise and heart health. They find exercisers have lower heart disease rates.
 **Can they conclude exercise causes lower heart disease?**
-**No** — observational study (no treatment imposed). Confounding variables (diet, genetics, etc.) possible.
+**No**  --  observational study (no treatment imposed). Confounding variables (diet, genetics, etc.) possible.
 
----
 
 ### Problem 8: Standard Deviation Comparison
 **Data Set A:** 10, 10, 10, 10, 10
@@ -293,14 +406,12 @@ A: All same → SD = 0
 B: Spread around 10 → SD > 0
 **B has larger SD**
 
----
 
 ### Problem 9: Sampling Method
 **Situation:** School surveys every 10th student entering cafeteria.
 **Method:** **Systematic sampling**
 **Potential bias:** If lunch periods correlate with grade level, may miss certain grades.
 
----
 
 ### Problem 10: Conditional Probability
 **P(A) = 0.4, P(B) = 0.5, P(A and B) = 0.2**
@@ -310,7 +421,6 @@ B: Spread around 10 → SD > 0
 P(A|B) = P(A∩B)/P(B) = 0.2/0.5 = **0.4**
 Note: P(A|B) = P(A) → A and B independent!
 
----
 
 ## 🎯 DSAT-Specific Strategies
 
@@ -339,7 +449,6 @@ Note: P(A|B) = P(A) → A and B independent!
 | **Extrapolation** | Predicting far outside data range | Only predict within data range |
 | **Margin of error = standard deviation** | ME = σ | ME = z×σ/√n (smaller!) |
 
----
 
 ## 📝 Formula Quick Reference
 
@@ -361,7 +470,6 @@ Note: P(A|B) = P(A) → A and B independent!
 | **Z-score** | z = (x - μ)/σ |
 | **Empirical Rule** | 68%/95%/99.7% within 1/2/3 SD |
 
----
 
 ## ⚠️ Error Checklist
 
@@ -376,7 +484,6 @@ Note: P(A|B) = P(A) → A and B independent!
 - [ ] SD comparison: Visual, not calculation?
 - [ ] Confidence level interpretation correct?
 
----
 
 ## 🔄 Review Checklist
 
@@ -396,6 +503,5 @@ Note: P(A|B) = P(A) → A and B independent!
 - [ ] Compare SDs visually
 - [ ] Use Desmos for all calculations
 
----
 
 *Last Updated: 2026-07-11 | Source: 2026 Summer SAT/ACT @ AHA classroom materials*

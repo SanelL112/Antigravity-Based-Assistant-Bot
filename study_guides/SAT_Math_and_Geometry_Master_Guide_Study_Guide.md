@@ -10276,3 +10276,169 @@ y = mx + b
 ---
 
 *Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*
+
+---
+
+## 📅 Update: 2026-07-13 - New SAT Geometry, Statistics & Advanced Math from July Classroom Materials
+
+### 🎯 SAT Geometry: Circles (from 19_Circles.pdf & SAT Geometry Problems.pdf)
+
+#### Circle Equation Forms
+| Form | Equation | Center | Radius |
+|------|----------|--------|--------|
+| **Standard** | $(x-h)^2 + (y-k)^2 = r^2$ | $(h,k)$ | $r$ |
+| **General** | $x^2 + y^2 + Dx + Ey + F = 0$ | $(-D/2, -E/2)$ | $\sqrt{(D/2)^2 + (E/2)^2 - F}$ |
+
+#### Completing the Square for Circles
+**Steps:** $x^2 + y^2 + Dx + Ey + F = 0$
+1. Group: $(x^2 + Dx) + (y^2 + Ey) = -F$
+2. Complete squares: $(x + D/2)^2 - (D/2)^2 + (y + E/2)^2 - (E/2)^2 = -F$
+3. Standard form: $(x + D/2)^2 + (y + E/2)^2 = (D/2)^2 + (E/2)^2 - F$
+
+**Example:** $x^2 + y^2 - 6x + 8y = 0$
+- $(x^2 - 6x) + (y^2 + 8y) = 0$
+- $(x - 3)^2 - 9 + (y + 4)^2 - 16 = 0$
+- $(x - 3)^2 + (y + 4)^2 = 25$
+- **Center: $(3, -4)$, Radius: $5$**
+
+#### Key Circle Theorems for SAT
+| Theorem | Formula/Rule | Application |
+|---------|--------------|-------------|
+| **Central Angle** | $\theta = \text{arc measure}$ | Arc = central angle |
+| **Inscribed Angle** | $\theta = \frac{1}{2} \times \text{arc}$ | Inscribed = 1/2 intercepted arc |
+| **Tangent-Chord Angle** | $\theta = \frac{1}{2} \times \text{arc}$ | Angle formed by tangent & chord |
+| **Two Chords (inside)** | $a \cdot b = c \cdot d$ | Product of segments equal |
+| **Two Secants (outside)** | $a \cdot (a+b) = c \cdot (c+d)$ | Whole $\times$ external segment |
+| **Secant-Tangent** | $t^2 = a \cdot (a+b)$ | Tangent² = whole $\times$ external |
+| **Angle Inside (2 chords)** | $\theta = \frac{1}{2}(\text{arc}_1 + \text{arc}_2)$ | Average of intercepted arcs |
+| **Angle Outside (2 sec/tan)** | $\theta = \frac{1}{2}(\text{arc}_{far} - \text{arc}_{near})$ | Half difference of arcs |
+
+#### Arc Length & Sector Area
+- **Arc Length:** $L = \frac{\theta}{360^\circ} \cdot 2\pi r$ (degrees) or $L = \theta r$ (radians)
+- **Sector Area:** $A = \frac{\theta}{360^\circ} \cdot \pi r^2$ (degrees) or $A = \frac{1}{2} \theta r^2$ (radians)
+
+---
+
+### 📊 SAT Statistics & Data Analysis (from 8_Statistics.pdf)
+
+#### Measures of Center
+| Measure | Formula | When to Use |
+|---------|---------|-------------|
+| **Mean** | $\bar{x} = \frac{\sum x_i}{n}$ | Symmetric data, no outliers |
+| **Median** | Middle value (ordered) | Skewed data, outliers present |
+| **Mode** | Most frequent value | Categorical data, peak identification |
+
+#### Measures of Spread
+| Measure | Formula | Notes |
+|---------|---------|-------|
+| **Range** | $max - min$ | Sensitive to outliers |
+| **IQR** | $Q_3 - Q_1$ | Robust, used for outliers |
+| **Std Dev (σ/sₓ)** | $\sqrt{\frac{\sum(x_i - \bar{x})^2}{n}}$ | Population vs sample |
+| **Variance** | $\sigma^2$ | Square of std dev |
+
+#### Outlier Detection (1.5 × IQR Rule)
+- **Lower fence:** $Q_1 - 1.5 \times IQR$
+- **Upper fence:** $Q_3 - 1.5 \times IQR$
+- Values outside are outliers
+
+#### Percentiles & Quartiles
+- **Q1 (25th percentile):** Median of lower half
+- **Q2 (50th percentile):** Median
+- **Q3 (75th percentile):** Median of upper half
+
+#### Normal Distribution (Empirical Rule)
+| Interval | Percentage |
+|----------|------------|
+| $\mu \pm 1\sigma$ | ~68% |
+| $\mu \pm 2\sigma$ | ~95% |
+| $\mu \pm 3\sigma$ | ~99.7% |
+
+**Z-score:** $z = \frac{x - \mu}{\sigma}$ → Use for comparing across distributions
+
+#### Linear Regression (Desmos: `y1 ~ mx1 + b`)
+- **Equation:** $\hat{y} = a + bx$ or $y = mx + b$
+- **Slope $b$:** Change in $y$ per unit $x$
+- **Intercept $a$:** Predicted $y$ when $x = 0$
+- **$R^2$ (Coefficient of Determination):** % of variation in $y$ explained by $x$
+- **Residual:** $y_{actual} - \hat{y}$ (positive = underestimate, negative = overestimate)
+
+#### Two-Way Tables & Conditional Probability
+| | Category A | Category B | Total |
+|---|---|---|---|
+| Group 1 | $a$ | $b$ | $a+b$ |
+| Group 2 | $c$ | $d$ | $c+d$ |
+| Total | $a+c$ | $b+d$ | $n$ |
+
+- **Joint:** $P(A \cap B) = \frac{a}{n}$
+- **Marginal:** $P(A) = \frac{a+c}{n}$
+- **Conditional:** $P(A|B) = \frac{a}{a+c}$
+
+---
+
+### 📐 SAT Advanced Geometry Problems (from SAT Geometry Problems.pdf)
+
+#### Similar Triangles
+- **AA Criterion:** Two angles equal → triangles similar
+- **Ratio of sides:** $\frac{a_1}{a_2} = \frac{b_1}{b_2} = \frac{c_1}{c_2} = k$ (scale factor)
+- **Ratio of areas:** $k^2$
+- **Ratio of volumes:** $k^3$
+
+#### Special Right Triangles (Exact Values)
+| Triangle | Angles | Side Ratios | Trig Values |
+|----------|--------|-------------|-------------|
+| **45-45-90** | 45, 45, 90 | $1 : 1 : \sqrt{2}$ | $\sin 45^\circ = \cos 45^\circ = \frac{\sqrt{2}}{2}$ |
+| **30-60-90** | 30, 60, 90 | $1 : \sqrt{3} : 2$ | $\sin 30^\circ = \frac{1}{2}$, $\sin 60^\circ = \frac{\sqrt{3}}{2}$ |
+
+#### Pythagorean Triples (Memorize Common)
+- $3-4-5$, $5-12-13$, $7-24-25$, $8-15-17$, $9-40-41$
+- Multiples: $6-8-10$, $9-12-15$, etc.
+
+#### Coordinate Geometry Formulas
+| Formula | Expression |
+|---------|------------|
+| **Distance** | $d = \sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}$ |
+| **Midpoint** | $M = \left(\frac{x_1+x_2}{2}, \frac{y_1+y_2}{2}\right)$ |
+| **Slope** | $m = \frac{y_2-y_1}{x_2-x_1}$ |
+| **Parallel** | $m_1 = m_2$ |
+| **Perpendicular** | $m_1 \cdot m_2 = -1$ |
+
+---
+
+### 🧮 Practice Problems from Classroom Materials
+
+#### Circles
+1. **Circle equation:** $x^2 + y^2 - 10x + 6y + 18 = 0$. Find center and radius.
+   - $(x-5)^2 - 25 + (y+3)^2 - 9 = -18$
+   - $(x-5)^2 + (y+3)^2 = 16$
+   - **Center: $(5, -3)$, Radius: $4$**
+
+2. **Intersecting chords:** Segments are 4, 6 and 3, $x$. Find $x$.
+   - $4 \times 6 = 3 \times x \rightarrow x = 8$
+
+3. **Inscribed angle:** Intercepted arc = 110°. Inscribed angle = ?
+   - $\frac{1}{2} \times 110^\circ = 55^\circ$
+
+#### Statistics
+4. **Data:** {8, 12, 12, 15, 18, 20, 22, 25, 30}. Find IQR.
+   - $n=9$, Median (Q2) = 18
+   - Lower half: {8, 12, 12, 15} → Q1 = 12
+   - Upper half: {20, 22, 25, 30} → Q3 = 23.5
+   - **IQR = 23.5 - 12 = 11.5**
+
+5. **Normal dist:** μ=500, σ=100. % scoring 600-700?
+   - 600 = +1σ, 700 = +2σ
+   - 68% in ±1σ → 34% in 0 to +1σ
+   - 95% in ±2σ → 47.5% in 0 to +2σ
+   - **Answer: 47.5% - 34% = 13.5%**
+
+#### Geometry
+6. **Similar triangles:** Scale factor 2:5. Area ratio?
+   - $\left(\frac{2}{5}\right)^2 = \frac{4}{25}$
+
+7. **30-60-90 triangle:** Long leg = $6\sqrt{3}$. Hypotenuse?
+   - Long leg = $x\sqrt{3} = 6\sqrt{3} \rightarrow x = 6$
+   - Hypotenuse = $2x = 12$
+
+---
+
+*Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*

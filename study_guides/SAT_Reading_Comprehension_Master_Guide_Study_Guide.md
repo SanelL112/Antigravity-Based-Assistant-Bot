@@ -1,462 +1,4 @@
-# 🧠 **ULTIMATE CHUNKED STUDY GUIDE: SAT Reading Comprehension Master Guide**
-
-*(Generated dynamically via a 10-part LLM Generation & Verification Pipeline to bypass limits)*
-
----
-
-## 📅 Update: 2026-07-10 - New Reading Strategies from July Classroom Materials
-
-
-⚠️ All models failed to generate a response. Please try again.
-
----
-
-
-⚠️ All models failed to generate a response. Please try again.
-
----
-
-
-⚠️ All models failed to generate a response. Please try again.
-
----
-
-
-⚠️ All models failed to generate a response. Please try again.
-
----
-
-
-⚠️ All models failed to generate a response. Please try again.
-
----
-
-
-⚠️ All models failed to generate a response. Please try again.
-
----
-
-
-⚠️ All models failed to generate a response. Please try again.
-
----
-
-
-**Sources Used:**
-- Classroom PDFs (Local Brain Sync)
-
-**Web Articles Scraped:**
-- [The Ultimate Study Guide for SAT Reading: Strategies ... - PrepScholar](https://blog.prepscholar.com/the-ultimate-guide-to-sat-reading-strategies-tips-practice)
-- [SAT Reading Comprehension Strategies: Master Passages and Questions](https://www.satsphere.com/resource/article/reading-strategies-sat)
-- [SAT Reading Comprehension: Proven Techniques and Practice Strategies](https://www.satsphere.com/blog/reading-comprehension-sat)
-- [Master SAT Reading Comprehension: Proven Strategies](https://m.youtube.com/watch?v=ESficY399co)
-- [Master the SAT Reading! - ampersandprep.com](https://ampersandprep.com/post/SATReading)
-- [SAT Reading Strategies: A Complete Guide to Boost Your Score](https://www.larrylearns.com/blog/reading-strategies-for-sat-success)
-- [Master SAT Reading Comprehension: Proven Tips and Strategies](https://www.youtube.com/playlist?list=PLWJh2RiFxeYHT1HkDJiFe-NXyzc3D4ldU)
-- [12 Proven SAT Strategies to Boost Your Reading & Writing Score (2026 Guide)](https://prepmaven.com/blog/test-prep/sat-reading-writing-strategies/)
-- [Official Digital SAT® Prep | Khan Academy](https://www.khanacademy.org/digital-sat)
-- [SAT Reading Comprehension - Master the Most Challenging Section](https://kumartutor.com/sat-reading-comprehension/)
-- [SAT READING AND WRITING TIPS (that will SAVE your butt on test ...](https://www.youtube.com/watch?v=fiOHFtl60ns)
-- [Complete SAT® and ACT® Grammar and Punctuation Rules](https://thecriticalreader.com/complete-sat-grammar-rules/)
-- [The Guide to Mastering the SAT English Section - Webflow](https://uploads-ssl.webflow.com/605fe570e5454a357d1e1811/60a18a01ac554e902fa9f128_SS-SAT-English.pdf)
-- [How to Approach Digital SAT Reading Questions 💯 - YouTube](https://www.youtube.com/watch?v=r_0QHkFg8L8)
-- [Here's What You Need to Know About the SAT Reading and Writing ...](https://testinnovators.com/blog/digital-sat-reading-writing-section/)
-- [SAT Reading Strategies To Score a 700+ - YouTube](https://www.youtube.com/watch?v=Q4ylJ4HxgbE)
-- [SAT Reading Comprehension Types Tips | The Test Advantage](https://thetestadvantage.com/blog/digital-sat-reading-comprehension-guide-9-types-4-tips)
-- [Time management on the SAT Reading and Writing test (article)](https://www.khanacademy.org/test-prep/sat-reading-and-writing/x0d47bcec73eb6c4b:about-the-sat/x0d47bcec73eb6c4b:preparing-for-the-sat/a/time-management-on-the-sat-rw-test)
-- [The Definitive Guide to the SAT Reading Section : r/Sat - Reddit](https://www.reddit.com/r/Sat/comments/pk21ko/the_definitive_guide_to_the_sat_reading_section/)
-- [The Reading and Writing Section – SAT Suite | College Board](https://satsuite.collegeboard.org/sat/whats-on-the-test/reading-writing)
-- [Digital SAT Reading Comprehension Guide: 9 Types & 4 Tips | The Test Advantage](https://thetestadvantage.com/blog-details/176)
-- [About the SAT Evidence-Based Reading and Writing Section | The Princeton Review](https://www.princetonreview.com/sat-study/sat-reading-and-writing)
-- [SAT Reading Tips | Understanding the SAT Reading Section](https://prepmatters.com/blog/test-preparation/sat-reading-tips/)
-- [5 Must-Know SAT Reading Tips – Kaplan Test Prep](https://www.kaptest.com/study/sat/5-must-know-sat-reading-tips/)
-- [SAT Reading Comprehension Strategies to Know for SAT](https://fiveable.me/lists/sat-reading-comprehension-strategies)
-- [What Are SAT Reading Passages and How to Solve Them?](https://prepexpert.com/what-are-sat-reading-passages-and-how-to-solve-them/)
-- [How to Master the SAT Reading Section | SoFlo SAT Tutoring](https://soflotutors.com/blog/sat-reading-prep/)
-- [What Is SAT Reading Comprehension? How to Practice · PrepScholar](https://blog.prepscholar.com/what-is-sat-reading-comprehension)
-- [SAT Reading and Writing Tips: Your Guide to a Higher Score | The Princeton Review](https://www.princetonreview.com/sat-study/sat-reading-writing-tips)
-- [SAT Reading Practice - Free Digital SAT Reading Questions](https://test-ninjas.com/sat-reading-passage-practice)
-- [SAT Reading And Writing: All You Need To Know](https://test-ninjas.com/sat-reading-writing)
-- [SAT Reading Passages PDF with Answers- Download FREE! - GeeksforGeeks](https://www.geeksforgeeks.org/sat/sat-reading-passages/)
-- [SAT Reading: Everything You Need to Know for Success](https://www.kyros.ai/blog/unpacking-the-sat-reading-section-what-to-expect-and-how-to-prepare-3621)
-- [Digital SAT Reading Practice: Main Idea Questions - BWS Education Consulting](https://bwseducationconsulting.com/digital-sat-reading-practice-main-idea-questions/)
-- [New SAT Reading: Practice tests and explanations_CrackSAT.net](https://www.cracksat.net/sat/reading/)
-- [Sample Reading Test Questions – Official SAT Study Guide](https://resources.finalsite.net/images/v1662576757/birminghamchartercom/jjkazqsdchwuw5vzqxca/pdf_official-sat-study-guide-sample-reading-test-questions.pdf)
-- [SAT Reading Strategies to Score 750+ (2026)](https://www.strategictestprep.com/post/sat-reading-strategies-to-score-750-2026)
-- [Best SAT & PSAT Test Guides - Amazon.com](https://www.amazon.com/Best-Sellers-SAT-PSAT-Test-Guides/zgbs/digital-text/158170011)
-- [The Last SAT Reading Guide You'll Ever Need - YouTube](https://www.youtube.com/watch?v=D-Wo9mG1qUQ)
-- [How to Score a 750+ on the SAT Reading without ... - YouTube](https://www.youtube.com/watch?v=reDwWosq5NE)
-- [SAT Study Guide: Essential Tips for the SAT - Superprof](https://www.superprof.com/blog/sat-study-guide/)
-- [Digital SAT: Reading Comprehension and Test Strategies: Reso](https://thetestadvantage.com/blog/digital-sat-reading-comprehension-and-test-strategies-ultimate-resource-hub)
-- [Sat Reading: Complete Guide, Practice Plan, and Resources](https://thetestadvantage.com/blog/sat-reading-complete-guide)
-- [The Ultimate Guide to SAT Reading Comprehension - AP Guru](https://www.apguru.com/blog/the-ultimate-guide-to-sat-reading-comprehension)
-- [SAT Study Guides - Test Ninjas](https://test-ninjas.com/sat-study-guides)
-- [SAT Reading and Writing | Test prep | Khan Academy](https://www.khanacademy.org/test-prep/sat-reading-and-writing)
-- [PDF SAT Reading Review Guide - cdn.upchieve.org](https://cdn.upchieve.org/review-materials/sat-reading-review-guide.pdf)
-- [SAT Reading and Writing Study Guide - Test Ninjas](https://www.test-ninjas.com/sat-reading-writing-study-guide)
-- [Last Minute Sat Reading and Writing Tips | TikTok](https://www.tiktok.com/discover/last-minute-sat-reading-and-writing-tips)
-- [Free Digital SAT Practice Tests_Digital SAT Study...](https://www.satpanda.com/)
-- [Free SAT Reading Practice Questions - High School Test Prep](https://highschooltestprep.com/sat/reading/)
-- [SAT Reading Practice Test (updated 2026)](https://www.mometrix.com/academy/sat-reading-practice-test/)
-- [The Hardest Digital SAT Reading Questions - PrepMaven](https://prepmaven.com/blog/test-prep/hardest-sat-reading-questions/)
-- [SAT Reading Practice Tests and Study Guide - SATPanda.com](https://www.satpanda.com/sat/reading/)
-- [Free SAT Practice Questions | Manhattan Review](https://www.manhattanreview.com/free-sat-practice-questions/)
-- [Free SAT Reading and Writing Practice Drills | Grammar & Reading](https://freetestprep.com/sat-reading-writing/)
-- [Practice and Preparation – SAT Suite | College Board](https://satsuite.collegeboard.org/practice)
-- [Advanced: Craft and Structure | SAT Reading and Writing - Khan Academy](https://www.khanacademy.org/test-prep/sat-reading-and-writing/x0d47bcec73eb6c4b:advanced-craft-and-structure)
-- [Hardest SAT English Questions: Examples & Strategies](https://www.princetonreview.com/sat-study/hardest-sat-english-questions)
-- [Printable SAT Practice Test PDFs: 25 FREE Official Tests · PrepScholar](https://blog.prepscholar.com/printable-sat-practice-tests-4-free-official-tests)
-- [SAT Reading Section Mastery Guide | PDF - Scribd](https://www.scribd.com/document/917203975/SAT-Master-Guide-Reading-Section)
-- [The Complete Guide to SAT Reading (Digital SAT) - Preppinbee](https://preppinbee.com/sat-reading-guide)
-- [Digital SAT® Reading and Writing Cheat Sheets - Albert.io](https://www.albert.io/blog/digital-sat-reading-and-writing-cheat-sheets/)
-- [Digital SAT Reading and Writing Practice Tests and Study Guide_CrackSAT.net](https://www.cracksat.net/digital/reading-writing/)
-- [SAT Reading Questions for Practice: Boost Your Score - GeeksforGeeks](https://www.geeksforgeeks.org/sat/sat-reading-questions/)
-- [Free SAT Practice Questions with detailed Explanations](https://www.manhattanreview.com/sat-practice-questions/)
-- [How to Improve Your Reading Comprehension for The Sat | TikTok](https://www.tiktok.com/discover/how-to-improve-your-reading-comprehension-for-the-sat)
-- [A Tutor's Guide to Digital SAT Reading Comprehension](https://thetestadvantage.com/blog/a-tutors-guide-to-digital-sat-reading-comprehension)
-- [Advanced Strategies for SAT Reading Comprehension from AP Guru](https://www.apguru.com/blog/advanced-strategies-for-sat-reading-comprehension)
-- [Pinterest'te sat reading tips ile ilgili fikirler bulun ve kaydedin.](https://tr.pinterest.com/ideas/sat-reading-tips/938152216582/)
-- [Full-Length SAT and PSAT Paper Practice Tests... | College Board](https://satsuite.collegeboard.org/practice/practice-tests/paper)
-- [SAT Practice Test [Full-Length] | 100% Free Questions | Test-Guide](https://www.test-guide.com/free-sat-practice-tests.html)
-- [Free Practice Tests for the SAT Exam (Updated for 2026) | 27+ Exams...](https://uniontestprep.com/sat-exam/practice-test)
-- [B2 Reading Tests - Test-English](https://test-english.com/reading/b2/)
-- [To all the GODS of SAT Reading (700+ ERBW or just people who ...](https://www.reddit.com/r/Sat/comments/pm5lfn/to_all_the_gods_of_sat_reading_700_erbw_or_just/)
-- [Advanced SAT Reading: Information and Ideas - YouTube](https://www.youtube.com/watch?v=fDMNfxXoKGc)
-- [The best-selling new & future releases in SAT Test Guides](https://www.amazon.com/gp/new-releases/books/11682)
-- [How to Get 800 on SAT Reading: 11 Tips from a Perfect Scorer](https://blog.prepscholar.com/how-to-get-800-on-sat-reading-10-strategies-by-a-perfect-scorer)
-- [Core Reading Skills - SAT Lesson - Varsity Tutors](https://www.varsitytutors.com/practice/subjects/sat/content/core-reading-skills)
-- [Master SAT Reading Comprehension: Proven Strategies](https://www.youtube.com/watch?v=ESficY399co)
-
----
-## 📅 Update: 2026-07-03 - New Concepts from Summer SAT/ACT Class (Days 9-12)
-
-### 🔍 INFERENCES: Mastering What Must Be True
-
-Inference questions ask what **must be true** based on the text, not what could be true. This is the #1 most tested reading skill.
-
-#### The Inference Framework (from Inferences_L2/L3.pdf)
-1. **Locate the relevant text** — Don't infer from memory; find the evidence
-2. **Identify the logical gap** — What does the text say vs. what does it imply?
-3. **Apply the "Must Be True" test** — Would the author agree? Is it logically forced?
-4. **Eliminate "Could Be True" traps** — These are the most common wrong answers
-
-#### Types of Inferences Tested
-| Type | Description | Example Stem |
-|------|-------------|--------------|
-| **Logical deduction** | Combine 2+ pieces of info | "Based on the passage, which must be true?" |
-| **Author's implication** | What the author suggests without stating | "The author implies that..." |
-| **Vocabulary in context** | Word meaning from usage | "As used in line X, 'word' most nearly means..." |
-| **Character/attitude** | Infer feelings, motivations, tone | "The author's attitude toward X is best described as..." |
-| **Cross-text** | Combine info across two passages (paired passages) | "Which best describes the relationship between the passages?" |
-
-#### The "Goldilocks" Principle for Inference Answers
-- **Too specific** = Wrong (adds info not in text)
-- **Too broad** = Wrong (could be true but not forced)
-- **Just right** = Correct (logically necessary, directly supported)
-
-#### Common Inference Traps (from practice)
-| Trap | Description | How to Avoid |
-|------|-------------|--------------|
-| **Outside knowledge** | Bringing in real-world facts | Answer ONLY from the passage |
-| **Extreme language** | "Always," "never," "all," "none" | Prefer moderate language ("some," "often," "may") |
-| **Reverse inference** | Answer contradicts passage | Check: does text support this? |
-| **Scope shift** | Shifts from passage's focus | Match the passage's specific topic |
-
----
-
-### 🔄 CROSS-TEXT ANALYSIS: Paired Passages Strategy
-
-From Cross_Text_L2/L3.pdf — these questions appear in **every** Digital SAT Reading/Writing module.
-
-#### The ICC Process for Cross-Text Questions
-**I — Identify Each Author's Central Claim**
-- Passage 1: Main argument = ?
-- Passage 2: Main argument = ?
-
-**C — Compare the Claims**
-- Agreement? Disagreement? Different focus? Different evidence?
-- Look for: "While Author 1 argues X, Author 2 suggests Y..."
-
-**C — Classify the Relationship**
-| Relationship Type | Key Phrases |
-|-------------------|-------------|
-| **Direct disagreement** | Contradict, challenge, refute, oppose |
-| **Partial agreement** | Agree on X, differ on Y; qualify, limit |
-| **Different evidence, same conclusion** | Both conclude Z, but via different reasoning |
-| **Different focus** | Author 1: causes; Author 2: effects/solutions |
-| **Elaboration/extension** | Author 2 builds on Author 1's idea |
-
-#### Cross-Text Question Stems & Translation
-| Stem | Translation |
-|------|-------------|
-| "How would Author 2 most likely respond to Author 1's claim that...?" | Predict Author 2's reaction based on their stance |
-| "Which best describes the relationship between the passages?" | Classify: agree/disagree/extend/qualify |
-| "Both passages suggest that..." | Find common ground |
-| "The passages differ in their..." | Identify specific point of divergence |
-
-#### Cross-Text Strategy: The 3-Pass Method
-1. **Pass 1**: Read Passage 1 → identify main claim + tone
-2. **Pass 2**: Read Passage 2 → identify main claim + tone + how it relates to P1
-3. **Pass 3**: Answer questions, constantly referencing BOTH passages
-
----
-
-### 🎯 RHETORICAL SYNTHESIS: Bullet Points to Coherent Argument
-
-From Rhetorical_Synthesis_L3.pdf — this is a **new Digital SAT question type** where you're given student notes (bullet points) and must choose which option best uses the information to achieve a stated goal.
-
-#### The Rhetorical Synthesis Framework
-**Given**: A goal (e.g., "emphasize the contrast," "summarize the finding," "make a recommendation")
-**Given**: Bullet points of research/notes
-**Task**: Choose the answer that best accomplishes the goal using ONLY the provided notes
-
-#### Step-by-Step Process
-1. **Read the goal first** — What is the output supposed to DO?
-2. **Categorize the notes** — Group by theme, contrast, cause/effect, etc.
-3. **Identify what's relevant vs. irrelevant** — Some notes may be distractors
-4. **Evaluate each choice against the goal** — Does it DO what the goal asks?
-
-#### Goal Types & Winning Strategies
-| Goal Type | What to Look For | Trap Answers |
-|-----------|------------------|--------------|
-| **Emphasize contrast** | "However," "In contrast," "While X..., Y..." | Answers that only list similarities |
-| **Summarize finding** | Concise, includes key result + context | Answers that add interpretation not in notes |
-| **Make recommendation** | "Should," "recommended," action-oriented | Answers that only state facts without action |
-| **Illustrate a point** | Specific example from notes | Vague generalizations |
-| **Show cause/effect** | "Because," "led to," "resulted in" | Mere correlation |
-
-#### Practice Example (from tonight's material)
-**Goal**: Emphasize the unexpected nature of the finding
-**Notes**:
-- Study examined sleep patterns in 500 teens
-- Hypothesis: More screen time → less sleep
-- Finding: Teens with 4+ hrs screen time averaged 7.2 hrs sleep
-- Teens with <1 hr screen time averaged 6.8 hrs sleep
-- Researchers: "Counterintuitive result warrants further study"
-
-**Correct answer pattern**: "Contrary to the hypothesis that screen time reduces sleep, teens with 4+ hours of screen time actually slept more (7.2 hrs) than those with <1 hour (6.8 hrs), a finding the researchers called counterintuitive."
-
-**Wrong patterns**:
-- Only states the hypothesis (doesn't emphasize unexpected)
-- Only states the finding (doesn't contrast with expectation)
-- Adds interpretation like "screen time improves sleep" (not in notes)
-
----
-
-### 📖 CENTRAL IDEA & TEXT STRUCTURE: Finding the Core
-
-From Central_Idea_L2/L3.pdf, Text_Struc_Pur_L2.pdf.
-
-#### Central Idea vs. Main Idea vs. Theme
-| Term | Meaning | SAT Context |
-|------|---------|-------------|
-| **Central Idea** | The ONE point the author wants you to take away | "The main purpose is to..." |
-| **Main Idea** | Similar to central idea, often used interchangeably | "Which best states the main idea?" |
-| **Theme** | Underlying message (more literary) | Rare on SAT; usually "central claim" for arguments |
-
-#### Finding the Central Idea: The 3-Question Test
-1. **What is the topic?** (The subject)
-2. **What is the author's stance/claim about it?** (The argument)
-3. **Why does it matter?** (The significance/implication)
-
-**Formula**: Central Idea = Topic + Claim + Significance
-
-#### Text Structure & Purpose
-| Structure | Purpose | Signal Words | SAT Question Stems |
-|-----------|---------|--------------|---------------------|
-| **Problem-Solution** | Present issue → propose fix | "Challenge," "solution," "address," "resolve" | "The passage primarily serves to..." |
-| **Cause-Effect** | Explain why → what results | "Because," "led to," "resulted in," "consequence" | "The author explains X by..." |
-| **Compare-Contrast** | Similarities/differences | "Similarly," "however," "in contrast," "unlike" | "The structure of the passage is best described as..." |
-| **Chronological/Sequential** | Time order | "First," "then," "eventually," "subsequently" | |
-| **Claim-Evidence** | Assertion → support | "For example," "evidence shows," "studies indicate" | "The author supports the claim by..." |
-| **Refutation** | Counterargument → rebuttal | "Critics argue," "however," "this view overlooks" | "The author mentions X primarily to..." |
-
-#### Purpose Questions: The "Why" Not the "What"
-- **What** = content (details, examples)
-- **Why** = function (illustrate, refute, qualify, concede, emphasize)
-- **Right answer** describes FUNCTION, not content
-
----
-
-### 📝 EVIDENCE QUESTIONS: The "Best Support" Standard
-
-From Evidence_L2 (3)/(4).pdf — these are paired with a previous question.
-
-#### The Evidence Question Pair
-1. **Question 1**: Inference/interpretation question
-2. **Question 2**: "Which choice provides the best evidence for the answer to the previous question?"
-
-#### Strategy: Work BACKWARDS
-1. Answer Question 1 first (or tentatively)
-2. For Question 2, test each choice: "If this is the evidence, does it prove my Q1 answer?"
-3. The correct evidence **directly and specifically** supports the Q1 answer
-4. If no evidence fits your Q1 answer, **reconsider Q1**
-
-#### Types of Evidence
-| Type | Example |
-|------|---------|
-| **Direct quote** | Exact words supporting the claim |
-| **Paraphrased summary** | Author's point restated |
-| **Data/statistic** | Numbers from the passage |
-| **Example/illustration** | Specific case the author cites |
-| **Expert testimony** | Quoted authority |
-
-#### Common Evidence Traps
-- **Too broad**: Evidence supports a general idea, not the SPECIFIC Q1 answer
-- **Wrong scope**: Evidence from different part of passage
-- **Reverse support**: Evidence actually contradicts or is irrelevant
-
----
-
-### 🧠 VOCAB IN CONTEXT: The Substitution Method
-
-From Vocab Quizzes 16-20 (new this week).
-
-#### The Substitution Technique
-1. **Cover the answer choices**
-2. **Read the sentence with the blank/word**
-3. **Predict your own word** that fits the context
-4. **Match to closest answer choice**
-
-#### Context Clue Types
-| Clue Type | Signal | Example |
-|-----------|--------|---------|
-| **Contrast** | "but," "however," "unlike," "despite" | "Unlike his gregarious brother, he was ___" → reserved |
-| **Cause/Effect** | "because," "since," "therefore," "consequently" | "The storm was ___; therefore, flights were canceled" → severe |
-| **Definition/Restatement** | "is," "means," "refers to," "or" | "The arbiter, or neutral judge, decided" → neutral judge |
-| **Example** | "for example," "such as," "including" | "Celestial bodies, such as stars and planets..." → stars/planets |
-| **Tone/Mood** | Overall feeling of passage | Positive/negative/neutral |
-
-#### High-Yield SAT Vocab Patterns (from Vocab 18-20)
-| Word | Common SAT Meaning | Context Clue |
-|------|-------------------|--------------|
-| **Ambivalent** | Having mixed feelings | "Both... and..." |
-| **Candid** | Honest, frank | Contrast with "evasive" |
-| **Disparate** | Distinctly different | "Unlike," "differed" |
-| **Ephemeral** | Short-lived, fleeting | "Brief," "temporary" |
-| **Equivocal** | Ambiguous, unclear | "Uncertain," "vague" |
-| **Fastidious** | Very attentive to detail | "Meticulous," "particular" |
-| **Gregarious** | Sociable, outgoing | Contrast with "solitary" |
-| **Incisive** | Sharp, penetrating (analysis) | "Keen," "perceptive" |
-| **Lucid** | Clear, easy to understand | Contrast with "confusing" |
-| **Myriad** | Countless, very many | "Numerous," "countless" |
-| **Pragmatic** | Practical, realistic | Contrast with "idealistic" |
-| **Ubiquitous** | Present everywhere | "Everywhere," "omnipresent" |
-
----
-
-### ⏱️ TIME MANAGEMENT FOR READING/WRITING
-
-Digital SAT Reading/Writing: **64 minutes, 54 questions** (2 modules of 32 min, 27 questions each)
-- **~71 seconds per question** average
-- But: Some questions take 30 sec (vocab), some take 2 min (cross-text)
-
-#### Recommended Pacing
-| Question Type | Target Time | Strategy |
-|---------------|-------------|----------|
-| Vocab in Context | 30-45 sec | Substitution method |
-| Central Idea / Purpose | 45-60 sec | Find thesis, match function |
-| Command of Evidence | 45-60 sec | Work backwards from Q1 |
-| Inferences | 60-90 sec | Must Be True test |
-| Cross-Text | 90-120 sec | 3-pass method |
-| Rhetorical Synthesis | 60-90 sec | Goal-first evaluation |
-| Standard English Conventions | 30-45 sec | Grammar rules + ear test |
-
-#### Module Strategy
-- **Module 1**: Accuracy focus — this sets your Module 2 difficulty
-- **Module 2**: Slightly faster if hard module (more complex passages)
-- **Flag aggressively**: If >90 sec on a question, flag and move on
-- **Last 5 min**: Return to flagged, then guess on remaining
-
----
-
-### 📝 NEW PRACTICE SET (July 3 Update)
-
-**Inferences:**
-1. Passage states: "The new policy reduced wait times by 40%. However, patient satisfaction scores remained unchanged." What can be inferred?
-   - A) The policy failed completely
-   - B) Wait time is not the only factor affecting satisfaction
-   - C) Patients didn't notice the change
-   - D) The policy increased costs
-
-**Cross-Text:**
-2. Passage 1: Argues social media increases teen anxiety via comparison.
-   Passage 2: Presents study showing teens who use social media for connection report lower loneliness.
-   Relationship?
-   - A) Direct contradiction
-   - B) Different aspects of same phenomenon
-   - C) Passage 2 refutes Passage 1's methodology
-   - D) Passage 1 provides evidence for Passage 2
-
-**Rhetorical Synthesis:**
-3. Goal: Explain why the results were surprising
-   Notes: Expected X, found Y, researchers "puzzled," "contradicts decades of theory"
-   Best answer uses "contrary to expectations," "surprisingly," "puzzled researchers"
-
-**Central Idea:**
-4. Passage about urban heat islands: describes causes (concrete, lack of vegetation), effects (higher temps, health risks), solutions (green roofs, reflective materials).
-   Central idea?
-   - A) Cities are hotter than rural areas
-   - B) Urban heat islands are caused by human materials and can be mitigated through design changes
-   - C) Green roofs are the best solution
-   - D) Concrete absorbs heat
-
-**Evidence:**
-5. Q1: The author suggests the policy had unintended consequences.
-   Q2: Best evidence?
-   - Find lines showing negative outcomes not anticipated
-
-**Vocab:**
-6. "The scientist's ___ approach to data collection ensured that no variable went unmeasured."
-   A) haphazard B) fastidious C) cursory D) indifferent
-   → B (context: "ensured no variable went unmeasured" = thorough)
-
----
-
-### 💡 KEY STRATEGIES FOR NEW READING MATERIAL
-
-1. **Inferences**: ALWAYS apply the "Must Be True" test. If you need outside knowledge or it "could be true," it's wrong.
-
-2. **Cross-Text**: Use ICC (Identify, Compare, Classify). Read Passage 2 with Passage 1's claim in mind.
-
-3. **Rhetorical Synthesis**: Read the GOAL first. It's your filter for the notes and answer choices.
-
-4. **Central Idea**: Topic + Claim + Significance. Avoid answers that are too narrow (detail) or too broad (topic only).
-
-5. **Evidence Pairs**: Work backwards. The evidence must DIRECTLY prove the specific Q1 answer.
-
-6. **Vocab**: Predict first, then match. Use context clues (contrast, cause/effect, definition, example).
-
-7. **Time**: ~71 sec/q average. Fast on vocab/conventions, invest time on cross-text/synthesis.
----
-
-## 📅 Update: 2026-07-10 - New Reading Strategies from July Classroom Materials
-
-### 🔴 NEW: Advanced Inference Techniques (from Inferences_L2/L3)
-*Extracted from 2026 Summer SAT/ACT @ AHA Inferences_L2/L3 (July 9, 2026)*
-
-#### The 3-Level Inference Hierarchy
-| Level | Description | Example Stem | Difficulty |
-|-------|-------------|--------------|------------|
-| **L1: Direct** | One-step logical deduction | "The passage states that X. What must be true?" | Easy |
-| **L2: Synthesis** | Combine 2+ pieces of text | "Based on lines 12-15 and 28-30, what can be inferred?" | Medium |
-| **L3: Abstract** | Apply passage logic to new scenario | "Which situation is most analogous to the author's argument?" | Hard |
-
-#### Inference "Must Be True" Validation Checklist
-For every answer choice, ask:
-- ☐ **Supported by text?** Direct quote or combination possible?
-- ☐ **Logically forced?** Not just "could be true" - MUST be true
-- ☐ **No outside knowledge?** Answer uses ONLY passage information
-- ☐ **Right scope?** Doesn't go beyond passage's specific claim
-- ☐ **Tone match?** Matches author's degree of certainty
-
-#### New Inference Question Patterns (Digital SAT)
-1. **"Which choice best completes the text?"** - Fill in logical consequence
-2. **"The passage most strongly suggests..."** - Strongest supported inference
-3. **"Based on the text, which assumption underlies..."** - Identify hidden premise
-4. **"If true, which would most strengthen/weaken the inference?"** - Logical reasoning
-
----
+# SAT Reading Comprehension Master Guide
 
 ### 🔴 NEW: Cross-Text Connections Mastery (from Cross_Text_L2/L3)
 *Extracted from 2026 Summer SAT/ACT @ AHA Cross_Text_L2/L3 (July 9, 2026)*
@@ -493,7 +35,6 @@ Create a 2×2 grid while reading:
 2. **Pass 2**: Read Passage 2 → identify main claim + tone + how it relates to P1
 3. **Pass 3**: Answer questions, constantly referencing BOTH passages
 
----
 
 ### 🔴 NEW: Rhetorical Synthesis - The Bullet-to-Essay Engine (from Rhetorical_Synthesis_L3)
 *Extracted from 2026 Summer SAT/ACT @ AHA Rhetorical_Synthesis_L3 (July 9, 2026)*
@@ -540,7 +81,6 @@ Create a 2×2 grid while reading:
 
 **Correct Pattern**: "Contrary to the hypothesis that screen time reduces sleep, teens with 4+ hours averaged 7.2 hours vs 6.8 hours for low-screen teens - a counterintuitive finding the researchers flagged for further study."
 
----
 
 ### 🔴 NEW: Central Idea & Text Structure Precision (from Central_Idea_L2/L3, Text_Struc_Pur_L2)
 *Extracted from 2026 Summer SAT/ACT @ AHA CI Details_L2, Text_Struc_Pur_L2 (July 9, 2026)*
@@ -573,7 +113,6 @@ Create a 2×2 grid while reading:
 - **Synthesis/Conclusion**: Reconciles or extends argument
 - **Analogy paragraph**: Uses comparison to clarify
 
----
 
 ### 📝 PRACTICE SET: Mixed New Reading Material (July 2026)
 
@@ -604,13 +143,12 @@ Create a 2×2 grid while reading:
    - Structure? (Problem-solution with counterargument)
    - Central idea? (Three specific reforms can fix education without excessive cost)
 
----
 
 ## 📅 Update: 2026-07-08 - New Concepts from Summer SAT/ACT Class (Days 12-13)
 
 ### 🔍 INFERENCES: Advanced "Must Be True" Mastery
 
-From Inferences_L2/L3.pdf — **#1 most tested skill** on Digital SAT Reading/Writing.
+From Inferences_L2/L3.pdf  --  **#1 most tested skill** on Digital SAT Reading/Writing.
 
 #### The Inference Hierarchy (Strongest to Weakest)
 
@@ -630,7 +168,7 @@ From Inferences_L2/L3.pdf — **#1 most tested skill** on Digital SAT Reading/Wr
 
 **Type B: Causal Inference**
 - Text: "After the policy change, errors dropped 40%."
-- Inference: Policy change *likely contributed* to reduction. (Strong implication, NOT must be true — could be coincidence)
+- Inference: Policy change *likely contributed* to reduction. (Strong implication, NOT must be true  --  could be coincidence)
 
 **Type C: Scope Inference**
 - Text: "In the 1920s, urban women gained voting rights."
@@ -649,15 +187,14 @@ From Inferences_L2/L3.pdf — **#1 most tested skill** on Digital SAT Reading/Wr
 | "Author criticizes X" | "Author opposes X entirely" | May support parts |
 | "Study found no effect" | "Effect does not exist" | Absence of evidence ≠ evidence of absence |
 
----
 
 ### 🔄 CROSS-TEXT ANALYSIS: Paired Passages Deep Dive
 
-From Cross_Text_L2/L3.pdf — **appears in every module**, usually 2-3 questions.
+From Cross_Text_L2/L3.pdf  --  **appears in every module**, usually 2-3 questions.
 
 #### The ICC Process (Expanded)
 
-**I — Identify Each Author's Position**
+**I  --  Identify Each Author's Position**
 ```
 Passage 1:
 - Central Claim: ________________
@@ -670,7 +207,7 @@ Passage 2:
 - Evidence Type: ________________
 ```
 
-**C — Compare Systematically**
+**C  --  Compare Systematically**
 | Dimension | Passage 1 | Passage 2 | Relationship |
 |-----------|-----------|-----------|--------------|
 | **Main Claim** | | | Agree / Disagree / Qualify / Extend |
@@ -679,7 +216,7 @@ Passage 2:
 | **Tone** | | | Same / More objective / More urgent |
 | **Solution/Focus** | | | Same / Different aspect / Opposite |
 
-**C — Classify the Relationship (Precise Vocabulary)**
+**C  --  Classify the Relationship (Precise Vocabulary)**
 
 | Relationship | Precise Description | SAT Answer Phrasing |
 |--------------|---------------------|---------------------|
@@ -701,11 +238,10 @@ Passage 2:
 | "Which statement would both authors most likely agree with?" | Must be supported by BOTH |
 | "Author 1 mentions X primarily to..." | Function of detail in P1's argument |
 
----
 
 ### 🎯 RHETORICAL SYNTHESIS: Bullet Points → Coherent Output
 
-From Rhetorical_Synthesis_L3.pdf — **new Digital SAT question type**.
+From Rhetorical_Synthesis_L3.pdf  --  **new Digital SAT question type**.
 
 #### The 4-Step GOAL Framework
 
@@ -749,7 +285,7 @@ From Rhetorical_Synthesis_L3.pdf — **new Digital SAT question type**.
 - Study: 500 teens, 6 months
 - Finding: Teens with 4+ hrs screen time: 7.2 hrs sleep
 - Finding: Teens with <1 hr screen time: 6.8 hrs sleep
-- Researchers: "Counterintuitive — warrants further investigation"
+- Researchers: "Counterintuitive  --  warrants further investigation"
 
 **Correct Pattern**: "Contrary to the hypothesis that screen time reduces sleep, teens with 4+ hours of screen time actually slept more (7.2 hrs) than those with <1 hour (6.8 hrs), a finding the researchers called counterintuitive."
 
@@ -758,7 +294,6 @@ From Rhetorical_Synthesis_L3.pdf — **new Digital SAT question type**.
 - Only states findings (doesn't contrast with expectation)
 - Adds causal claim "screen time improves sleep" (not in notes)
 
----
 
 ### 📖 CENTRAL IDEA: Topic + Claim + Significance (Advanced)
 
@@ -803,7 +338,6 @@ From Central_Idea_L2/L3.pdf, Text_Struc_Pur_L2.pdf.
 **Right Answer**: "To illustrate the limitations of the proposed solution"
 **Wrong Answer**: "To describe the three types of green roofs"
 
----
 
 ### 📝 EVIDENCE QUESTIONS: The "Best Support" Standard (Refined)
 
@@ -835,7 +369,6 @@ From Evidence_L2 (3)/(4).pdf.
 | **Reverse Support** | Actually contradicts or is irrelevant | Evidence shows policy worked; Q1 says it failed. |
 | **Inference as Evidence** | Requires inference to connect | Evidence: "Temperatures rose." Q1: "Policy failed." (Need link) |
 
----
 
 ### 🧠 VOCAB IN CONTEXT: High-Yield Words & Substitution Mastery
 
@@ -848,7 +381,7 @@ From Vocab Quizzes 18-20 (new this week) + SAT high-frequency list.
 2. READ the sentence with the target word.
 3. PREDICT your own word/phrase that fits.
 4. MATCH to closest answer choice.
-5. VERIFY: Plug choice back — does sentence make sense?
+5. VERIFY: Plug choice back  --  does sentence make sense?
 ```
 
 #### Context Clue Types (with Signals)
@@ -896,7 +429,6 @@ From Vocab Quizzes 18-20 (new this week) + SAT high-frequency list.
 5. "She offered a ___ analysis that cut through months of confusion."
    - A) candid B) incisive C) pragmatic D) ambivalent → **B** (context: "cut through confusion" = sharp analysis)
 
----
 
 ### ⏱️ TIME MANAGEMENT: Reading/Writing Precision
 
@@ -914,12 +446,11 @@ From Vocab Quizzes 18-20 (new this week) + SAT high-frequency list.
 
 #### Module Strategy (Updated)
 
-- **Module 1 (Gatekeeper)**: Accuracy focus — determines Module 2 difficulty. **Don't rush.** Every correct answer = higher score ceiling.
+- **Module 1 (Gatekeeper)**: Accuracy focus  --  determines Module 2 difficulty. **Don't rush.** Every correct answer = higher score ceiling.
 - **Module 2 (Scorer)**: If hard module → slightly faster pace but **never sacrifice accuracy on easy/medium**.
 - **Flag Threshold**: >90 sec on any question → flag and move on.
 - **Final 5 min**: Return to flagged, then guess on remaining (no penalty).
 
----
 
 ### 📝 NEW PRACTICE SET (July 8 Update)
 
@@ -961,7 +492,6 @@ From Vocab Quizzes 18-20 (new this week) + SAT high-frequency list.
 6. "The committee's ___ approach meant that every proposal was scrutinized in detail."
    A) cursory B) fastidious C) pragmatic D) ubiquitous → **B** (context: "every proposal scrutinized in detail")
 
----
 
 ### 💡 KEY STRATEGIES FOR NEW READING MATERIAL (July 8)
 
@@ -978,7 +508,6 @@ From Vocab Quizzes 18-20 (new this week) + SAT high-frequency list.
 6. **Vocab**: Substitution method + 12 high-yield words (ambivalent, candid, disparate, ephemeral, equivocal, fastidious, gregarious, incisive, lucid, myriad, pragmatic, ubiquitous). Context clues: contrast, cause/effect, definition, example, tone, structure.
 
 7. **Time**: Module 1 = accuracy (sets ceiling). Flag >90 sec. Final 5 min = flagged + guesses. ~71 sec avg but invest in cross-text/synthesis.
----
 
 ## 📅 Update: 2026-07-06 - New Concepts from Summer SAT/ACT Class (Days 10-12)
 
@@ -987,10 +516,10 @@ From Vocab Quizzes 18-20 (new this week) + SAT high-frequency list.
 Inference questions ask what **must be true** based on the text, not what could be true. This is the #1 most tested reading skill.
 
 #### The Inference Framework (from Inferences_L2/L3.pdf)
-1. **Locate the relevant text** — Don't infer from memory; find the evidence
-2. **Identify the logical gap** — What does the text say vs. what does it imply?
-3. **Apply the "Must Be True" test** — Would the author agree? Is it logically forced by necessity, not possibility?
-4. **Eliminate "Could Be True" traps** — These are the most common wrong answers
+1. **Locate the relevant text**  --  Don't infer from memory; find the evidence
+2. **Identify the logical gap**  --  What does the text say vs. what does it imply?
+3. **Apply the "Must Be True" test**  --  Would the author agree? Is it logically forced by necessity, not possibility?
+4. **Eliminate "Could Be True" traps**  --  These are the most common wrong answers
 
 #### Types of Inferences Tested
 | Type | Description | Example Stem |
@@ -1014,22 +543,21 @@ Inference questions ask what **must be true** based on the text, not what could 
 | **Reverse inference** | Answer contradicts passage | Check: does text support this? |
 | **Scope shift** | Shifts from passage's focus | Match the passage's specific topic |
 
----
 
 ### 🔄 CROSS-TEXT ANALYSIS: Paired Passages Strategy
 
-From Cross_Text_L2/L3.pdf — these questions appear in **every** Digital SAT Reading/Writing module.
+From Cross_Text_L2/L3.pdf  --  these questions appear in **every** Digital SAT Reading/Writing module.
 
 #### The ICC Process for Cross-Text Questions
-**I — Identify Each Author's Central Claim**
+**I  --  Identify Each Author's Central Claim**
 - Passage 1: Main argument = ?
 - Passage 2: Main argument = ?
 
-**C — Compare the Claims**
+**C  --  Compare the Claims**
 - Agreement? Disagreement? Different focus? Different evidence?
 - Look for: "While Author 1 argues X, Author 2 suggests Y..."
 
-**C — Classify the Relationship**
+**C  --  Classify the Relationship**
 | Relationship Type | Key Phrases |
 |-------------------|-------------|
 | **Direct disagreement** | Contradict, challenge, refute, oppose |
@@ -1051,11 +579,10 @@ From Cross_Text_L2/L3.pdf — these questions appear in **every** Digital SAT Re
 2. **Pass 2**: Read Passage 2 → identify main claim + tone + how it relates to P1
 3. **Pass 3**: Answer questions, constantly referencing BOTH passages
 
----
 
 ### 🎯 RHETORICAL SYNTHESIS: Bullet Points to Coherent Argument
 
-From Rhetorical_Synthesis_L3.pdf — this is a **new Digital SAT question type** where you're given student notes (bullet points) and must choose which option best uses the information to achieve a stated goal.
+From Rhetorical_Synthesis_L3.pdf  --  this is a **new Digital SAT question type** where you're given student notes (bullet points) and must choose which option best uses the information to achieve a stated goal.
 
 #### The Rhetorical Synthesis Framework
 **Given**: A goal (e.g., "emphasize the contrast," "summarize the finding," "make a recommendation")
@@ -1063,10 +590,10 @@ From Rhetorical_Synthesis_L3.pdf — this is a **new Digital SAT question type**
 **Task**: Choose the answer that best accomplishes the goal using ONLY the provided notes
 
 #### Step-by-Step Process
-1. **Read the goal first** — What is the output supposed to DO?
-2. **Categorize the notes** — Group by theme, contrast, cause/effect, etc.
-3. **Identify what's relevant vs. irrelevant** — Some notes may be distractors
-4. **Evaluate each choice against the goal** — Does it DO what the goal asks?
+1. **Read the goal first**  --  What is the output supposed to DO?
+2. **Categorize the notes**  --  Group by theme, contrast, cause/effect, etc.
+3. **Identify what's relevant vs. irrelevant**  --  Some notes may be distractors
+4. **Evaluate each choice against the goal**  --  Does it DO what the goal asks?
 
 #### Goal Types & Winning Strategies
 | Goal Type | What to Look For | Trap Answers |
@@ -1093,7 +620,6 @@ From Rhetorical_Synthesis_L3.pdf — this is a **new Digital SAT question type**
 - Only states the finding (doesn't contrast with expectation)
 - Adds interpretation like "screen time improves sleep" (not in notes)
 
----
 
 ### 📖 CENTRAL IDEA & TEXT STRUCTURE: Finding the Core
 
@@ -1128,11 +654,10 @@ From Central_Idea_L2/L3.pdf, Text_Struc_Pur_L2.pdf.
 - **Why** = function (illustrate, refute, qualify, concede, emphasize)
 - **Right answer** describes FUNCTION, not content
 
----
 
 ### 📝 EVIDENCE QUESTIONS: The "Best Support" Standard
 
-From Evidence_L2 (3)/(4).pdf — these are paired with a previous question.
+From Evidence_L2 (3)/(4).pdf  --  these are paired with a previous question.
 
 #### The Evidence Question Pair
 1. **Question 1**: Inference/interpretation question
@@ -1158,7 +683,6 @@ From Evidence_L2 (3)/(4).pdf — these are paired with a previous question.
 - **Wrong scope**: Evidence from different part of passage
 - **Reverse support**: Evidence actually contradicts or is irrelevant
 
----
 
 ### 🧠 VOCAB IN CONTEXT: The Substitution Method
 
@@ -1195,7 +719,6 @@ From Vocab Quizzes 16-20 (new this week).
 | **Pragmatic** | Practical, realistic | Contrast with "idealistic" |
 | **Ubiquitous** | Present everywhere | "Everywhere," "omnipresent" |
 
----
 
 ### ⏱️ TIME MANAGEMENT FOR READING/WRITING
 
@@ -1215,12 +738,11 @@ Digital SAT Reading/Writing: **64 minutes, 54 questions** (2 modules of 32 min, 
 | Standard English Conventions | 30-45 sec | Grammar rules + ear test |
 
 #### Module Strategy
-- **Module 1**: Accuracy focus — this sets your Module 2 difficulty
+- **Module 1**: Accuracy focus  --  this sets your Module 2 difficulty
 - **Module 2**: Slightly faster if hard module (more complex passages)
 - **Flag aggressively**: If >90 sec on a question, flag and move on
 - **Last 5 min**: Return to flagged, then guess on remaining
 
----
 
 ### 📝 NEW PRACTICE SET (July 6 Update)
 
@@ -1263,7 +785,6 @@ Digital SAT Reading/Writing: **64 minutes, 54 questions** (2 modules of 32 min, 
    A) haphazard B) fastidious C) cursory D) indifferent
    → B (context: "ensured no variable went unmeasured" = thorough)
 
----
 
 ### 💡 KEY STRATEGIES FOR NEW READING MATERIAL
 
@@ -1287,10 +808,10 @@ Digital SAT Reading/Writing: **64 minutes, 54 questions** (2 modules of 32 min, 
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (July 2026)*
 
 #### The Inference Framework
-1. **Locate the relevant text** — Don't infer from memory; find the evidence
-2. **Identify the logical gap** — What does the text say vs. what does it imply?
-3. **Apply the "Must Be True" test** — Would the author agree? Is it logically forced?
-4. **Eliminate "Could Be True" traps** — These are the most common wrong answers
+1. **Locate the relevant text**  --  Don't infer from memory; find the evidence
+2. **Identify the logical gap**  --  What does the text say vs. what does it imply?
+3. **Apply the "Must Be True" test**  --  Would the author agree? Is it logically forced?
+4. **Eliminate "Could Be True" traps**  --  These are the most common wrong answers
 
 #### Types of Inferences Tested
 | Type | Description | Example Stem |
@@ -1316,7 +837,7 @@ Digital SAT Reading/Writing: **64 minutes, 54 questions** (2 modules of 32 min, 
 
 #### Practice Problems (Inferences_L2/L3 style)
 1. Passage: "The new policy reduced wait times by 40%. Patient satisfaction scores rose from 3.2 to 4.1."
-   - Inference: The policy change **caused** improvement? **NO** — correlation ≠ causation
+   - Inference: The policy change **caused** improvement? **NO**  --  correlation ≠ causation
    - Valid inference: Wait times **decreased** AND satisfaction **increased** (both stated)
 
 2. "Unlike her colleagues who published frequently, Dr. Chen released only one paper per decade."
@@ -1325,7 +846,6 @@ Digital SAT Reading/Writing: **64 minutes, 54 questions** (2 modules of 32 min, 
 3. "The committee's decision, while technically legal, struck many observers as ethically questionable."
    - Inference: The author **disapproves** of the decision (tone word "questionable")
 
----
 
 ### 🎯 CROSS-TEXT CONNECTIONS (from Cross Text_L2.pdf, Cross Text_L3.pdf)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
@@ -1352,7 +872,6 @@ Passage 2: Presents data showing test scores correlate with college success acro
 - Question: "How would Passage 2's author likely respond to Passage 1?"
 - Answer: "By citing evidence that contradicts the claim of bias"
 
----
 
 ### 🎯 CENTRAL IDEA & TEXT STRUCTURE (from Central Idea_L2.pdf, Central Idea_L3.pdf, Text Struc Pur_L2.pdf)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
@@ -1363,10 +882,10 @@ Passage 2: Presents data showing test scores correlate with college success acro
 - **Main Idea**: Synonym for central idea on SAT
 
 #### Finding the Central Idea
-1. **Topic sentence hunt** — First/last sentence of paragraphs
-2. **Repetition tracking** — Words/ideas repeated across paragraphs
-3. **Title/headline clues** — Often signals central idea
-4. **Conclusion synthesis** — Final paragraph usually restates central idea
+1. **Topic sentence hunt**  --  First/last sentence of paragraphs
+2. **Repetition tracking**  --  Words/ideas repeated across paragraphs
+3. **Title/headline clues**  --  Often signals central idea
+4. **Conclusion synthesis**  --  Final paragraph usually restates central idea
 
 #### Text Structure Types
 | Structure | Signal Words | Purpose |
@@ -1385,19 +904,18 @@ Passage 2: Presents data showing test scores correlate with college success acro
 2. "While earlier studies focused on X, recent research reveals Y..."
    - Structure: **Compare-Contrast** (old vs new understanding)
 
----
 
 ### 📝 EVIDENCE & COMMAND OF EVIDENCE (from Evidence_L2.pdf, Evidence_L3.pdf, Rhetorical Synthesis_L3.pdf)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
 
 #### Evidence Question Types
-1. **Best Evidence** — "Which choice provides the best evidence for the answer to the previous question?"
+1. **Best Evidence**  --  "Which choice provides the best evidence for the answer to the previous question?"
    - Strategy: Answer previous question FIRST, then find lines that directly support it
 
-2. **Quantitative Evidence** — Data from tables/graphs supporting claim
+2. **Quantitative Evidence**  --  Data from tables/graphs supporting claim
    - Check: Does the data actually support the interpretation? Watch for correlation ≠ causation
 
-3. **Textual Evidence** — Direct quotes supporting inference
+3. **Textual Evidence**  --  Direct quotes supporting inference
    - Must be **sufficient** (proves the point) and **relevant** (directly related)
 
 #### Rhetorical Synthesis (DSAT-Specific)
@@ -1414,16 +932,15 @@ Passage 2: Presents data showing test scores correlate with college success acro
    - Task: Recommend drink for student who needs focus but has anxiety.
    - Synthesis: **Tea** (provides caffeine for focus + reduces anxiety)
 
----
 
 ### 🔤 VOCABULARY IN CONTEXT (from Vocab Quiz 13-20)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
 
 #### DSAT Vocabulary Strategy
-1. **Context clues** — Definition, example, contrast, cause/effect in surrounding sentences
-2. **Word parts** — Prefixes, roots, suffixes (e.g., "bene" = good, "mal" = bad)
-3. **Tone matching** — Positive/negative/neutral context → matching word charge
-4. **Substitution test** — Plug each choice into sentence; which fits best?
+1. **Context clues**  --  Definition, example, contrast, cause/effect in surrounding sentences
+2. **Word parts**  --  Prefixes, roots, suffixes (e.g., "bene" = good, "mal" = bad)
+3. **Tone matching**  --  Positive/negative/neutral context → matching word charge
+4. **Substitution test**  --  Plug each choice into sentence; which fits best?
 
 #### High-Frequency SAT Words (from Vocab Quizzes 13-20)
 | Word | Definition | Context Clue Type |
@@ -1439,7 +956,6 @@ Passage 2: Presents data showing test scores correlate with college success acro
 | **Tenacious** | Persistent, holding fast | Example: "her tenacious grip on the rope" |
 | **Ubiquitous** | Everywhere, omnipresent | Example: "smartphones have become ubiquitous" |
 
----
 
 ### ✍️ TRANSITIONS & TEXT STRUCTURE (from Transitions_and_Text_Structure)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
@@ -1460,7 +976,7 @@ Passage 2: Presents data showing test scores correlate with college success acro
 1. **Identify relationship** between the two sentences/ideas
 2. **Eliminate wrong category** transitions
 3. **Test remaining** by reading aloud
-4. **Check punctuation** — semicolon vs comma rules
+4. **Check punctuation**  --  semicolon vs comma rules
 
 #### Practice Problems
 1. "The experiment failed; ______, the team learned valuable lessons."
@@ -1472,7 +988,6 @@ Passage 2: Presents data showing test scores correlate with college success acro
 3. "The theory is elegant. ______, it lacks empirical support."
    - Relationship: Concession → **admittedly/granted/though**
 
----
 
 ### 🎯 ADVANCED READING STRATEGIES (from Day 9-12 homework, DSAT practice tests)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
@@ -1493,17 +1008,17 @@ Passage 2: Presents data showing test scores correlate with college success acro
 - **T** = Tone words (critical, enthusiastic, skeptical, objective)
 
 #### Question Order Strategy (per passage)
-1. **Main idea / Central idea** — Do first (gives framework)
-2. **Evidence / Detail** — Direct text support
-3. **Inference** — Requires synthesis
-4. **Vocabulary in context** — Quick, use substitution
-5. **Function / Structure** — Analyze author's choices
-6. **Cross-text** — Do last (most cognitively demanding)
+1. **Main idea / Central idea**  --  Do first (gives framework)
+2. **Evidence / Detail**  --  Direct text support
+3. **Inference**  --  Requires synthesis
+4. **Vocabulary in context**  --  Quick, use substitution
+5. **Function / Structure**  --  Analyze author's choices
+6. **Cross-text**  --  Do last (most cognitively demanding)
 
 #### Common DSAT Reading Traps
 | Trap | Example | Defense |
 |------|---------|---------|
-| **Extreme language** | "always, never, all, none, completely" | Usually wrong — SAT avoids absolutes |
+| **Extreme language** | "always, never, all, none, completely" | Usually wrong  --  SAT avoids absolutes |
 | **Half-right** | One part correct, one part wrong | Must be 100% correct |
 | **True but irrelevant** | Fact from passage, doesn't answer Q | Must answer the specific question |
 | **Opinion as fact** | "The author believes..." when author doesn't | Distinguish author view vs cited view |
@@ -1529,10 +1044,10 @@ Passage 2: Presents data showing test scores correlate with college success acro
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (July 2026)*
 
 #### The Inference Framework
-1. **Locate the relevant text** — Don't infer from memory; find the evidence
-2. **Identify the logical gap** — What does the text say vs. what does it imply?
-3. **Apply the "Must Be True" test** — Would the author agree? Is it logically forced?
-4. **Eliminate "Could Be True" traps** — These are the most common wrong answers
+1. **Locate the relevant text**  --  Don't infer from memory; find the evidence
+2. **Identify the logical gap**  --  What does the text say vs. what does it imply?
+3. **Apply the "Must Be True" test**  --  Would the author agree? Is it logically forced?
+4. **Eliminate "Could Be True" traps**  --  These are the most common wrong answers
 
 #### Types of Inferences Tested
 | Type | Description | Example Stem |
@@ -1558,7 +1073,7 @@ Passage 2: Presents data showing test scores correlate with college success acro
 
 #### Practice Problems (Inferences_L2/L3 style)
 1. Passage: "The new policy reduced wait times by 40%. Patient satisfaction scores rose from 3.2 to 4.1."
-   - Inference: The policy change **caused** improvement? **NO** — correlation ≠ causation
+   - Inference: The policy change **caused** improvement? **NO**  --  correlation ≠ causation
    - Valid inference: Wait times **decreased** AND satisfaction **increased** (both stated)
 
 2. "Unlike her colleagues who published frequently, Dr. Chen released only one paper per decade."
@@ -1567,7 +1082,6 @@ Passage 2: Presents data showing test scores correlate with college success acro
 3. "The committee's decision, while technically legal, struck many observers as ethically questionable."
    - Inference: The author **disapproves** of the decision (tone word "questionable")
 
----
 
 ### 🎯 CROSS-TEXT CONNECTIONS (from Cross Text_L2.pdf, Cross Text_L3.pdf)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
@@ -1594,7 +1108,6 @@ Passage 2: Presents data showing test scores correlate with college success acro
 - Question: "How would Passage 2's author likely respond to Passage 1?"
 - Answer: "By citing evidence that contradicts the claim of bias"
 
----
 
 ### 🎯 CENTRAL IDEA & TEXT STRUCTURE (from Central Idea_L2.pdf, Central Idea_L3.pdf, Text Struc Pur_L2.pdf)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
@@ -1605,10 +1118,10 @@ Passage 2: Presents data showing test scores correlate with college success acro
 - **Main Idea**: Synonym for central idea on SAT
 
 #### Finding the Central Idea
-1. **Topic sentence hunt** — First/last sentence of paragraphs
-2. **Repetition tracking** — Words/ideas repeated across paragraphs
-3. **Title/headline clues** — Often signals central idea
-4. **Conclusion synthesis** — Final paragraph usually restates central idea
+1. **Topic sentence hunt**  --  First/last sentence of paragraphs
+2. **Repetition tracking**  --  Words/ideas repeated across paragraphs
+3. **Title/headline clues**  --  Often signals central idea
+4. **Conclusion synthesis**  --  Final paragraph usually restates central idea
 
 #### Text Structure Types
 | Structure | Signal Words | Purpose |
@@ -1627,19 +1140,18 @@ Passage 2: Presents data showing test scores correlate with college success acro
 2. "While earlier studies focused on X, recent research reveals Y..."
    - Structure: **Compare-Contrast** (old vs new understanding)
 
----
 
 ### 📝 EVIDENCE & COMMAND OF EVIDENCE (from Evidence_L2.pdf, Evidence_L3.pdf, Rhetorical Synthesis_L3.pdf)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
 
 #### Evidence Question Types
-1. **Best Evidence** — "Which choice provides the best evidence for the answer to the previous question?"
+1. **Best Evidence**  --  "Which choice provides the best evidence for the answer to the previous question?"
    - Strategy: Answer previous question FIRST, then find lines that directly support it
 
-2. **Quantitative Evidence** — Data from tables/graphs supporting claim
+2. **Quantitative Evidence**  --  Data from tables/graphs supporting claim
    - Check: Does the data actually support the interpretation? Watch for correlation ≠ causation
 
-3. **Textual Evidence** — Direct quotes supporting inference
+3. **Textual Evidence**  --  Direct quotes supporting inference
    - Must be **sufficient** (proves the point) and **relevant** (directly related)
 
 #### Rhetorical Synthesis (DSAT-Specific)
@@ -1656,16 +1168,15 @@ Passage 2: Presents data showing test scores correlate with college success acro
    - Task: Recommend drink for student who needs focus but has anxiety.
    - Synthesis: **Tea** (provides caffeine for focus + reduces anxiety)
 
----
 
 ### 🔤 VOCABULARY IN CONTEXT (from Vocab Quiz 13-20)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
 
 #### DSAT Vocabulary Strategy
-1. **Context clues** — Definition, example, contrast, cause/effect in surrounding sentences
-2. **Word parts** — Prefixes, roots, suffixes (e.g., "bene" = good, "mal" = bad)
-3. **Tone matching** — Positive/negative/neutral context → matching word charge
-4. **Substitution test** — Plug each choice into sentence; which fits best?
+1. **Context clues**  --  Definition, example, contrast, cause/effect in surrounding sentences
+2. **Word parts**  --  Prefixes, roots, suffixes (e.g., "bene" = good, "mal" = bad)
+3. **Tone matching**  --  Positive/negative/neutral context → matching word charge
+4. **Substitution test**  --  Plug each choice into sentence; which fits best?
 
 #### High-Frequency SAT Words (from Vocab Quizzes 13-20)
 | Word | Definition | Context Clue Type |
@@ -1681,16 +1192,15 @@ Passage 2: Presents data showing test scores correlate with college success acro
 | **Tenacious** | Persistent, holding fast | Example: "her tenacious grip on the rope" |
 | **Ubiquitous** | Everywhere, omnipresent | Example: "smartphones have become ubiquitous" |
 
----
 
 ### ✍️ TRANSITIONS & TEXT STRUCTURE (from Transitions_and_Text_Structure)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
 
 #### DSAT Transition Strategy
-1. **Context clues** — Definition, example, contrast, cause/effect in surrounding sentences
-2. **Word parts** — Prefixes, roots, suffixes (e.g., "bene" = good, "mal" = bad)
-3. **Tone matching** — Positive/negative/neutral context → matching word charge
-4. **Substitution test** — Plug each choice into sentence; which fits best?
+1. **Context clues**  --  Definition, example, contrast, cause/effect in surrounding sentences
+2. **Word parts**  --  Prefixes, roots, suffixes (e.g., "bene" = good, "mal" = bad)
+3. **Tone matching**  --  Positive/negative/neutral context → matching word charge
+4. **Substitution test**  --  Plug each choice into sentence; which fits best?
 
 #### High-Frequency SAT Words (from Vocab Quizzes 13-20)
 | Word | Definition | Context Clue Type |
@@ -1706,7 +1216,6 @@ Passage 2: Presents data showing test scores correlate with college success acro
 | **Tenacious** | Persistent, holding fast | Example: "her tenacious grip on the rope" |
 | **Ubiquitous** | Everywhere, omnipresent | Example: "smartphones have become ubiquitous" |
 
----
 
 ### 📝 RHETORICAL SYNTHESIS: NOTES & BULLET POINTS (from Rhetorical Synthesis_L3.pdf)
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials*
@@ -1721,10 +1230,10 @@ Passage 2: Presents data showing test scores correlate with college success acro
 | **Summarize** | Select main points only | Central idea, key supporting details |
 
 #### Notes Format Strategy
-1. **Identify the goal** — stated in prompt ("The student wants to...")
-2. **Categorize notes** — which support goal? which are irrelevant?
-3. **Select 2-3 strongest points** — don't use all notes
-4. **Synthesize logically** — don't just list; connect ideas
+1. **Identify the goal**  --  stated in prompt ("The student wants to...")
+2. **Categorize notes**  --  which support goal? which are irrelevant?
+3. **Select 2-3 strongest points**  --  don't use all notes
+4. **Synthesize logically**  --  don't just list; connect ideas
 
 #### Practice Problem
 **Notes:**
@@ -1735,9 +1244,8 @@ Passage 2: Presents data showing test scores correlate with college success acro
 - Battery storage adds cost but enables night use
 
 **Goal:** "Explain why solar adoption is increasing."
-**Best synthesis:** "Solar adoption is rising because installation costs have dropped 70% since 2010, panels require minimal maintenance, and battery storage — while adding cost — enables nighttime use."
+**Best synthesis:** "Solar adoption is rising because installation costs have dropped 70% since 2010, panels require minimal maintenance, and battery storage  --  while adding cost  --  enables nighttime use."
 
----
 
 ### 📝 COMMON DSAT READING TRAPS & STRATEGIES
 *Extracted from Day 6-12 homework, DSAT practice tests*
@@ -1763,7 +1271,7 @@ Passage 2: Presents data showing test scores correlate with college success acro
 #### Elimination Strategies
 | Trap | Signal | Defense |
 |------|--------|---------|
-| **Extreme language** | "always", "never", "all", "none" | Usually wrong — SAT avoids absolutes |
+| **Extreme language** | "always", "never", "all", "none" | Usually wrong  --  SAT avoids absolutes |
 | **Too broad** | Goes beyond passage scope | Stick to passage |
 | **Too narrow** | Focuses on single detail | Look for main point |
 | **Opposite** | Contradicts passage tone | Re-read for stance |
@@ -1777,7 +1285,6 @@ Passage 2: Presents data showing test scores correlate with college success acro
 2. "Which choice most effectively supports the claim that X causes Y?"
    - Look for: Direct causal language, controlled study description, mechanism explanation
 
----
 
 ## 📅 Update: 2026-07-12 - New Reading Strategies from July 2026 Classroom Materials
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (Days 9-12, Problem-Solving 7-9, Vocab Quizzes 16-20)*
@@ -1815,7 +1322,6 @@ For every inference question, apply this test: **Does this answer choice HAVE to
    - **Valid inference**: Traditional methods require heating
    - **Invalid**: The new technique is faster (not stated)
 
----
 
 ### 🔗 Cross-Text Connections: The ICC Method (from Cross_Text_L2, Cross_Text_L3)
 
@@ -1835,20 +1341,19 @@ For every inference question, apply this test: **Does this answer choice HAVE to
 
 #### Cross-Text Practice
 **Text 1**: "Urban green spaces reduce stress. A study of 500 residents showed 30% lower cortisol near parks."
-**Text 2**: "While parks help, community gardens show even stronger effects—45% reduction in a similar study."
+**Text 2**: "While parks help, community gardens show even stronger effects -- 45% reduction in a similar study."
 
 | Question | Answer Approach |
 |----------|-----------------|
-| "How would Text 2's author respond to Text 1?" | "Agrees but adds nuance—gardens > parks" |
+| "How would Text 2's author respond to Text 1?" | "Agrees but adds nuance -- gardens > parks" |
 | "Relationship between the studies?" | Text 2 extends/refines Text 1's finding |
 | "Shared assumption?" | Green spaces affect measurable biology |
 
----
 
 ### 📖 Rhetorical Synthesis: Advanced Techniques (from Rhetorical_Synthesis_L3)
 
 #### Goal-Driven Selection Protocol
-1. **Read the prompt FIRST** — know the goal before reading notes
+1. **Read the prompt FIRST**  --  know the goal before reading notes
 2. **Tag each note**: [Support] [Irrelevant] [Contradicts] [Background]
 3. **Select 2-3 [Support] notes** that directly address the goal
 4. **Synthesize with transitions**: "Additionally," "Furthermore," "Specifically,"
@@ -1868,7 +1373,6 @@ When notes contain contradictory information:
 - **Weight by relevance**: Prioritize notes directly addressing the goal
 - **Synthesize nuance**: "The evidence is mixed: [summary of both sides]."
 
----
 
 ### 🔍 Text Structure and Purpose (from Text_Struc_Pur_L2)
 
@@ -1889,7 +1393,6 @@ When notes contain contradictory information:
 | **Narrate** | First-person, chronological, descriptive | "The passage recounts..." |
 | **Critique** | Evaluation, judgment, "flawed," "overlooks" | "The author criticizes..." |
 
----
 
 ### 📝 Vocabulary in Context: Advanced Strategies (from Vocab Quizzes 16-20)
 
@@ -1900,7 +1403,7 @@ When notes contain contradictory information:
 | **Example** | "for example," "such as," "including" | "Precipitation *such as rain, snow, and hail*..." |
 | **Contrast** | "however," "unlike," "but," "although" | "Unlike his *gregarious* brother, he was *reserved*." |
 | **Cause/Effect** | "because," "since," "resulted in" | "The *torrent* of rain *caused flooding*." |
-| **Inference** | (no signal — derive from context) | "The *desolate* landscape stretched for miles: no trees, no water, no life." |
+| **Inference** | (no signal  --  derive from context) | "The *desolate* landscape stretched for miles: no trees, no water, no life." |
 
 #### High-Frequency SAT Words (Vocab Quizzes 16-20)
 | Word | Definition | Memory Hook |
@@ -1921,7 +1424,6 @@ When notes contain contradictory information:
 - **Skepticism**: Doubt (contrast: "but subsequent experiments...")
 - **Corroborated**: Confirmed, supported (cause/effect: experiments → confirmation)
 
----
 
 ### 📚 Central Idea and Main Point Strategies
 
@@ -1942,11 +1444,10 @@ When notes contain contradictory information:
 - **Significance**: Challenges assumptions about insect intelligence
 - **Central Idea**: "Honeybees use a sophisticated dance language that challenges traditional views of insect cognitive capacity."
 
----
 
 ### ⏱️ Time Management for DSAT Reading & Writing
 
-#### Module 1 (Mixed Difficulty) — 32 min, 27 questions = ~71 sec/q
+#### Module 1 (Mixed Difficulty)  --  32 min, 27 questions = ~71 sec/q
 | Question Type | Target Time | Strategy |
 |---------------|-------------|----------|
 | Vocab in Context | 30-40 sec | Substitution test |
@@ -1957,12 +1458,11 @@ When notes contain contradictory information:
 | Cross-Text | 90-120 sec | ICC method |
 | Rhetorical Synthesis | 90-120 sec | Goal-driven selection |
 
-#### Module 2 (Adaptive) — Adjust for difficulty
+#### Module 2 (Adaptive)  --  Adjust for difficulty
 - **Harder M2**: More Cross-Text, Synthesis, complex Inferences
 - **Easier M2**: More Vocab, Text Structure, explicit Central Idea
 - **Always**: Flag > 2 min, guess, move on, return
 
----
 
 ### 🎯 Elimination Checklist for Every Question
 - [ ] **Extreme language?** ("always," "never," "completely," "totally") → Usually wrong
@@ -1974,12 +1474,167 @@ When notes contain contradictory information:
 - [ ] **Half-right?** One part correct, one part wrong → Wrong
 - [ ] **Not supported?** No textual evidence → Wrong
 
----
 
 *Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*
 
-3. Cross-text: "Passage 2 mentions a study that..."
-   - Must find EXACT reference in Passage 2, not Passage 1
 
-4. Rhetorical synthesis: Goal = "recommend the best option"
-   - Select notes that compare options, highlight trade-offs, support recommendation
+## 📅 Update: 2026-07-13 - New Reading Strategies from July Classroom Materials
+
+### 🎯 Advanced Inference Strategies (from Inferences_L2 & Inferences_L3)
+
+#### Inference Question Types on DSAT
+| Type | Question Stem | Strategy |
+|------|---------------|----------|
+| **Must Be True** | "Which choice is most logically supported?" | Text evidence → conclusion (no leap) |
+| **Most Strongly Suggests** | "The passage most strongly suggests..." | Strongest textual support, not definite |
+| **Author Would Agree** | "The author would most likely agree..." | Match tone, scope, and position |
+| **Implied** | "It can be inferred that..." | One logical step beyond explicit text |
+
+#### L2: Basic Inference Framework (Must Be True Test)
+1. **Find the claim** in the passage
+2. **Identify the gap** between claim and answer choice
+3. **Test each choice:** If the passage is true, MUST this choice be true?
+4. **Eliminate:** Could be false, goes beyond text, contradicts
+
+#### L3: Advanced Inference - The "Logical Bridge" Method
+**Step 1: Map the Argument**
+- Premise 1: [explicit statement]
+- Premise 2: [explicit statement]
+- → Hidden assumption: [what must be true for conclusion to follow]
+
+**Step 2: Find the Answer That Bridges the Gap**
+- Correct answer = the hidden assumption or its direct consequence
+- Wrong answers = reverse logic, too broad, contradicts premises
+
+**Example Pattern:**
+> "Studies show students who eat breakfast score higher. Therefore, schools should provide free breakfast."
+> **Hidden assumption:** Breakfast *causes* higher scores (not just correlation)
+
+#### Common Inference Traps
+| Trap | Example | Why Wrong |
+|------|---------|-----------|
+| **Correlation → Causation** | "A and B occur together → A causes B" | Could be reverse, third factor, coincidence |
+| **Scope Creep** | Passage: "Some birds..." Choice: "All birds..." | Quantifier mismatch |
+| **Extreme Language** | "Always," "never," "completely" | Passage rarely supports absolutes |
+| **Reverse Logic** | Passage: "If A then B" Choice: "If B then A" | Converse not equivalent |
+
+
+### 🔗 Cross-Text Connections Mastery (from Cross_Text_L2 & Cross_Text_L3)
+
+#### L2: ICC Method - Identify, Compare, Connect
+| Step | Action | Key Question |
+|------|--------|--------------|
+| **I - Identify** | Find central claim of each text | "What is Text 1's main argument? Text 2's?" |
+| **C - Compare** | Map relationship | Agree? Disagree? Elaborate? Contrast? |
+| **C - Connect** | Synthesize for question | "How does Text 2 respond to Text 1's claim about X?" |
+
+#### L3: Cross-Text Question Taxonomy
+| Question Type | Stem Pattern | Strategy |
+|---------------|--------------|----------|
+| **Agreement** | "Both texts suggest..." | Find overlapping claims |
+| **Disagreement** | "Text 1 would most likely respond to Text 2 by..." | Identify opposing views |
+| **Elaboration** | "Text 2 provides which support for Text 1?" | Text 2 = evidence for Text 1 |
+| **Application** | "How would Text 1's author evaluate Text 2's claim?" | Role-play perspective |
+| **Distinction** | "A key difference between the texts is..." | Contrast scope, evidence, conclusion |
+
+#### L3 Advanced: The "Claim-Evidence-Reasoning" Grid
+For each text, extract:
+| Text | Central Claim | Key Evidence | Reasoning/Logic |
+|------|---------------|--------------|-----------------|
+| Text 1 | | | |
+| Text 2 | | | |
+
+Then answer: **How does Text 2's evidence/reasoning relate to Text 1's claim?**
+
+
+### 🎭 Rhetorical Synthesis Deep Dive (from Rhetorical_Synthesis_L3)
+
+#### DSAT Rhetorical Synthesis Question Structure
+**Prompt:** "A student wants to [goal]. Which choice most effectively uses the notes to achieve this goal?"
+
+**Notes Format:** Bullet points with facts, data, quotes, observations
+
+**Goal Types & Winning Strategies:**
+
+| Goal Type | What to Select | What to Avoid |
+|-----------|----------------|---------------|
+| **Recommend/Argue** | Notes that compare options, show trade-offs, support one choice | Irrelevant facts, unsupported opinions |
+| **Explain/Inform** | Notes that define, illustrate, give examples, show cause-effect | Persuasive language, missing key definitions |
+| **Summarize** | Notes covering all main points proportionally | Over-emphasizing one detail, omitting major point |
+| **Contrast** | Notes highlighting differences, opposing views | Similarities, vague comparisons |
+| **Show Relationship** | Notes demonstrating cause-effect, correlation, sequence | Isolated facts without connections |
+
+#### L3: Synthesis Decision Framework
+1. **Parse the Goal:** Circle the verb (recommend, explain, contrast, summarize)
+2. **Audit Notes:** Label each note: [Fact] [Comparison] [Opinion] [Example] [Data]
+3. **Match to Goal:** Keep only notes serving the goal
+4. **Evaluate Choices:** Does choice use *relevant* notes *accurately* for the *stated goal*?
+5. **Check for Distortion:** Added claims? Omitted caveats? Changed relationships?
+
+#### Common Synthesis Traps
+| Trap | Description | Fix |
+|------|-------------|-----|
+| **Cherry-Picking** | Uses only notes supporting one side | Goal requires balanced view → wrong |
+| **Overclaiming** | "Proves" when notes say "suggests" | Match certainty level |
+| **Irrelevant Detail** | Includes true but off-goal facts | Goal = recommend → history irrelevant |
+| **Misattribution** | Swaps which source said what | Track source per note |
+
+
+### 📚 Vocabulary Precision & Tone (from Vocab Quizzes 13-23)
+
+#### High-Yield DSAT Vocab Patterns
+| Pattern | Rule | Examples |
+|---------|------|----------|
+| **Precision > Sophistication** | Exact word > fancy word | "Exacerbated" (precise) > "worsened" (vague) |
+| **Concise > Wordy** | Fewer words if same meaning | "Because" > "Due to the fact that" |
+| **Active > Passive** | Actor as subject | "Researchers found" > "It was found by researchers" |
+| **Tone Consistency** | Match passage register | Formal text → formal choices |
+
+#### Idiom & Collocation Mastery
+| Correct | Common Error | Memory Aid |
+|---------|--------------|------------|
+| **prefer X to Y** | prefer X over/than Y | "Prefer tea *to* coffee" |
+| **not only X but also Y** | not only X but Y | Parallel structure |
+| **between X and Y** | between X or Y | "Choose *between* A *and* B" |
+| **different from** | different than/to | "Differs *from*" |
+| **identical to** | identical with | "Identical *to*" |
+| **independent of** | independent from | "Independent *of*" |
+| **prohibit X from Y** | prohibit X to Y | "Prohibit *from* voting" |
+| **require X to Y** | require X do Y | "Require drivers *to stop*" |
+| **the reason is that** | the reason is because | "Reason *is that*..." |
+| **so X that Y** | so X so Y | "So tired *that* I slept" |
+
+#### Transition Words by Relationship
+| Relationship | Transitions | ICC Label |
+|--------------|-------------|-----------|
+| **Continuation** | furthermore, moreover, additionally, also, similarly | + |
+| **Contrast** | however, nevertheless, conversely, on the other hand, by contrast | ↔ |
+| **Cause-Effect** | therefore, consequently, thus, as a result, hence | → |
+| **Example** | for instance, for example, specifically, to illustrate | ex |
+| **Concession** | granted, admittedly, certainly, it is true that | ± |
+| **Conclusion** | in conclusion, ultimately, in short, finally | ∴ |
+
+
+### 🧠 Practice: Inference & Cross-Text Drills
+
+#### Drill 1: Inference Ladder
+**Passage:** "Arctic ice melt has accelerated since 2000. Polar bear populations in the southern Beaufort Sea declined 40% from 2001-2010. Researchers attribute this to reduced hunting platform availability."
+
+**Question:** What can be logically inferred?
+- A) Polar bears will be extinct by 2050. ❌ (Extreme, not supported)
+- B) Ice melt *caused* the population decline. ❌ (Correlation ≠ causation stated)
+- C) **Reduced ice correlates with fewer hunting opportunities for polar bears.** ✅ (Directly supported)
+- D) All Arctic species face similar declines. ❌ (Scope creep)
+
+#### Drill 2: Cross-Text Relationship
+**Text 1:** "Urban green spaces improve mental health. A 2023 study found 20% lower depression rates near parks."
+**Text 2:** "However, green space access correlates with income. Wealthier neighborhoods have 3x more park area."
+
+**Question:** How does Text 2 relate to Text 1?
+- A) Contradicts Text 1's findings ❌
+- B) **Provides a confounding variable for Text 1's correlation** ✅
+- C) Confirms Text 1's mechanism ❌
+- D) Is irrelevant to Text 1 ❌
+
+
+*Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*

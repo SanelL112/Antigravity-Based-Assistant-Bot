@@ -1,7 +1,8 @@
+# Triangles Geometry Study Guide
+
 *End of Triangles Geometry Study Guide*  
 *Next: Lines & Angles Geometry Guide*
 
----
 
 ## 📅 Update: 2026-07-10 - New Concepts from July Classroom Materials
 
@@ -50,7 +51,6 @@
    - Hemisphere: $V = \frac{1}{2}(\frac{4}{3}\pi(64)) = \frac{128}{3}\pi$
    - Total: $\frac{176}{3}\pi$
 
----
 
 ### 🔴 NEW: Lines, Angles & Triangles Advanced (from LiAngTri_L2)
 *Extracted from 2026 Summer SAT/ACT @ AHA LiAngTri_L2pdf (July 9, 2026)*
@@ -88,7 +88,6 @@
 3. 30-60-90 triangle, short leg = 5. Area?
    - Long leg = $5\sqrt{3}$, Area = $\frac{1}{2}(5)(5\sqrt{3}) = \frac{25\sqrt{3}}{2}$
 
----
 
 ### 🔴 NEW: Quadratics & Systems Advanced (from Math_H2)
 *Extracted from 2026 Summer SAT/ACT @ AHA Math_H2pdf (July 9, 2026)*
@@ -147,7 +146,6 @@ $\Delta = b^2 - 4ac$
 4. Find $k$ so $x^2 + kx + 9 = 0$ has exactly one solution.
    - $\Delta = 0 \rightarrow k^2 - 36 = 0 \rightarrow k = \pm 6$
 
----
 
 ### 📊 PRACTICE SET: Mixed New Material (July 2026)
 
@@ -166,7 +164,6 @@ $\Delta = b^2 - 4ac$
 8. Data set with outlier: which measure of center is most affected?
 *Comprehensive guide for SAT/ACT Triangle Properties, Theorems, and Problem Solving*
 
----
 
 ## Chapter 1: Triangle Fundamentals
 
@@ -196,9 +193,8 @@ $\Delta = b^2 - 4ac$
 | **Side-Angle Relationship** | Largest side ↔ Largest angle; Smallest side ↔ Smallest angle |
 | **Difference Rule** | |a - b| < c < a + b |
 
----
 
-## Chapter 2: Right Triangles — SAT/ACT Heavy Hitters
+## Chapter 2: Right Triangles  --  SAT/ACT Heavy Hitters
 
 ### 2.1 Pythagorean Theorem
 **a² + b² = c²** (c = hypotenuse)
@@ -261,7 +257,6 @@ When altitude is drawn to hypotenuse of right triangle:
   - Altitude: h = √(pq) where p,q are hypotenuse segments
   - Each leg: a = √(c·p), b = √(c·q) where c = hypotenuse
 
----
 
 ## Chapter 3: Triangle Similarity and Congruence
 
@@ -300,7 +295,6 @@ When altitude is drawn to hypotenuse of right triangle:
 - Line parallel to one side divides other two sides proportionally
 - Converse: If a line divides two sides proportionally, it's parallel to the third side
 
----
 
 ## Chapter 4: Triangle Centers and Special Segments
 
@@ -311,7 +305,7 @@ When altitude is drawn to hypotenuse of right triangle:
 | **Centroid** | 3 medians | Divides each median 2:1 (vertex:centroid = 2:1) | Always inside |
 | **Circumcenter** | 3 ⊥ bisectors | Equidistant from vertices (circumradius R) | Acute: inside; Right: mid-hyp; Obtuse: outside |
 | **Incenter** | 3 angle bisectors | Equidistant from sides (inradius r) | Always inside |
-| **Orthocenter** | 3 altitudes | — | Acute: inside; Right: vertex of right ∠; Obtuse: outside |
+| **Orthocenter** | 3 altitudes |  --  | Acute: inside; Right: vertex of right ∠; Obtuse: outside |
 
 ### 4.2 Euler Line
 - Centroid, circumcenter, orthocenter are **collinear** (Euler line)
@@ -327,7 +321,6 @@ When altitude is drawn to hypotenuse of right triangle:
 | **Distance between centers** | OI² = R(R - 2r) (Euler's formula) |
 | **Centroid coordinates** | ((x₁+x₂+x₃)/3, (y₁+y₂+y₃)/3) |
 
----
 
 ## Chapter 5: Area Formulas
 
@@ -356,7 +349,6 @@ When altitude is drawn to hypotenuse of right triangle:
 | 30-60-90 (short leg x) | x²√3/2 |
 | Right (legs a,b) | ab/2 |
 
----
 
 ## Chapter 6: Coordinate Geometry with Triangles
 
@@ -377,7 +369,7 @@ When altitude is drawn to hypotenuse of right triangle:
 - **Area via coordinates**: A = ½|x₁(y₂-y₃) + x₂(y₃-y₁) + x₃(y₁-y₂)| (Shoelace)
 
 ### 6.3 Centroid in Coordinates
-**G = ((x₁+x₂+x₃)/3, (y₁+y₂+y₃)/3)** — Average of vertices!
+**G = ((x₁+x₂+x₃)/3, (y₁+y₂+y₃)/3)**  --  Average of vertices!
 
 ### 6.4 Special Right Triangles in Coordinates
 
@@ -387,7 +379,6 @@ When altitude is drawn to hypotenuse of right triangle:
 | 30-60-90 | (0,0), (a√3,0), (0,a) or (a√3/2, a/2) |
 | 3-4-5 | (0,0), (3,0), (0,4) |
 
----
 
 ## Chapter 7: SAT/ACT Problem Types and Strategies
 
@@ -448,7 +439,6 @@ When altitude is drawn to hypotenuse of right triangle:
 
 **Strategy**: Use Pythagorean identity or draw triangle.
 
----
 
 ## Chapter 8: Essential Formulas Quick Reference
 
@@ -488,7 +478,6 @@ When altitude is drawn to hypotenuse of right triangle:
 | Orthocenter | Intersection of altitudes |
 | Euler Line | O, G, H collinear; OG:GH = 1:2 |
 
----
 
 ## Chapter 9: Common SAT Traps and How to Avoid Them
 
@@ -503,7 +492,6 @@ When altitude is drawn to hypotenuse of right triangle:
 | **Altitude vs. side** | Using side length when altitude needed | Draw altitude, identify right triangles |
 | **Triangle inequality strict** | Using ≤ instead of < | Sum must be strictly greater |
 
----
 
 ## Chapter 10: Practice Problems with Solutions
 
@@ -512,28 +500,24 @@ In right triangle ABC, ∠C = 90°, AC = 6, BC = 8. Find AB.
 
 **Solution**: 6-8-10 triple → AB = 10. Or √(6²+8²) = √100 = 10.
 
----
 
 ### Problem 2 (Medium)
 A 30-60-90 triangle has hypotenuse = 14. Find the area.
 
 **Solution**: Short leg = 14/2 = 7. Long leg = 7√3. Area = ½ × 7 × 7√3 = 49√3/2.
 
----
 
 ### Problem 3 (Medium)
 Two sides of a triangle are 5 and 12. The third side is an integer. How many possible values?
 
 **Solution**: Triangle inequality: 7 < x < 17. Integers: 8,9,10,11,12,13,14,15,16. **9 values**.
 
----
 
 ### Problem 4 (Hard - Similar Triangles)
 In ΔABC, DE || BC, with D on AB, E on AC. AD = 3, DB = 6, DE = 4. Find BC.
 
 **Solution**: AD/AB = DE/BC → 3/9 = 4/BC → BC = 12.
 
----
 
 ### Problem 5 (Hard - Coordinate Geometry)
 Triangle has vertices A(0,0), B(10,0), C(4,6). Find the area.
@@ -541,7 +525,6 @@ Triangle has vertices A(0,0), B(10,0), C(4,6). Find the area.
 **Solution**: Base AB = 10, height = y-coordinate of C = 6. Area = ½ × 10 × 6 = 30.
 Or Shoelace: ½|0(0-6) + 10(6-0) + 4(0-0)| = ½|60| = 30.
 
----
 
 ### Problem 6 (Hard - Altitude to Hypotenuse)
 Right triangle, altitude to hypotenuse divides it into segments 5 and 20. Find the legs.
@@ -552,21 +535,18 @@ Right triangle, altitude to hypotenuse divides it into segments 5 and 20. Find t
 - Leg a = √(25×5) = √125 = 5√5
 - Leg b = √(25×20) = √500 = 10√5
 
----
 
 ### Problem 7 (SAT Style - Trig)
 In right triangle, sin A = 12/13. What is tan A?
 
 **Solution**: 5-12-13 triangle. cos A = 5/13. tan A = 12/5.
 
----
 
 ### Problem 8 (SAT Style - Similar Triangles)
 A flagpole casts a shadow 15 ft long. At the same time, a 6-ft person casts a shadow 4 ft long. How tall is the flagpole?
 
 **Solution**: Similar triangles. 6/4 = h/15 → h = 90/4 = 22.5 ft.
 
----
 
 ### Problem 9 (Hard - Triangle Centers)
 In triangle with vertices (0,0), (6,0), (0,8), find the distance from centroid to circumcenter.
@@ -577,7 +557,6 @@ In triangle with vertices (0,0), (6,0), (0,8), find the distance from centroid t
 - Centroid = (2, 8/3)
 - Distance = √[(3-2)² + (4 - 8/3)²] = √[1 + (4/3)²] = √(1 + 16/9) = √(25/9) = 5/3
 
----
 
 ### Problem 10 (Challenge - Law of Cosines)
 Triangle has sides 7, 8, 9. Find the cosine of the largest angle.
@@ -589,7 +568,6 @@ Triangle has sides 7, 8, 9. Find the cosine of the largest angle.
 112 cos C = 32
 cos C = 32/112 = 2/7
 
----
 
 ## Chapter 11: Decision Tree for Triangle Problems
 
@@ -614,11 +592,10 @@ START: Identify given info
    │    ├─ Incenter → Angle bisectors / r = A/s
    │    └─ Orthocenter → Altitudes / Vertex of right angle
    │
-   └─ FINAL: Reread question — what exactly is asked?
+   └─ FINAL: Reread question  --  what exactly is asked?
         Side? Angle? Area? Perimeter? Ratio? Coordinates?
 ```
 
----
 
 ## Chapter 12: Timed Drill Set (15 minutes)
 
@@ -635,8 +612,114 @@ START: Identify given info
 
 **Answers**: 1) 15  2) 10  3) 25√3/2  4) 12 values (8-22)  5) 3/4  6) 4/25  7) (8/3, 2)  8) 12  9) 1/5  10) 25√3
 
----
 
----
 
 *Last Updated: 2026-07-08 | Generated from 17_Triangles.pdf classroom materials and SAT/ACT curriculum*
+
+
+## 📅 Update: 2026-07-13 - New Triangle & Geometry Concepts from July Classroom Materials
+
+### Circle Equations & Theorems (from 19_Circles.pdf & SAT Geometry Problems.pdf)
+
+#### Circle Equation: General to Standard Form
+**Given:** $x^2 + y^2 + Dx + Ey + F = 0$
+
+**Complete the Square:**
+1. Group: $(x^2 + Dx) + (y^2 + Ey) = -F$
+2. Add $(D/2)^2$ and $(E/2)^2$ to both sides
+3. $(x + D/2)^2 + (y + E/2)^2 = (D/2)^2 + (E/2)^2 - F$
+
+**Center:** $(-D/2, -E/2)$
+**Radius:** $\sqrt{(D/2)^2 + (E/2)^2 - F}$
+
+**Example:** $x^2 + y^2 - 10x + 6y + 18 = 0$
+- $(x^2 - 10x) + (y^2 + 6y) = -18$
+- $(x - 5)^2 - 25 + (y + 3)^2 - 9 = -18$
+- $(x - 5)^2 + (y + 3)^2 = 16$
+- **Center: $(5, -3)$, Radius: $4$**
+
+#### Advanced Circle Theorems
+
+| Theorem | Formula | Application |
+|---------|---------|-------------|
+| **Chord-Chord (inside)** | $AP \times PB = CP \times PD$ | Intersecting chords |
+| **Secant-Secant (outside)** | $PA \times PB = PC \times PD$ | Two secants from external point |
+| **Secant-Tangent** | $PA \times PB = PT^2$ | Secant & tangent from external point |
+| **Angle inside (2 chords)** | $\frac{1}{2}(arc_1 + arc_2)$ | Angle formed by intersecting chords |
+| **Angle outside (2 sec/tan)** | $\frac{1}{2}(far\ arc - near\ arc)$ | Angle outside circle |
+
+#### Practice Problems from 19_Circles.pdf
+
+1. **Circle:** $x^2 + y^2 - 6x + 8y = 0$. Find center and radius.
+   - $(x-3)^2 + (y+4)^2 = 25$ → Center $(3, -4)$, $r=5$
+
+2. **Central angle** $AOB = 80°$. Inscribed angle $ACB$?
+   - $40°$ (half of central)
+
+3. **Two chords intersect:** Segments 3, 4 and 2, x. Find x.
+   - $3 \times 4 = 2 \times x$ → $x = 6$
+
+4. **Tangent from point P:** Tangent = 6, Secant external = 4. Find whole secant.
+   - $6^2 = 4 \times whole$ → $whole = 9$
+
+5. **Arc length:** Radius 10, central angle 120°.
+   - $(120/360) \times 2\pi \times 10 = \frac{20\pi}{3}$
+
+### Statistics & Data Analysis (from 8_Statistics.pdf)
+
+#### Measures of Center & Spread
+
+| Measure | Formula | When to Use |
+|---------|---------|-------------|
+| **Mean** | $\bar{x} = \frac{\sum x_i}{n}$ | Symmetric, no outliers |
+| **Median** | Middle value (ordered) | Skewed, outliers |
+| **Mode** | Most frequent | Categorical data |
+
+**DSAT Tip:** If mean > median → right-skewed. If mean < median → left-skewed.
+
+| Spread Measure | Formula/Concept | When to Use |
+|----------------|-----------------|-------------|
+| **Range** | Max - Min | Quick check |
+| **IQR** | $Q_3 - Q_1$ | Robust (with median) |
+| **Std Dev** | $\sqrt{\frac{\sum(x_i - \bar{x})^2}{n}}$ | Symmetric distributions |
+
+**DSAT Key:** You **compare** SDs visually (dot plots, histograms)  --  larger spread = larger SD. Don't calculate by hand.
+
+#### Outlier Detection (1.5 × IQR Rule)
+- **Lower fence:** $Q_1 - 1.5 \times IQR$
+- **Upper fence:** $Q_3 + 1.5 \times IQR$
+- Points beyond = outliers
+
+#### Normal Distribution (Empirical Rule)
+| Interval | Percentage |
+|----------|------------|
+| $\mu \pm 1\sigma$ | ~68% |
+| $\mu \pm 2\sigma$ | ~95% |
+| $\mu \pm 3\sigma$ | ~99.7% |
+
+**Z-score:** $z = \frac{x - \mu}{\sigma}$ → Compare across distributions
+
+#### Margin of Error & Confidence Intervals
+**Formula (given on SAT):** $ME = z \times \frac{\sigma}{\sqrt{n}}$
+
+| Change | Effect on ME |
+|--------|--------------|
+| Increase $n$ | Decreases (√n in denominator) |
+| Increase confidence | Increases (larger z) |
+| Increase $\sigma$ | Increases |
+
+#### Sampling Methods
+
+| Method | Description | Bias Risk |
+|--------|-------------|-----------|
+| **Simple Random (SRS)** | Every group of n equally likely | Low |
+| **Stratified** | Divide into strata, SRS from each | Low (ensures subgroups) |
+| **Cluster** | Random clusters, survey all in cluster | Medium |
+| **Systematic** | Every k-th individual | Medium (periodicity risk) |
+| **Convenience** | Whoever is available | **High** |
+| **Voluntary Response** | Self-selection | **Very High** |
+
+**Must Know:** Random **sampling** → generalization. Random **assignment** → causation. Neither → neither.
+
+
+*Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*

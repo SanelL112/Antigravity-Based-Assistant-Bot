@@ -1,8 +1,9 @@
+# Circles Geometry Study Guide
+
 # 📐 Circles Geometry Study Guide
 
 *Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (19_Circles.pdf, SAT Geometry Problems.pdf)*
 
----
 
 ## 📚 Overview
 
@@ -17,7 +18,6 @@ Circles are a **high-yield topic** on the SAT Math section, appearing in both th
 - Coordinate geometry with circles
 - Shaded region problems
 
----
 
 ## 🎯 Essential Formulas & Theorems
 
@@ -36,7 +36,6 @@ Circles are a **high-yield topic** on the SAT Math section, appearing in both th
 - Sector Area: A = ½r²θ (θ in radians)
 - **180° = π radians**
 
----
 
 ### Equation of a Circle
 
@@ -52,7 +51,6 @@ x² + Dx + (D/2)² + y² + Ey + (E/2)² = -F + (D/2)² + (E/2)²
 (x + D/2)² + (y + E/2)² = (D/2)² + (E/2)² - F
 ```
 
----
 
 ## 🔺 Central & Inscribed Angles
 
@@ -66,7 +64,6 @@ x² + Dx + (D/2)² + y² + Ey + (E/2)² = -F + (D/2)² + (E/2)²
 
 **Key Insight:** All inscribed angles intercepting the same arc are **equal**.
 
----
 
 ## 📐 Tangents, Chords, & Secants
 
@@ -86,7 +83,6 @@ For a point P outside a circle:
 **For point P inside circle (intersecting chords):**
 - PA × PB = PC × PD (products of chord segments)
 
----
 
 ## 🏆 Problem-Solving Strategies
 
@@ -117,7 +113,6 @@ Unifies all external segment theorems. Memorize:
 - **Secant-Secant**: (whole)(external) = (whole)(external)
 - **Secant-Tangent**: (whole)(external) = (tangent)²
 
----
 
 ## 🧮 Practice Problems
 
@@ -135,7 +130,6 @@ Complete the square:
 
 **Center:** (3, -4)  **Radius:** 5
 
----
 
 ### Problem 2: Tangent Line Slope
 **Circle:** (x - 3)² + (y + 2)² = 25
@@ -147,7 +141,6 @@ Complete the square:
 - Radius slope = (2 - (-2)) / (6 - 3) = 4/3
 - Tangent ⟂ radius → **Tangent slope = -3/4** (negative reciprocal)
 
----
 
 ### Problem 3: Chord Length
 **Circle radius:** 10
@@ -161,7 +154,6 @@ Complete the square:
 - Half-chord = 8
 - **Full chord = 16**
 
----
 
 ### Problem 4: Sector Area & Shaded Region
 **Circle radius:** 9
@@ -177,7 +169,6 @@ Complete the square:
   - Triangle area = ½ × 9√3 × 4.5 = 81√3/4
 - **Shaded area = 27π - 81√3/4**
 
----
 
 ### Problem 5: Power of a Point (Secant-Tangent)
 **External point P**, tangent PT = 8, secant PAB with PA = 4
@@ -190,7 +181,6 @@ PT² = PA × PB
 **PB = 16**
 (External segment = PB - PA = 12)
 
----
 
 ### Problem 6: Inscribed Angle
 **Circle O**, inscribed ∠ABC = 40° intercepting arc AC
@@ -201,7 +191,6 @@ Central angle = 2 × Inscribed angle
 ∠AOC = 2 × 40° = **80°**
 Arc AC = 80°
 
----
 
 ### Problem 7: Two Secants
 **Point P outside circle.** Secant PAB: PA = 3, AB = 7. Secant PCD: PC = 4.
@@ -215,7 +204,6 @@ PB = PA + AB = 3 + 7 = 10
 PD = 7.5
 CD = PD - PC = 7.5 - 4 = **3.5**
 
----
 
 ### Problem 8: Circle Through Three Points
 **Points:** A(0,0), B(6,0), C(0,8)
@@ -228,7 +216,6 @@ CD = PD - PC = 7.5 - 4 = **3.5**
 - Midpoint of BC = center = ((6+0)/2, (0+8)/2) = (3, 4)
 - **Equation:** (x - 3)² + (y - 4)² = 25
 
----
 
 ### Problem 9: Arc Length
 **Radius:** 12, **Central angle:** 150°
@@ -237,7 +224,6 @@ CD = PD - PC = 7.5 - 4 = **3.5**
 **Solution:**
 Arc = (150/360) × 2π × 12 = (5/12) × 24π = **10π**
 
----
 
 ### Problem 10: Inscribed Quadrilateral
 **Quadrilateral ABCD inscribed in circle.** ∠A = 70°, ∠C = ?
@@ -249,7 +235,6 @@ Opposite angles of inscribed quadrilateral are **supplementary**
 70° + ∠C = 180°
 **∠C = 110°**
 
----
 
 ## 📐 Special Circle Configurations
 
@@ -267,7 +252,6 @@ Two chords AB and CD intersect at P inside circle:
 - **Internal tangents**: Cross segment connecting centers
 - Length formulas involve distance between centers and radii
 
----
 
 ## 🎯 DSAT-Specific Tips
 
@@ -291,7 +275,6 @@ Two chords AB and CD intersect at P inside circle:
 | **Secant Whole vs External** | Using PA instead of PB | Whole = external + internal |
 | **Sign in Equation** | (x + 3)² means center at -3 | (x - h)²: center at h |
 
----
 
 ## 📝 Formula Quick Reference
 
@@ -316,7 +299,6 @@ Two chords AB and CD intersect at P inside circle:
 | **Power of Point (int)** | (segment)(segment) = (segment)(segment) |
 | **Opposite Angles (inscribed quad)** | Sum = 180° |
 
----
 
 ## ⚠️ Error Checklist
 
@@ -328,7 +310,6 @@ Two chords AB and CD intersect at P inside circle:
 - [ ] For shaded region: Sector - Triangle? (Correct triangle type?)
 - [ ] Units consistent? (Degrees vs radians)
 
----
 
 ## 🔄 Review Checklist
 
@@ -345,6 +326,56 @@ Two chords AB and CD intersect at P inside circle:
 - [ ] Identify 30-60-90 and 45-45-90 in circle context
 - [ ] Apply Thales' theorem (diameter → right angle)
 
----
 
 *Last Updated: 2026-07-11 | Source: 2026 Summer SAT/ACT @ AHA classroom materials*
+
+
+## 📅 Update: 2026-07-13 - New Circle Concepts from 19_Circles.pdf & SAT Geometry Problems
+
+### Circle Equations: General to Standard Form (Deep Dive)
+
+**Given:** $x^2 + y^2 + Dx + Ey + F = 0$
+
+**Complete the Square:**
+1. Group: $(x^2 + Dx) + (y^2 + Ey) = -F$
+2. Add $(D/2)^2$ and $(E/2)^2$ to both sides
+3. $(x + D/2)^2 + (y + E/2)^2 = (D/2)^2 + (E/2)^2 - F$
+
+**Center:** $(-D/2, -E/2)$
+**Radius:** $\sqrt{(D/2)^2 + (E/2)^2 - F}$
+
+**Example:** $x^2 + y^2 - 10x + 6y + 18 = 0$
+- $(x^2 - 10x) + (y^2 + 6y) = -18$
+- $(x - 5)^2 - 25 + (y + 3)^2 - 9 = -18$
+- $(x - 5)^2 + (y + 3)^2 = 16$
+- **Center: $(5, -3)$, Radius: $4$**
+
+### Advanced Circle Theorems from Classroom
+
+| Theorem | Formula | When to Use |
+|---------|---------|-------------|
+| **Chord-Chord (inside)** | $AP \times PB = CP \times PD$ | Two chords intersect inside |
+| **Secant-Secant (outside)** | $PA \times PB = PC \times PD$ | Two secants from external point |
+| **Secant-Tangent** | $PA \times PB = PT^2$ | Secant and tangent from external point |
+| **Angle inside (2 chords)** | $\frac{1}{2}(arc_1 + arc_2)$ | Angle formed by intersecting chords |
+| **Angle outside (2 sec/tan)** | $\frac{1}{2}(far\ arc - near\ arc)$ | Angle outside circle |
+
+### Practice Problems from 19_Circles.pdf
+
+1. **Circle:** $x^2 + y^2 - 6x + 8y = 0$. Find center and radius.
+   - $(x-3)^2 + (y+4)^2 = 25$ → Center $(3, -4)$, $r=5$
+
+2. **Central angle** $AOB = 80°$. Inscribed angle $ACB$?
+   - $40°$ (half of central)
+
+3. **Two chords intersect:** Segments 3, 4 and 2, x. Find x.
+   - $3 \times 4 = 2 \times x$ → $x = 6$
+
+4. **Tangent from point P:** Tangent = 6, Secant external = 4. Find whole secant.
+   - $6^2 = 4 \times whole$ → $whole = 9$
+
+5. **Arc length:** Radius 10, central angle 120°.
+   - $(120/360) \times 2\pi \times 10 = \frac{20\pi}{3}$
+
+
+*Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*
