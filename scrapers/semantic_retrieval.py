@@ -116,12 +116,13 @@ _ollama_start_lock = threading.Lock()
 _ollama_start_attempted = False
 
 # Success-stays-True gate: once a warm succeeds, the flag stays True
-# for the lifetime of the python process. Ollama crashes mid-session do
-# NOT auto-recover -- restart the bot to re-arm. Same effective
-# constraint as the pre-bbdfce9 (no auto-restart) behavior; the latch
-# just makes it explicit. Failure / timeout paths in _start_ollama_async
-# reset the flag (under _ollama_start_lock) so the next cold-start
-# cycle can retry.
+# for the lifetime of the python process. Ollama crashes mid-session
+# do NOT auto-recover -- restart the bot to re-arm. Strict mode: this
+# is stricter than pre-bbdfce9, which would re-attempt on the next
+# call after a mid-session crash. Trade-off accepted to keep the
+# cold-start fast-path sub-millisecond. Failure / timeout paths in
+# _start_ollama_async reset the flag (under _ollama_start_lock) so
+# the next cold-start cycle can retry.
 
 
 def _start_ollama_async() -> None:
