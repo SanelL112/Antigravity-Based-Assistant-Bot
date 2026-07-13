@@ -215,7 +215,7 @@ async def embed_texts(texts: list[str]) -> np.ndarray:
                     await asyncio.sleep(5)
                 else:
                     logger.error(f"Batch {i//BATCH_SIZE} failed after 3 attempts, using zero vectors")
-                    all_embeddings.extend([[0.0] * DIM] * len(batch))
+                    all_embeddings.extend([[0.0] * DIM for _ in range(len(batch))])
 
         if i + BATCH_SIZE < len(texts):
             logger.info(f"  Embedded {i + len(batch)}/{len(texts)} chunks...")
