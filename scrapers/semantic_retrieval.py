@@ -115,6 +115,14 @@ def _ollama_is_running() -> bool:
 _ollama_start_lock = threading.Lock()
 _ollama_start_attempted = False
 
+# Success-stays-True gate: once a warm succeeds, the flag stays True
+# for the lifetime of the python process. Ollama crashes mid-session do
+# NOT auto-recover -- restart the bot to re-arm. Same effective
+# constraint as the pre-bbdfce9 (no auto-restart) behavior; the latch
+# just makes it explicit. Failure / timeout paths in _start_ollama_async
+# reset the flag (under _ollama_start_lock) so the next cold-start
+# cycle can retry.
+
 
 def _start_ollama_async() -> None:
     """Background thread target. Popen + readiness poll OFF the hot
@@ -135,7 +143,7 @@ def _start_ollama_async() -> None:
                 logger.info("Ollama started in background.")
                 return
         logger.warning("Ollama background start did not become ready in 10s.")
-    except Exception as e:
+    except (OSError, FileNotFoundError) as e:
         logger.warning(f"Failed to start Ollama in background: {e}")
     # On failure/timeout: reset the gate so a later query can retry.
     with _ollama_start_lock:
