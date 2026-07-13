@@ -111,20 +111,48 @@ def _ollama_is_running() -> bool:
         return False
 
 
-def _start_ollama():
-    """Try to start Ollama if it's not running. Non-blocking."""
+# ── Background-start state (single-spawn gating) ──────────────────────────────────────────────────────────────────
+_ollama_start_lock = threading.Lock()
+_ollama_start_attempted = False
+
+
+def _start_ollama_async() -> None:
+    """Background thread target. Popen + readiness poll OFF the hot
+    request path so embed_query's caller doesn't block on cold start.
+    Resets _ollama_start_attempted on failure/timeout so a later query
+    can try again; on success the flag stays True to suppress repeated
+    redundant starts while Ollama is up.
+    """
     try:
         subprocess.Popen(
             ["ollama", "serve"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        for _ in range(10):  # wait up to 10s
+        for _ in range(10):  # wait up to 10s for readiness
             time.sleep(1)
             if _ollama_is_running():
-                return True
-    except Exception:
-        pass
+                logger.info("Ollama started in background.")
+                return
+        logger.warning("Ollama background start did not become ready in 10s.")
+    except Exception as e:
+        logger.warning(f"Failed to start Ollama in background: {e}")
+    # On failure/timeout: reset the gate so a later query can retry.
+    with _ollama_start_lock:
+        global _ollama_start_attempted
+        _ollama_start_attempted = False
+
+
+def _start_ollama() -> bool:
+    """Fast-path gate-spawn. Returns False immediately so embed_query
+    can fall back to non-semantic retrieval. The daemon thread spawned
+    inside does the actual Popen + readiness poll on its own time.
+    """
+    with _ollama_start_lock:
+        global _ollama_start_attempted
+        if not _ollama_start_attempted:
+            _ollama_start_attempted = True
+            threading.Thread(target=_start_ollama_async, daemon=True).start()
     return False
 
 
