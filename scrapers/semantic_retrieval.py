@@ -17,6 +17,7 @@ import subprocess
 import time
 import threading
 
+import httpx
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,6 @@ def invalidate_cache():
 
 
 # ── Query embedding ───────────────────────────────────────────────────────────
-import httpx
 
 # Shared httpx client for connection pooling
 _ollama_client = None
@@ -159,7 +159,7 @@ def embed_query(query: str) -> np.ndarray | None:
                 vec = vec / norm
             return vec
     except httpx.TimeoutException:
-        logger.warning(f"Query embedding timeout")
+        logger.warning("Query embedding timeout")
         return None
     except Exception as e:
         logger.warning(f"Query embedding error: {e}")
