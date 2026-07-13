@@ -209,7 +209,7 @@ async def embed_texts(texts: list[str]) -> np.ndarray:
                     raise RuntimeError(f"No embeddings returned for batch at index {i}")
                 all_embeddings.extend(embeddings)
                 break  # success
-            except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError) as e:
+            except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError):
                 if attempt < 2:
                     logger.warning(f"Timeout on batch {i//BATCH_SIZE} (attempt {attempt+1}/3), retrying...")
                     await asyncio.sleep(5)
@@ -291,12 +291,8 @@ async def build_index(force_rebuild: bool = False):
         # Full rebuild
         logger.info("Full index rebuild requested")
         keep_indices = []
-        new_chunks = []
-        new_sources = []
     else:
         keep_indices = []
-        new_chunks = []
-        new_sources = []
         changed_paths = set()
 
         # Figure out which sources changed

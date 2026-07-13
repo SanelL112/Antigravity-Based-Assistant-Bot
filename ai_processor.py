@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 
 # Use unified config
-from config import AGENTAPI_BIN, BASE_DIR, CACHE_DIR as CONFIG_CACHE_DIR, LATEST_DIGEST_FILE
+from config import AGENTAPI_BIN, CACHE_DIR as CONFIG_CACHE_DIR, LATEST_DIGEST_FILE
 BOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 CACHE_DIR = Path(CONFIG_CACHE_DIR)
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -256,7 +256,7 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
     # Content-hash caching: skip LLM processing if source unchanged
     if not force_reprocess:
         try:
-            from utils import has_changed, mark_processed
+            from utils import has_changed
             if not has_changed(name, data[:1000]):
                 try:
                     with open(cache_file, "r", encoding="utf-8") as f:
@@ -320,13 +320,13 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
 
     with open(cache_file, "w") as f:
         f.write(summary)
-        
+
     try:
-        from utils import mark_processed
-        mark_processed(name, data[:1000])
+        from utils import mark_processed as _mark_processed
+        _mark_processed(name, data[:1000])
     except ImportError:
         pass
-        
+
     logger.info(f"Saved {name} summary to {cache_file}")
     return summary
 
