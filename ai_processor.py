@@ -135,7 +135,8 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
                             output_chunks.append(chunk)
                         except OSError:
                             break
-                except Exception:
+                except Exception as e:
+                    logger.debug("PTY select error during pty poll: %r", e)
                     break
                 if proc.poll() is not None:
                     try:
@@ -152,8 +153,8 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
 
             try:
                 proc.wait(timeout=5)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("proc.wait error: %r", e)
 
             raw = b"".join(output_chunks).decode("utf-8", errors="replace")
             import re
@@ -164,8 +165,8 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
                 logger.error(f"agy {target_model} timed out after {timeout}s")
                 try:
                     proc.kill()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("proc.kill error after wait timeout: %r", e)
                 return ""
                 
             return clean
@@ -182,8 +183,8 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
             if proc and proc.poll() is None:
                 try:
                     proc.kill()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("proc.kill error in finally: %r", e)
 
     logger.info(f"Attempting processing with {model}...")
     result = _run_model(model)
@@ -223,8 +224,8 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
                     if cached and cached != f"No {name} data available.":
                         logger.info(f"Source {name} unchanged — using cached summary ({len(cached)} chars)")
                         return cached
-                except Exception:
-                    pass  # cache miss, process normally
+                except Exception as e:
+                    logger.debug(f"cache read fell through, regenerating {name}: %r", e)
         except ImportError:
             pass  # utils not available, skip caching
 
@@ -262,8 +263,8 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
                     rules = f.read().strip()
                 if rules:
                     prompt += f"\n\nUSER'S CUSTOM RULES (MUST FOLLOW):\n{rules}\n"
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("rules_file unreadable, proceeding without: %r", e)
 
         prompt += "\n\nIf you see a completely new type of item you're unsure about, reply: [ASK_USER] description"
 
@@ -336,16 +337,16 @@ def assemble_digest(summaries: dict) -> dict:
     if tasks_match:
         try:
             tasks = json.loads(tasks_match.group(1).strip())
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Malformed tasks JSON from LLM (left empty): %r", e)
         digest = digest.replace('TASKS_JSON:' + tasks_match.group(1), '').strip()
 
     topics_match = _re.search(r'STUDY_TOPICS_JSON:(.*?)(?:TASKS_JSON:|$)', digest, _re.DOTALL)
     if topics_match:
         try:
             topics = json.loads(topics_match.group(1).strip().split('\n')[0])
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Malformed topics JSON from LLM (left empty): %r", e)
         digest = digest.replace('STUDY_TOPICS_JSON:' + topics_match.group(1).split('\n')[0], '').strip()
 
     # ── Deduplication: bullet-level string comparison (fast, no LLM) ─────────
@@ -354,8 +355,8 @@ def assemble_digest(summaries: dict) -> dict:
     try:
         with open(previous_digest_path, "r", encoding="utf-8") as f:
             previous_digest = f.read().strip()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("previous_digest unreadable, skipping dedup: %r", e)
 
     if previous_digest:
         import re as _re
