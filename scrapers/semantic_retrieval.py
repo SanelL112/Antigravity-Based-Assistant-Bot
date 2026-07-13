@@ -14,6 +14,8 @@ Falls back to the old tail-truncation approach if:
 import os
 import logging
 import subprocess
+import time
+import threading
 
 import numpy as np
 
@@ -30,41 +32,50 @@ DEFAULT_TOP_K = 8
 MAX_CONTEXT_CHARS = 12000
 
 
-# ── Index loading (lazy, cached) ──────────────────────────────────────────────
+# ── Index loading (lazy, cached with TTL) ──────────────────────────────────────────────
 
+# Bounded index cache with TTL (5 minutes)
 _index_cache = None
+_index_cache_timestamp = 0
+_INDEX_CACHE_TTL = 300  # 5 minutes
+_index_cache_lock = threading.Lock()
 
 
 def _load_index() -> tuple[np.ndarray, list[str], list[str]] | None:
-    """Load the embedding index from disk. Cached after first load."""
-    global _index_cache
-    if _index_cache is not None:
-        return _index_cache
-    if not os.path.exists(INDEX_PATH):
-        return None
-    try:
-        data = np.load(INDEX_PATH, allow_pickle=True)
-        vectors = data["vectors"]
-        chunks = data["chunks"].tolist()
-        sources = data["sources"].tolist()
-        if len(vectors) == 0:
+    """Load the embedding index from disk. Cached with TTL."""
+    global _index_cache, _index_cache_timestamp
+    now = time.time()
+    with _index_cache_lock:
+        if _index_cache is not None and (now - _index_cache_timestamp) < _INDEX_CACHE_TTL:
+            return _index_cache
+        if not os.path.exists(INDEX_PATH):
             return None
-        # Normalize vectors once for cosine similarity
-        norms = np.linalg.norm(vectors, axis=1, keepdims=True)
-        norms[norms == 0] = 1
-        vectors = vectors / norms
-        _index_cache = (vectors, chunks, sources)
-        logger.info(f"Loaded index: {len(chunks)} chunks, {vectors.shape}")
-        return _index_cache
-    except Exception as e:
-        logger.warning(f"Failed to load index: {e}")
-        return None
+        try:
+            data = np.load(INDEX_PATH, allow_pickle=True)
+            vectors = data["vectors"]
+            chunks = data["chunks"].tolist()
+            sources = data["sources"].tolist()
+            if len(vectors) == 0:
+                return None
+            # Normalize vectors once for cosine similarity
+            norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+            norms[norms == 0] = 1
+            vectors = vectors / norms
+            _index_cache = (vectors, chunks, sources)
+            _index_cache_timestamp = now
+            logger.info(f"Loaded index: {len(chunks)} chunks, {vectors.shape}")
+            return _index_cache
+        except Exception as e:
+            logger.warning(f"Failed to load index: {e}")
+            return None
 
 
 def invalidate_cache():
     """Call this after the index is rebuilt."""
-    global _index_cache
-    _index_cache = None
+    global _index_cache, _index_cache_timestamp
+    with _index_cache_lock:
+        _index_cache = None
+        _index_cache_timestamp = 0
 
 
 # ── Query embedding ───────────────────────────────────────────────────────────
@@ -72,18 +83,22 @@ import httpx
 
 # Shared httpx client for connection pooling
 _ollama_client = None
+_ollama_client_lock = threading.Lock()
+
 
 def _get_ollama_url() -> str:
     """Get Ollama URL from config (loaded from .env)."""
     from config import OLLAMA_URL
     return OLLAMA_URL
 
+
 def _get_ollama_client() -> httpx.Client:
     global _ollama_client
-    if _ollama_client is None:
-        timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)
-        _ollama_client = httpx.Client(timeout=timeout)
-    return _ollama_client
+    with _ollama_client_lock:
+        if _ollama_client is None:
+            timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)
+            _ollama_client = httpx.Client(timeout=timeout)
+        return _ollama_client
 
 
 def _ollama_is_running() -> bool:
@@ -104,7 +119,6 @@ def _start_ollama():
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        import time
         for _ in range(10):  # wait up to 10s
             time.sleep(1)
             if _ollama_is_running():
@@ -130,6 +144,7 @@ def embed_query(query: str) -> np.ndarray | None:
         resp = client.post(
             f"{_get_ollama_url()}/api/embed",
             json={"model": EMBED_MODEL, "input": query},
+            timeout=httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=5.0),
         )
         if resp.status_code != 200:
             logger.warning(f"Embedding failed: {resp.status_code}")

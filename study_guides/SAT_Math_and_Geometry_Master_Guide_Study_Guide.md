@@ -10007,3 +10007,272 @@ For ax² + bx + c = 0 with roots r₁, r₂:
 
 5. f(x) = (x² - 9)/(x - 3) for x ≠ 3. lim(x→3) f(x)?
    - Factor: (x-3)(x+3)/(x-3) = x+3 for x ≠ 3 → Limit = **6**
+
+---
+
+## 📅 Update: 2026-07-12 - New Concepts from July 2026 Summer SAT/ACT Class
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (Days 9-12, Problem-Solving 6-9, Break Assignment 1)*
+
+### 🔵 Circles and Circle Theorems (from 19_Circles.pdf)
+
+#### Circle Equation and Standard Form
+**Standard Form:** (x - h)² + (y - k)² = r²
+- Center: (h, k)
+- Radius: r
+- **Key strategy on DSAT**: Use Desmos to graph and find intersections visually
+
+#### Central Angles and Inscribed Angles
+| Angle Type | Vertex Location | Measure |
+|------------|-----------------|---------|
+| **Central Angle** | Center of circle | = intercepted arc measure |
+| **Inscribed Angle** | On the circle | = ½ × intercepted arc measure |
+| **Angle formed by tangent & chord** | On the circle | = ½ × intercepted arc measure |
+| **Angle formed by two chords (inside)** | Inside circle | = ½ × (sum of intercepted arcs) |
+| **Angle formed by two secants/tangents (outside)** | Outside circle | = ½ × (difference of intercepted arcs) |
+
+#### Arc Length and Sector Area
+- **Arc Length** = (θ/360) × 2πr  (θ in degrees)
+- **Sector Area** = (θ/360) × πr²
+- **Radian measure**: θ radians = (θ/180) × π
+
+#### Power of a Point Theorem
+- **Intersecting Chords**: (segment1) × (segment2) = (segment3) × (segment4)
+- **Secant-Secant**: (external) × (whole) = (external) × (whole)
+- **Secant-Tangent**: (tangent)² = (external) × (whole)
+
+#### Circle Problems from Day 12 Homework
+1. **Equation manipulation**: Given x² + y² + Dx + Ey + F = 0, complete the square to find center and radius
+2. **Tangent line problems**: Radius to point of tangency is perpendicular to tangent
+3. **Cyclic quadrilaterals**: Opposite angles sum to 180°
+
+---
+
+### 📊 Statistics and Data Analysis (from 8_Statistics.pdf)
+
+#### Measures of Center
+| Measure | Formula | When to Use |
+|---------|---------|-------------|
+| **Mean** | Σx / n | Symmetric distributions |
+| **Median** | Middle value (or avg of 2 middle) | Skewed distributions, outliers present |
+| **Mode** | Most frequent value | Categorical data |
+
+#### Measures of Spread
+- **Range** = Max - Min
+- **IQR (Interquartile Range)** = Q3 - Q1
+- **Standard Deviation (σ or s)**: Average distance from mean
+  - Population: σ = √[Σ(x - μ)² / N]
+  - Sample: s = √[Σ(x - x̄)² / (n - 1)]
+- **Variance** = (Standard Deviation)²
+
+#### Box Plots and Five-Number Summary
+1. Minimum
+2. Q1 (25th percentile / median of lower half)
+3. Median (Q2, 50th percentile)
+4. Q3 (75th percentile / median of upper half)
+5. Maximum
+- **Outliers**: Values < Q1 - 1.5×IQR or > Q3 + 1.5×IQR
+
+#### Normal Distribution (Empirical Rule)
+- ~68% within 1σ of mean
+- ~95% within 2σ of mean
+- ~99.7% within 3σ of mean
+- **Z-score**: z = (x - μ) / σ
+
+#### Scatterplots and Regression
+- **Line of best fit**: y = mx + b (linear regression)
+- **Correlation coefficient (r)**: -1 to 1
+  - r ≈ 1: strong positive correlation
+  - r ≈ -1: strong negative correlation
+  - r ≈ 0: no linear correlation
+- **r² (coefficient of determination)**: proportion of variance explained
+- **Residual** = actual - predicted
+- **DSAT Strategy**: Use Desmos regression: y₁ ~ mx₁ + b
+
+#### Two-Way Tables and Conditional Probability
+- **Joint frequency**: Cell value / Grand total
+- **Marginal frequency**: Row/column total / Grand total
+- **Conditional probability**: P(A|B) = P(A and B) / P(B)
+
+---
+
+### 🔺 Lines and Angles Geometry (from 16_Lines_and_Angles.pdf)
+
+#### Parallel Lines Cut by a Transversal
+| Angle Pair | Relationship |
+|------------|--------------|
+| Corresponding | Congruent |
+| Alternate Interior | Congruent |
+| Alternate Exterior | Congruent |
+| Consecutive Interior (Same-Side Interior) | Supplementary (sum = 180°) |
+| Vertical Angles | Congruent |
+| Linear Pair | Supplementary (sum = 180°) |
+
+#### Triangle Angle Theorems
+- **Triangle Sum Theorem**: Interior angles sum to 180°
+- **Exterior Angle Theorem**: Exterior angle = sum of two remote interior angles
+- **Isosceles Triangle Theorem**: Base angles are congruent
+- **Equilateral Triangle**: All angles = 60°
+
+#### Polygon Angle Sums
+- **Sum of interior angles** = (n - 2) × 180°
+- **Each interior angle (regular n-gon)** = (n - 2) × 180° / n
+- **Sum of exterior angles** = 360° (any convex polygon)
+
+---
+
+### 📐 Triangles and Triangle Centers (from 17_Triangles.pdf)
+
+#### Triangle Centers
+| Center | Construction | Property |
+|--------|-------------|----------|
+| **Centroid** | Intersection of medians | Divides median 2:1 (vertex:centroid = 2:1) |
+| **Circumcenter** | Intersection of perpendicular bisectors | Equidistant from vertices; center of circumscribed circle |
+| **Incenter** | Intersection of angle bisectors | Equidistant from sides; center of inscribed circle |
+| **Orthocenter** | Intersection of altitudes | No special distance property |
+
+#### Special Right Triangles
+| Triangle | Side Ratios | Angles |
+|----------|-------------|--------|
+| **30-60-90** | x : x√3 : 2x | 30°, 60°, 90° |
+| **45-45-90** | x : x : x√2 | 45°, 45°, 90° |
+| **3-4-5** | 3k : 4k : 5k | ~37°, ~53°, 90° |
+| **5-12-13** | 5k : 12k : 13k | ~23°, ~67°, 90° |
+
+#### Triangle Inequality Theorem
+- For any triangle with sides a, b, c: a + b > c, a + c > b, b + c > a
+- **Range for third side**: |a - b| < c < a + b
+
+---
+
+### 📈 Rates, Ratios, and Proportions Review (from Problem-Solving 6-7)
+
+#### Unit Rates and Conversions
+- **Unit rate**: Quantity per 1 unit (e.g., miles per hour, $ per pound)
+- **Conversion factors**: Multiply by forms of 1 (e.g., 60 min/1 hr, 100 cm/1 m)
+
+#### Direct and Inverse Variation
+| Type | Equation | Graph | Constant |
+|------|----------|-------|----------|
+| **Direct** | y = kx | Line through origin | k = y/x |
+| **Inverse** | y = k/x | Hyperbola | k = xy |
+| **Joint** | y = kxz | 3D surface | k = y/(xz) |
+
+#### Work Problems
+- **Rate × Time = Work** (or Distance)
+- **Combined rate**: 1/t₁ + 1/t₂ = 1/t_combined
+- **Example**: Worker A takes 6 hrs, Worker B takes 4 hrs → Together: 1/6 + 1/4 = 5/12 → 12/5 = 2.4 hrs
+
+#### Mixture Problems
+- **Alligation method**: 
+  - Draw a cross: (higher % - desired %) : (desired % - lower %) = ratio of amounts
+  - Example: 30% and 50% to get 40% → 10:10 = 1:1 ratio
+
+---
+
+### ⭕ Geometry Formula Quick Reference (Day 10 Homework - Geometry Formulas)
+
+#### Area Formulas
+- Triangle: ½ × base × height
+- Rectangle: length × width
+- Square: s²
+- Parallelogram: base × height
+- Trapezoid: ½ × (b₁ + b₂) × h
+- Circle: πr²
+- Sector: (θ/360) × πr²
+- Regular polygon: ½ × apothem × perimeter
+
+#### Volume Formulas
+- Rectangular prism: l × w × h
+- Cylinder: πr²h
+- Cone: ⅓πr²h
+- Sphere: ⁴⁄₃πr³
+- Pyramid: ⅓ × base area × height
+
+#### Surface Area Formulas
+- Rectangular prism: 2(lw + lh + wh)
+- Cylinder: 2πr² + 2πrh
+- Sphere: 4πr²
+- Cone: πr² + πrℓ (ℓ = slant height)
+
+---
+
+### 🧮 DSAT Calculator Strategies (Desmos Mastery from Day 12)
+
+#### Essential Desmos Commands
+```desmos
+# Graphing functions
+y = 3x^2 - 2x + 1
+
+# Finding intersections
+y = f(x)
+y = g(x)
+# Click intersection points
+
+# Regression (line of best fit)
+y1 ~ mx1 + b          # Linear
+y1 ~ ax1^2 + bx1 + c  # Quadratic
+y1 ~ a*b^x1           # Exponential
+
+# Tables
+x1 = [1, 2, 3, 4, 5]
+y1 = [2, 4, 6, 8, 10]
+
+# Statistics
+mean([1,2,3,4,5])
+median([1,2,3,4,5])
+stdev([1,2,3,4,5])    # Sample standard deviation
+mad([1,2,3,4,5])      # Mean absolute deviation
+
+# Sliders
+y = mx + b
+# Click "add slider" for m and b
+
+# Solving equations
+# Graph y = left side, y = right side, find intersection
+```
+
+#### Time-Saving DSAT Tips
+1. **Graph both sides of an equation** to find solutions visually
+2. **Use regression** for scatterplot questions (don't calculate manually)
+3. **Tables** for sequence/function evaluation questions
+4. **Sliders** for "which value of k makes..." questions
+5. **Statistics functions** for mean/median/stdev questions
+
+---
+
+### 📝 Practice Problems from Classroom Materials
+
+#### Circles
+1. Circle equation: x² + y² - 6x + 8y = 0. Find center and radius.
+   - Complete square: (x-3)² + (y+4)² = 25 → Center (3,-4), r=5
+
+2. In circle O, central angle AOB = 80°. What is inscribed angle ACB?
+   - Inscribed angle = ½ × 80° = 40°
+
+3. Two chords intersect inside a circle. Segments: 3, 4 and 2, x. Find x.
+   - 3×4 = 2×x → x = 6
+
+#### Statistics
+4. Data set: {12, 15, 18, 18, 20, 22, 25, 30}. Find IQR.
+   - Q1 = (15+18)/2 = 16.5, Q3 = (22+25)/2 = 23.5, IQR = 7
+
+5. Normal distribution: μ = 100, σ = 15. What % score between 85 and 115?
+   - 85 = -1σ, 115 = +1σ → ~68%
+
+#### Geometry
+6. Regular hexagon interior angle?
+   - (6-2)×180°/6 = 720°/6 = 120°
+
+7. Triangle sides 7, 10, x. Range for x?
+   - |10-7| < x < 10+7 → 3 < x < 17
+
+8. 30-60-90 triangle, short leg = 5. Hypotenuse?
+   - 2 × 5 = 10
+
+#### Rates/Work
+9. Pipe A fills tank in 3 hrs, Pipe B in 6 hrs. Together?
+   - 1/3 + 1/6 = 1/2 → 2 hours
+
+---
+
+*Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*

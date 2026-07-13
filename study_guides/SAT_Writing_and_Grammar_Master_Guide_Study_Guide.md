@@ -1785,3 +1785,263 @@ From Standard English Conventions 3 (10_W, 11_W).
 
 10. "A **number of** students **is** absent."
     - Fix: "A **number of** students **are** absent." ("A number of" = plural)
+
+---
+
+## 📅 Update: 2026-07-12 - New Writing & Grammar Strategies from July 2026 Classroom Materials
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (Days 6-12, Problem-Solving 3-9, Standard English Conventions 1-3)*
+
+### 📐 Core Grammar Mastery: Boundaries, Agreement, and Punctuation (from 8_W, 9_W, 10_W, 11_W)
+
+#### Boundaries: Sentences, Fragments, and Run-Ons
+| Error Type | Example | Fix Strategy |
+|------------|---------|--------------|
+| **Comma splice** | "It rained, we stayed inside." | Semicolon, period, or ", and" |
+| **Fused sentence** | "It rained we stayed inside." | Add punctuation/conjunction |
+| **Fragment** | "Because it rained." | Attach to main clause |
+| **Correct compound** | "It rained; we stayed inside." | Semicolon between independent clauses |
+| **Correct complex** | "Because it rained, we stayed inside." | Subordinating conjunction + comma |
+
+**DSAT Boundary Checklist:**
+- [ ] Count independent clauses (subject + verb, complete thought)
+- [ ] 1 clause = simple sentence (needs period)
+- [ ] 2 clauses = need ; or , FANBOYS or subordinating conjunction
+- [ ] FANBOYS = For, And, Nor, But, Or, Yet, So
+
+#### Subject-Verb Agreement: Advanced Patterns
+| Pattern | Rule | Example |
+|---------|------|---------|
+| **Intervening phrase** | Ignore prepositional phrases | "The box **of chocolates is** open." |
+| **Compound subject (and)** | Plural verb | "Tom and Jerry **are** friends." |
+| **Compound subject (or/nor)** | Verb agrees with **closer** subject | "Neither the dogs nor the cat **is** here." |
+| **Indefinite pronouns** | Singular: each, every, either, neither, one, everyone, someone, anyone, nobody, nothing | "Each of the students **has** a book." |
+| **Indefinite pronouns (plural)** | Both, few, many, several | "Many **are** called." |
+| **Collective nouns** | Usually singular (US) | "The team **wins**." (but: "The team **are** arguing" — UK/individual focus) |
+| **"A number of" vs "The number of"** | "A number of" = plural; "The number of" = singular | "A number of students **are**..." / "The number of students **is**..." |
+
+#### Punctuation Mastery
+| Mark | Use | Example |
+|------|-----|---------|
+| **Semicolon (;)** | Between independent clauses (no conjunction) | "I like tea; she prefers coffee." |
+| **Colon (:)** | After complete sentence → list, explanation, quote | "She bought three things: apples, oranges, and pears." |
+| **Dash (—)** | Emphasis, interruption, summary | "The answer—42—was unexpected." |
+| **Comma (,)** | FANBOYS, intro elements, nonessential clauses, lists | "However, the data was unclear." |
+| **Apostrophe (')** | Possession, contractions | "The student's book" / "It's raining" |
+| **No apostrophe** | Possessive pronouns | "Its color" (not "it's") |
+
+---
+
+### 🎯 Modifier Mastery: Dangling, Misplaced, and Squinting
+
+#### Types of Modifier Errors
+| Error | Structure | Example | Fix |
+|-------|-----------|---------|-----|
+| **Dangling** | Modifier lacks logical subject | "Running late, the bus left." | "Running late, **I missed** the bus." |
+| **Misplaced** | Modifier too far from target | "She served pizza **to the guests** on paper plates." | "She served pizza on paper plates **to the guests**." |
+| **Squinting** | Ambiguous attachment | "Running quickly improves health." | "**Quickly running** improves health." / "Running **improves health quickly**." |
+| **Absolute phrase** | Noun + participle, no conjunction | "The test finished, we left." | "**With** the test finished, we left." |
+
+#### Modifier Placement Rules
+1. **Place modifier next to what it modifies**
+2. **Participial phrases at start** → subject must do the action
+3. **Prepositional phrases** → place near modified noun/verb
+4. **Relative clauses (which/that/who)** → immediately after antecedent
+
+---
+
+### ⚖️ Parallelism: Structure, Lists, and Comparisons
+
+#### Parallelism Triggers and Patterns
+| Trigger | Pattern | Correct | Incorrect |
+|---------|---------|---------|-----------|
+| **Lists (and/or)** | A, B, and C | "Swimming, hiking, and biking" | "Swimming, to hike, and biking" |
+| **Comparisons (than/as)** | X than Y | "Better **to give** than **to receive**" | "Better to give than **receiving**" |
+| **Correlatives** | Not only A but also B | "Not only **smart** but also **kind**" | "Not only smart but also **kindness**" |
+| **Prepositions** | in A, in B, in C | "In the morning, in the evening" | "In the morning, evening" |
+| **Gerunds/Infinitives** | Match form | "To read, to write, to think" | "Reading, to write, thinking" |
+
+#### Parallelism Practice
+1. "The course requires **reading**, **writing**, and **to think** critically."
+   - Fix: "...**reading, writing, and thinking** critically."
+2. "She is **not only** a doctor **but also** teaches."
+   - Fix: "...**not only** a doctor **but also** a teacher." / "...**not only** practices medicine **but also** teaches."
+
+---
+
+### 🔄 Transitions: Logical Flow and Relationship Mapping (from Transitions_and_Text_Structure)
+
+#### Transition Categories with DSAT Frequency
+| Category | Transitions | Frequency | Relationship |
+|----------|-------------|-----------|--------------|
+| **Continuation** | furthermore, moreover, additionally, also | Very High | + → + |
+| **Contrast** | however, nevertheless, conversely, on the other hand | Very High | + → - / - → + |
+| **Cause/Effect** | therefore, consequently, thus, as a result | High | Cause → Effect |
+| **Example** | for example, for instance, specifically | Medium | General → Specific |
+| **Concession** | admittedly, granted, certainly | Medium | Acknowledge → Pivot |
+| **Similarity** | similarly, likewise, in the same way | Low-Medium | X → X |
+| **Sequence** | first, then, subsequently, finally | Low | Time order |
+
+#### Transition Question Algorithm
+```
+1. Read sentence BEFORE blank → summarize idea (A)
+2. Read sentence AFTER blank → summarize idea (B)
+3. Determine A → B relationship:
+   - Same direction? → Continuation/Similarity
+   - Opposite direction? → Contrast
+   - B results from A? → Cause/Effect
+   - B illustrates A? → Example
+   - B concedes then pivots? → Concession
+4. Eliminate wrong-category choices
+5. Plug in remaining → check flow
+```
+
+---
+
+### 📖 Rhetorical Synthesis for Writing: Expression of Ideas (from Rhetorical_Synthesis_L3)
+
+#### Writing Questions Mirroring Synthesis Tasks
+| Synthesis Goal | Writing Question Stem | Strategy |
+|----------------|----------------------|----------|
+| **Add support** | "Which choice best supports the claim?" | Match evidence specificity to claim |
+| **Improve flow** | "Which transition best connects?" | ICC method: Identify relationship |
+| **Achieve purpose** | "The writer wants to emphasize X." | Choose option doing X |
+| **Combine** | "Which revision best combines?" | Preserve meaning + improve concision |
+
+#### Sentence Combining: Decision Framework
+| Original Structure | Best Combination | When to Use |
+|-------------------|------------------|-------------|
+| Two independent clauses | "; however," / ", but" / "Although..." | Contrast |
+| Independent + dependent | Subordinating conjunction | Cause/effect, time, condition |
+| Two similar predicates | Compound predicate | Conciseness |
+| Noun + description | Appositive / relative clause | Flow |
+| Repetitive subjects | Fronted modifier | Variety |
+
+---
+
+### 📝 Vocabulary: Precision, Tone, and Idioms (from Vocab Quizzes 13-20)
+
+#### DSAT Vocabulary Principles
+| Principle | Rule | Example |
+|-----------|------|---------|
+| **Precision > Fancy** | Exact word > impressive word | "The policy **exacerbated** the problem" (not "made worse") |
+| **Concise > Wordy** | Fewer words if same meaning | "**Because** it rained" (not "Due to the fact that...") |
+| **Tone consistency** | Match passage register | Formal passage → formal choices |
+| **Active > Passive** | Actor as subject | "Researchers **found**" (not "It was found by researchers") |
+
+#### Idioms Testable on DSAT
+| Correct Idiom | Common Error | Example |
+|---------------|--------------|---------|
+| **prefer X to Y** | prefer X over Y / than Y | "I prefer tea **to** coffee." |
+| **not only X but also Y** | not only X but Y | "Not only **smart** but also **kind**." |
+| **between X and Y** | between X or Y | "Choose **between** A **and** B." |
+| **different from** | different than / to | "This **differs from** that." |
+| **identical to** | identical with | "Copy **identical to** original." |
+| **independent of** | independent from | "Judgment **independent of** bias." |
+| **prohibit X from Y** | prohibit X to Y | "Law prohibits minors **from voting**." |
+| **require X to Y** | require X do Y | "Rule requires drivers **to stop**." |
+| **reason is that** | reason is because | "The reason **is that**..." |
+| **so X that Y** | so X so Y | "So tired **that** I slept." |
+
+#### Commonly Confused Pairs (High Frequency)
+| Pair | Distinction | Memory Aid |
+|------|-------------|------------|
+| **affect / effect** | Verb / Noun (usually) | **A**ffect = **A**ction; **E**ffect = **E**nd result |
+| **its / it's** | Possessive / Contraction | "It's" = "It is" (apostrophe = missing letter) |
+| **than / then** | Comparison / Time | **Th**an = compari**th**on; **Th**en = **Th**ime |
+| **accept / except** | Receive / Exclude | **Ex**cept = **Ex**clude |
+| **complement / compliment** | Complete / Praise | **Compl**ement = **Compl**ete; **Complim**ent = **I** like it |
+| **principal / principle** | Main / Rule | **Princip**al = **Pal** (person); **Principle** = ru**le** |
+| **stationary / stationery** | Not moving / Paper | **Station**ary = **Stands** still; **Stationer**y = l**et**ters |
+
+---
+
+### 🎯 Conciseness and Style: The "Shorter is Better" Principle
+
+#### Redundancy Patterns to Eliminate
+| Redundant | Concise | Reason |
+|-----------|---------|--------|
+| "return back" | "return" | "Re-" = back |
+| "past history" | "history" | History = past |
+| "free gift" | "gift" | Gifts are free |
+| "end result" | "result" | Results are ends |
+| "true fact" | "fact" | Facts are true |
+| "each and every" | "each" / "every" | Pick one |
+| "in order to" | "to" | "In order" = filler |
+| "due to the fact that" | "because" | 5 words → 1 |
+
+#### Wordiness Transformations
+| Wordy | Concise |
+|-------|---------|
+| "It is important to note that" | "Notably," / "Importantly," |
+| "At this point in time" | "Now" / "Currently" |
+| "The majority of" | "Most" |
+| "In the event that" | "If" |
+| "For the purpose of" | "To" |
+| "Is able to" | "Can" |
+
+---
+
+### ⏱️ DSAT Writing Time Management: Optimized Strategy
+
+#### Module 1 (35 min, 44 questions = 48 sec/q avg)
+| Pass | Question Types | Time Budget | Goal |
+|------|----------------|-------------|------|
+| **Pass 1** | Boundaries, S-V Agreement, Punctuation, Pronouns | ~20 min | Secure easy points fast |
+| **Pass 2** | Modifiers, Parallelism, Transitions, Verb Tense | ~12 min | Medium-difficulty core |
+| **Pass 3** | Conciseness, Expression of Ideas, Rhetorical | ~3 min | Harder/style questions |
+| **Review** | Flagged items | ~3 min | Recover points |
+
+#### Module 2 (Adaptive)
+- **Harder M2**: More Expression of Ideas, nuanced transitions, complex modifiers
+- **Easier M2**: More explicit grammar, basic boundaries, standard punctuation
+- **Universal**: Never spend >90 sec. Flag, guess, move, return.
+
+---
+
+### 🎯 Elimination Checklist for Every Writing Question
+- [ ] **Clear grammar error?** (S-V, pronoun, verb form, modifier) → ELIMINATE
+- [ ] **Punctuation error?** (comma splice, semicolon misuse, apostrophe) → ELIMINATE
+- [ ] **Logic error?** (illogical comparison, wrong transition, dangling modifier) → ELIMINATE
+- [ ] **Redundancy?** ("return back," "past history," "free gift") → ELIMINATE
+- [ ] **Wordy?** (choose shortest correct option) → ELIMINATE
+- [ ] **Tone mismatch?** (slang in formal, casual in academic) → ELIMINATE
+- [ ] **Changes meaning?** (alters claim, adds info not in passage) → ELIMINATE
+- [ ] **Idiom error?** (wrong preposition, broken correlative) → ELIMINATE
+
+---
+
+### 📝 Practice Problems from Classroom Materials
+
+#### Boundaries & Punctuation
+1. "The data was clear **, however** the conclusion was wrong."
+   - Fix: "The data was clear**; however,** the conclusion was wrong."
+
+2. "The committee meets **every Tuesday at 3pm** the room is 204."
+   - Fix: "...3pm**;** the room..." / "...3pm**.** The room..."
+
+#### Subject-Verb Agreement
+3. "The portfolio of stocks **have** performed well."
+   - Fix: "The portfolio... **has** performed well." (subject = portfolio)
+
+4. "Either the CEO or the board members **is** responsible."
+   - Fix: "...board members **are** responsible." (closer = members)
+
+#### Modifiers
+5. "**After reviewing the data**, the hypothesis was rejected."
+   - Fix: "**After reviewing the data, the researchers** rejected the hypothesis."
+
+#### Parallelism
+6. "The job demands **attention to detail**, **being organized**, and **flexibility**."
+   - Fix: "...**attention to detail, organization, and flexibility**."
+
+#### Transitions
+7. "The theory was elegant. **______**, it failed experimental tests."
+   - Answer: **However** / **Nevertheless** (contrast)
+
+#### Expression of Ideas
+8. "The writer wants to emphasize the **unexpected nature** of the discovery. Which choice best accomplishes this?"
+   - Look for: "Surprisingly," "Unexpectedly," "Contrary to expectations," specific surprising detail
+
+---
+
+*Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*

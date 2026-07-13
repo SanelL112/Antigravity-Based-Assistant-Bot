@@ -27,6 +27,8 @@ from config import AGENTAPI_BIN, BASE_DIR, CACHE_DIR as CONFIG_CACHE_DIR, LATEST
 BOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 CACHE_DIR = Path(CONFIG_CACHE_DIR)
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Module-level lock for thread-safe file writes (shared across ThreadPoolExecutor workers)
 _write_lock = threading.Lock()
 
 # ── Orange Pi 5 Classifier Integration ────────────────────────────────────────

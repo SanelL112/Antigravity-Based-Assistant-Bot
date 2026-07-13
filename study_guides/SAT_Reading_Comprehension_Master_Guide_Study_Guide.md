@@ -1777,6 +1777,207 @@ Passage 2: Presents data showing test scores correlate with college success acro
 2. "Which choice most effectively supports the claim that X causes Y?"
    - Look for: Direct causal language, controlled study description, mechanism explanation
 
+---
+
+## 📅 Update: 2026-07-12 - New Reading Strategies from July 2026 Classroom Materials
+*Extracted from 2026 Summer SAT/ACT @ AHA classroom materials (Days 9-12, Problem-Solving 7-9, Vocab Quizzes 16-20)*
+
+### 🎯 Inference Questions: "Must Be True" Mastery (from Inferences_L2, Inferences_L3)
+
+#### The "Must Be True" Test
+For every inference question, apply this test: **Does this answer choice HAVE to be true based ONLY on the passage?**
+- If yes → Correct
+- If it could be false → Eliminate
+
+#### Inference Types and Strategies
+| Inference Type | Question Stem | Strategy |
+|----------------|---------------|----------|
+| **Logical deduction** | "Which can be logically inferred?" | Chain 2+ explicit statements |
+| **Author implication** | "The author implies/suggests..." | Look for tone, word choice, unstated conclusions |
+| **Quantitative** | "Based on the data..." | Calculate from given numbers |
+| **Comparative** | "Unlike X, Y..." | Find explicit contrast in text |
+| **Causal** | "The passage suggests X causes Y..." | Identify mechanism or correlation evidence |
+
+#### Common Inference Traps
+| Trap | Example | Defense |
+|------|---------|---------|
+| **Overgeneralization** | "All scientists agree..." | Passage says "many scientists" |
+| **Reversal** | "X prevents Y" | Passage says "Y prevents X" |
+| **Unsupported magnitude** | "Dramatically reduces" | Passage says "slightly reduces" |
+| **Outside knowledge** | Requires biology degree | Only use passage info |
+
+#### Practice Inference Problems
+1. **Passage**: "The new drug reduced symptoms in 60% of patients. The placebo reduced symptoms in 20%."
+   - **Valid inference**: The drug was more effective than placebo
+   - **Invalid**: The drug cures the disease (no "cure" mentioned)
+
+2. **Passage**: "Unlike traditional methods, the new technique doesn't require heating."
+   - **Valid inference**: Traditional methods require heating
+   - **Invalid**: The new technique is faster (not stated)
+
+---
+
+### 🔗 Cross-Text Connections: The ICC Method (from Cross_Text_L2, Cross_Text_L3)
+
+#### ICC Framework: Identify → Compare → Classify
+1. **Identify**: What is each author's main claim?
+2. **Compare**: Where do they agree/disagree?
+3. **Classify**: What's the relationship? (Support, Contradict, Refine, Apply, Contextualize)
+
+#### Cross-Text Question Types
+| Question Type | What to Find | Strategy |
+|---------------|--------------|----------|
+| **Agreement** | Shared view | Look for same conclusion, different evidence |
+| **Disagreement** | Opposing views | Different conclusions on same topic |
+| **Evidence relationship** | Text 1's evidence for Text 2's claim | Map specific data to claims |
+| **Application** | Text 2 applies Text 1's principle | General principle → specific case |
+| **Refinement** | Text 2 adds nuance to Text 1 | Broad claim → qualified claim |
+
+#### Cross-Text Practice
+**Text 1**: "Urban green spaces reduce stress. A study of 500 residents showed 30% lower cortisol near parks."
+**Text 2**: "While parks help, community gardens show even stronger effects—45% reduction in a similar study."
+
+| Question | Answer Approach |
+|----------|-----------------|
+| "How would Text 2's author respond to Text 1?" | "Agrees but adds nuance—gardens > parks" |
+| "Relationship between the studies?" | Text 2 extends/refines Text 1's finding |
+| "Shared assumption?" | Green spaces affect measurable biology |
+
+---
+
+### 📖 Rhetorical Synthesis: Advanced Techniques (from Rhetorical_Synthesis_L3)
+
+#### Goal-Driven Selection Protocol
+1. **Read the prompt FIRST** — know the goal before reading notes
+2. **Tag each note**: [Support] [Irrelevant] [Contradicts] [Background]
+3. **Select 2-3 [Support] notes** that directly address the goal
+4. **Synthesize with transitions**: "Additionally," "Furthermore," "Specifically,"
+
+#### Synthesis Templates by Goal
+| Goal | Template |
+|------|----------|
+| **Explain** | "[Topic] is [definition]. Key features include [detail 1] and [detail 2]. For example, [example]." |
+| **Argue** | "[Claim] because [evidence 1]. Additionally, [evidence 2]. This suggests [implication]." |
+| **Recommend** | "[Option A] offers [benefit 1] and [benefit 2]. While [drawback], [mitigating factor]. Therefore, [recommendation]." |
+| **Compare** | "Both [X] and [Y] share [similarity]. However, [X] [difference 1], whereas [Y] [difference 2]." |
+| **Summarize** | "The main points are [point 1], [point 2], and [point 3]. [Central takeaway]." |
+
+#### Advanced: Handling Conflicting Notes
+When notes contain contradictory information:
+- **Acknowledge tension**: "While [note A] suggests X, [note B] indicates Y."
+- **Weight by relevance**: Prioritize notes directly addressing the goal
+- **Synthesize nuance**: "The evidence is mixed: [summary of both sides]."
+
+---
+
+### 🔍 Text Structure and Purpose (from Text_Struc_Pur_L2)
+
+#### Structure Signal Words
+| Structure | Signal Words | Purpose |
+|-----------|-------------|---------|
+| **Cause/Effect** | because, since, therefore, thus, consequently, leads to | Explain why |
+| **Compare/Contrast** | similarly, likewise, however, unlike, whereas, conversely | Highlight similarities/differences |
+| **Problem/Solution** | issue, challenge, address, resolve, propose, remedy | Present fix |
+| **Chronological** | first, then, subsequently, finally, earlier, later | Show sequence |
+| **Argument** | claim, evidence, counterargument, rebuttal, therefore | Persuade |
+
+#### Identifying Author's Purpose
+| Purpose | Clues | Question Stems |
+|---------|-------|----------------|
+| **Inform** | Definitions, facts, neutral tone, data | "The passage primarily serves to..." |
+| **Argue** | Claims + evidence, addresses counterarguments | "The author's main argument is..." |
+| **Narrate** | First-person, chronological, descriptive | "The passage recounts..." |
+| **Critique** | Evaluation, judgment, "flawed," "overlooks" | "The author criticizes..." |
+
+---
+
+### 📝 Vocabulary in Context: Advanced Strategies (from Vocab Quizzes 16-20)
+
+#### Context Clue Types
+| Type | Signal | Example |
+|------|--------|---------|
+| **Definition** | "is defined as," "means," "refers to" | "Photosynthesis, *the process by which plants convert light to energy*..." |
+| **Example** | "for example," "such as," "including" | "Precipitation *such as rain, snow, and hail*..." |
+| **Contrast** | "however," "unlike," "but," "although" | "Unlike his *gregarious* brother, he was *reserved*." |
+| **Cause/Effect** | "because," "since," "resulted in" | "The *torrent* of rain *caused flooding*." |
+| **Inference** | (no signal — derive from context) | "The *desolate* landscape stretched for miles: no trees, no water, no life." |
+
+#### High-Frequency SAT Words (Vocab Quizzes 16-20)
+| Word | Definition | Memory Hook |
+|------|------------|-------------|
+| **Cogent** | Clear, logical, convincing | "Cogent argument *cogs* together perfectly" |
+| **Disparate** | Distinct, fundamentally different | "Disparate → Dis-parate → *apart*" |
+| **Ephemeral** | Short-lived | "Ephemeral → *ephemera* (mayfly = 1 day)" |
+| **Inexorable** | Unstoppable, inevitable | "In-exorable → *cannot be exor(ced) / begged off*" |
+| **Lucid** | Clear, intelligible | "Lucid → *lucid* dream = clear dream" |
+| **Obfuscate** | Make unclear | "Ob-fuscate → *obscure* + *fuscate* (darken)" |
+| **Precipitous** | Steep, hasty | "Precipice = cliff → precipitous = cliff-like" |
+| **Superfluous** | Unnecessary, extra | "Super-fluous → *super* (extra) + *fluous* (flow)" |
+| **Tenacious** | Persistent, holding fast | "Tenacious → *tenacity* = grip" |
+| **Ubiquitous** | Everywhere | "Ubi- = everywhere (ubiquitous)" |
+
+#### Vocab in Context Practice
+**Sentence**: "The scientist's theory was initially met with *skepticism*, but subsequent experiments *corroborated* her findings."
+- **Skepticism**: Doubt (contrast: "but subsequent experiments...")
+- **Corroborated**: Confirmed, supported (cause/effect: experiments → confirmation)
+
+---
+
+### 📚 Central Idea and Main Point Strategies
+
+#### The "Topic + Claim + Significance" Formula
+**Central Idea = Topic + Author's Claim about Topic + Why It Matters**
+
+| Component | Find It By |
+|-----------|------------|
+| **Topic** | Repeated nouns, title, first/last paragraph |
+| **Claim** | Thesis statement, topic sentences, conclusion |
+| **Significance** | "This matters because," implications, broader context |
+
+#### Central Idea Practice
+**Passage excerpt**: "Honeybees communicate through dance. The waggle dance conveys distance and direction. This sophisticated language challenges assumptions about insect cognition."
+
+- **Topic**: Honeybee communication
+- **Claim**: Waggle dance is a sophisticated language
+- **Significance**: Challenges assumptions about insect intelligence
+- **Central Idea**: "Honeybees use a sophisticated dance language that challenges traditional views of insect cognitive capacity."
+
+---
+
+### ⏱️ Time Management for DSAT Reading & Writing
+
+#### Module 1 (Mixed Difficulty) — 32 min, 27 questions = ~71 sec/q
+| Question Type | Target Time | Strategy |
+|---------------|-------------|----------|
+| Vocab in Context | 30-40 sec | Substitution test |
+| Text Structure | 45-60 sec | Signal word mapping |
+| Central Idea | 60-75 sec | Topic + Claim + Significance |
+| Inferences | 75-90 sec | Must Be True test |
+| Command of Evidence (Quant) | 60-75 sec | Match data to claim |
+| Cross-Text | 90-120 sec | ICC method |
+| Rhetorical Synthesis | 90-120 sec | Goal-driven selection |
+
+#### Module 2 (Adaptive) — Adjust for difficulty
+- **Harder M2**: More Cross-Text, Synthesis, complex Inferences
+- **Easier M2**: More Vocab, Text Structure, explicit Central Idea
+- **Always**: Flag > 2 min, guess, move on, return
+
+---
+
+### 🎯 Elimination Checklist for Every Question
+- [ ] **Extreme language?** ("always," "never," "completely," "totally") → Usually wrong
+- [ ] **Beyond passage?** Requires outside knowledge → Wrong
+- [ ] **Too narrow?** Focuses on one detail, misses main point → Wrong
+- [ ] **Too broad?** Goes beyond scope → Wrong
+- [ ] **Opposite?** Contradicts passage tone/claim → Wrong
+- [ ] **Distortion?** Twists passage meaning → Wrong
+- [ ] **Half-right?** One part correct, one part wrong → Wrong
+- [ ] **Not supported?** No textual evidence → Wrong
+
+---
+
+*Next update: Continue monitoring 2026 Summer SAT/ACT @ AHA for additional classroom materials*
+
 3. Cross-text: "Passage 2 mentions a study that..."
    - Must find EXACT reference in Passage 2, not Passage 1
 
