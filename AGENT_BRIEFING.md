@@ -10,7 +10,7 @@ This is a Telegram-based personal assistant bot running on a home server (i5-321
 
 ## Core Architecture
 
-### 1. LLM Routing (3-Tier Security Model)
+### 1. LLM Routing (User-Message Path)
 ```
 User Message → PII Privacy Filter (agy flash) → Route Decision:
     ├── PII detected → Local only (Ollama Qwen/Llama, agy flash/pro)
@@ -19,6 +19,18 @@ User Message → PII Privacy Filter (agy flash) → Route Decision:
 ```
 
 **CRITICAL SECURITY RULE:** Private data NEVER goes to OpenRouter/cloud. Only local models (Ollama, agy) handle PII.
+
+### 2. Per-Source Processing Pipeline (Internal)
+```
+Raw source data → Orange Pi 5 classifier (http://10.10.10.2:8080, qwen2:0.5b)
+    ├── High-confidence NOISE → Cache "no urgent updates", skip agy entirely
+    └── UNSURE / SIGNAL        → agy flash summary → cache file
+```
+
+All LLM calls route through `llm_router.py` — `ai_processor.py` no longer hosts the previous Qwen2 0.5B → Llama 3.2 3B fallback chain (`call_local_llm` removed in commit ac3faec).
+
+### 3. Embedding Zero-Vector Fallback
+When `scrapers/embedding_indexer.py:embed_texts` exhausts its 3-attempt Ollama retry against `OLLAMA_URL/api/embed`, it inserts independent zero vectors via `[[0.0] * DIM for _ in range(N)]` (list comprehension — one inner list per slot) into the index. The index still serializes via `np.savez_compressed`; `semantic_retrieval.py` later downweights those slots naturally via cosine-similarity on the unit-normalized vectors.
 
 ### 2. LLM Providers & Models
 | Provider | Models | Use Case |
@@ -127,9 +139,9 @@ User Message → PII Privacy Filter (agy flash) → Route Decision:
 ## Critical Files NOT to Break
 
 ### Security-Critical
-- `main.py` lines 240-300: PII filter + routing logic
-- `llm_router.py` lines 230-240: PII scrubbing before cloud calls
-- `config.py`: Model names, API keys
+- `main.py`: PII filter + routing logic (handle_message / send_to_antigravity_and_wait / watchdog)
+- `llm_router.py`: PII scrubbing before cloud calls, all LLM routing (call_openrouter, call_ollama, call_agy_local)
+- `config.py`: Model names, API keys, RPC fallback chain, Orange Pi 5 classifier URL
 
 ### Core Functionality
 - `activity_log.py`: All event tracking
