@@ -17,6 +17,7 @@ import subprocess
 import time
 import threading
 
+import httpx
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,6 @@ def invalidate_cache():
 
 
 # ── Query embedding ───────────────────────────────────────────────────────────
-import httpx
 
 # Shared httpx client for connection pooling
 _ollama_client = None
@@ -111,20 +111,55 @@ def _ollama_is_running() -> bool:
         return False
 
 
-def _start_ollama():
-    """Try to start Ollama if it's not running. Non-blocking."""
+# ── Background-start state (single-spawn gating) ──────────────────────────────────────────────────────────────────
+_ollama_start_lock = threading.Lock()
+_ollama_start_attempted = False
+
+# Success-stays-True gate: flag latches True for the process lifetime
+# after a successful warm. Ollama crashes mid-session do NOT recover
+# (restart the bot). This is stricter than pre-bbdfce9 (which would
+# re-Popen on the next embed_query after a mid-session crash), accepted
+# for sub-ms cold-start. Failure / timeout in _start_ollama_async reset
+# the flag under _ollama_start_lock so the next cold-start can retry.
+
+
+def _start_ollama_async() -> None:
+    """Background thread target. Popen + readiness poll OFF the hot
+    request path so embed_query's caller doesn't block on cold start.
+    Resets _ollama_start_attempted on failure/timeout so a later query
+    can try again; on success the flag stays True to suppress repeated
+    redundant starts while Ollama is up.
+    """
     try:
         subprocess.Popen(
             ["ollama", "serve"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        for _ in range(10):  # wait up to 10s
+        for _ in range(10):  # wait up to 10s for readiness
             time.sleep(1)
             if _ollama_is_running():
-                return True
-    except Exception:
-        pass
+                logger.info("Ollama started in background.")
+                return
+        logger.warning("Ollama background start did not become ready in 10s.")
+    except (OSError, FileNotFoundError) as e:
+        logger.warning(f"Failed to start Ollama in background: {e}")
+    # On failure/timeout: reset the gate so a later query can retry.
+    with _ollama_start_lock:
+        global _ollama_start_attempted
+        _ollama_start_attempted = False
+
+
+def _start_ollama() -> bool:
+    """Fast-path gate-spawn. Returns False immediately so embed_query
+    can fall back to non-semantic retrieval. The daemon thread spawned
+    inside does the actual Popen + readiness poll on its own time.
+    """
+    with _ollama_start_lock:
+        global _ollama_start_attempted
+        if not _ollama_start_attempted:
+            _ollama_start_attempted = True
+            threading.Thread(target=_start_ollama_async, daemon=True).start()
     return False
 
 
@@ -159,7 +194,7 @@ def embed_query(query: str) -> np.ndarray | None:
                 vec = vec / norm
             return vec
     except httpx.TimeoutException:
-        logger.warning(f"Query embedding timeout")
+        logger.warning("Query embedding timeout")
         return None
     except Exception as e:
         logger.warning(f"Query embedding error: {e}")

@@ -35,12 +35,6 @@ This document consolidates historical details, ongoing study topics, upcoming ta
 *   **Resubmit Day 14 Geometry Problem**: Draw three right triangles before resubmitting. Synced from Google Classroom. *(Source: Google Classroom Announcements / [chat_history_8534649457_notion.txt](file:///home/sanel/personal-assistant-bot/chat_history_8534649457_notion.txt))*
 *   **Track Admissions Inquiries**: Monitor admissions updates from Concord University, Centre College, and The Princeton Review. *(Source: Gmail)*
 
-### ⚙️ Ongoing Background Processes
-*   **Ollama Text Embedding Indexer (`nomic-embed-text`)**: 
-    *   **Status**: `33.3%` complete (72/216 chunks embedded via [build_index](file:///home/sanel/personal-assistant-bot/scrapers/embedding_indexer.py#L249) in [embedding_indexer.py](file:///home/sanel/personal-assistant-bot/scrapers/embedding_indexer.py)).
-    *   **Time Details**: Started at June 29, 2026, 23:19:24. ~2 hours 50 minutes remaining (Estimated completion: ~3:50 AM on June 30).
-    *   **Logs**: [/tmp/embed_build4.log](file:///tmp/embed_build4.log) *(Source: [chat_history_8534649457_embedding_progress.txt](file:///home/sanel/personal-assistant-bot/chat_history_8534649457_embedding_progress.txt))*
-
 ---
 
 ## 📚 Current Study Topics

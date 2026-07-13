@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger(__name__)
 
 # Use unified config
-from config import AGENTAPI_BIN, BASE_DIR, CACHE_DIR as CONFIG_CACHE_DIR, LATEST_DIGEST_FILE
+from config import AGENTAPI_BIN, CACHE_DIR as CONFIG_CACHE_DIR, LATEST_DIGEST_FILE
 BOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 CACHE_DIR = Path(CONFIG_CACHE_DIR)
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -135,7 +135,8 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
                             output_chunks.append(chunk)
                         except OSError:
                             break
-                except Exception:
+                except Exception as e:
+                    logger.debug("PTY select error during pty poll: %r", e)
                     break
                 if proc.poll() is not None:
                     try:
@@ -152,8 +153,8 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
 
             try:
                 proc.wait(timeout=5)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("proc.wait error: %r", e)
 
             raw = b"".join(output_chunks).decode("utf-8", errors="replace")
             import re
@@ -164,8 +165,8 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
                 logger.error(f"agy {target_model} timed out after {timeout}s")
                 try:
                     proc.kill()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("proc.kill error after wait timeout: %r", e)
                 return ""
                 
             return clean
@@ -182,8 +183,8 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
             if proc and proc.poll() is None:
                 try:
                     proc.kill()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("proc.kill error in finally: %r", e)
 
     logger.info(f"Attempting processing with {model}...")
     result = _run_model(model)
@@ -193,51 +194,10 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
         
     return result
 
-def call_local_llm(prompt: str) -> str:
-    """
-    Calls Qwen2 0.5B via Ollama. Falls back to Llama 3.2 3B if unsure.
-    Delegates to llm_router for unified Ollama calls.
-    """
-    try:
-        from llm_router import call_ollama, is_orangepi_ollama_healthy
-        # Try Orange Pi 5 first (faster NPU acceleration)
-        if is_orangepi_ollama_healthy():
-            logger.info("Using Orange Pi 5 Ollama for local inference")
-            response = call_ollama(prompt, model="qwen2:0.5b")
-            if "UNSURE" not in response.upper():
-                return response if response else "Could not summarize locally."
-            logger.info("Qwen2:0.5b on Orange Pi 5 was UNSURE. Falling back to Llama 3.2 3B GGUF...")
-            response = call_ollama(prompt, model="qwen2.5:3b-instruct-q4_K_M")
-        else:
-            logger.info("Orange Pi 5 Ollama unavailable, using local Ollama")
-            response = call_ollama(prompt, model="hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest")
-            if "UNSURE" in response.upper():
-                logger.info("Qwen2:0.5b was UNSURE. Falling back to Llama 3.2 3B GGUF...")
-                response = call_ollama(prompt, model="hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest")
-        return response if response else "Could not summarize locally."
-    except ImportError:
-        pass
-
-    # Fallback: inline implementation
-    import requests
-    def _call(model_name: str) -> str:
-        try:
-            res = requests.post(
-                "http://localhost:11434/api/generate",
-                json={"model": model_name, "prompt": prompt, "stream": False, "options": {"temperature": 0.0}},
-                timeout=60
-            )
-            if res.status_code == 200:
-                return res.json().get("response", "").strip()
-            return ""
-        except Exception as e:
-            logger.error(f"Ollama error for {model_name}: {e}")
-            return ""
-
-    response = _call("hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest")
-    if "UNSURE" in response.upper():
-        response = _call("hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest")
-    return response if response else "Could not summarize locally."
+# NOTE: call_local_llm was removed — no callers remain (verified via repo-wide grep).
+# Superseded by the Pi classifier pre-filter + agy flash pipeline in process_source().
+# The original Qwen2 0.5B -> Llama 3.2 3B fallback chain is still visible in git history
+# (git log -- ai_processor.py), last present in d7c2c92.
 
 
 
@@ -256,7 +216,7 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
     # Content-hash caching: skip LLM processing if source unchanged
     if not force_reprocess:
         try:
-            from utils import has_changed, mark_processed
+            from utils import has_changed
             if not has_changed(name, data[:1000]):
                 try:
                     with open(cache_file, "r", encoding="utf-8") as f:
@@ -264,8 +224,8 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
                     if cached and cached != f"No {name} data available.":
                         logger.info(f"Source {name} unchanged — using cached summary ({len(cached)} chars)")
                         return cached
-                except Exception:
-                    pass  # cache miss, process normally
+                except Exception as e:
+                    logger.debug(f"cache read fell through, regenerating {name}: %r", e)
         except ImportError:
             pass  # utils not available, skip caching
 
@@ -303,8 +263,8 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
                     rules = f.read().strip()
                 if rules:
                     prompt += f"\n\nUSER'S CUSTOM RULES (MUST FOLLOW):\n{rules}\n"
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("rules_file unreadable, proceeding without: %r", e)
 
         prompt += "\n\nIf you see a completely new type of item you're unsure about, reply: [ASK_USER] description"
 
@@ -320,13 +280,13 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
 
     with open(cache_file, "w") as f:
         f.write(summary)
-        
+
     try:
-        from utils import mark_processed
-        mark_processed(name, data[:1000])
+        from utils import mark_processed as _mark_processed
+        _mark_processed(name, data[:1000])
     except ImportError:
         pass
-        
+
     logger.info(f"Saved {name} summary to {cache_file}")
     return summary
 
@@ -377,16 +337,16 @@ def assemble_digest(summaries: dict) -> dict:
     if tasks_match:
         try:
             tasks = json.loads(tasks_match.group(1).strip())
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Malformed tasks JSON from LLM (left empty): %r", e)
         digest = digest.replace('TASKS_JSON:' + tasks_match.group(1), '').strip()
 
     topics_match = _re.search(r'STUDY_TOPICS_JSON:(.*?)(?:TASKS_JSON:|$)', digest, _re.DOTALL)
     if topics_match:
         try:
             topics = json.loads(topics_match.group(1).strip().split('\n')[0])
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Malformed topics JSON from LLM (left empty): %r", e)
         digest = digest.replace('STUDY_TOPICS_JSON:' + topics_match.group(1).split('\n')[0], '').strip()
 
     # ── Deduplication: bullet-level string comparison (fast, no LLM) ─────────
@@ -395,8 +355,8 @@ def assemble_digest(summaries: dict) -> dict:
     try:
         with open(previous_digest_path, "r", encoding="utf-8") as f:
             previous_digest = f.read().strip()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("previous_digest unreadable, skipping dedup: %r", e)
 
     if previous_digest:
         import re as _re

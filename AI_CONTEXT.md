@@ -3,10 +3,10 @@
 **If you are an AI Agent reading this file**, welcome to the Personal Assistant Bot codebase! The user has asked you to help maintain, debug, or extend this system. This file provides the critical architectural context you need to safely edit this project.
 
 ## Core Philosophy
-1. **Hybrid LLM Architecture**: This system uses OpenRouter (specifically models like `owl-alpha` and `flash`) for heavy reasoning and study guide generation, falling back to local processing when necessary. Always ensure `OPENROUTER_API_KEY` is utilized for intense tasks.
+1. **Hybrid LLM Architecture**: This system uses OpenRouter (default: `nvidia/nemotron-3-ultra-550b-a55b:free`, fallback: `nvidia/nemotron-3-nano-30b-a3b:free`) and local agy (`flash`/`pro`) for heavy reasoning and study guide generation, falling back to local processing when necessary. Always ensure `OPENROUTER_API_KEY` is utilized for intense tasks.
 2. **Syncthing Pipeline**: All generated Markdown files meant for the user MUST be deposited exactly into `/home/sanel/personal-assistant-bot/study_guides/`. Do not pollute the root directory. Syncthing is mapped strictly to `study_guides/` to natively beam files into Obsidian.
-3. **Token Conservation (Delta Updates)**: Do not wipe and rewrite 400KB study guides from scratch. We use lightweight append-only loops in `nightly_processor.py` to add new daily classroom notes to the bottom of existing guides.
-4. **No Direct Database**: This system uses raw markdown files (`mega_index.md`, `study_guides/curated_brain.md`) and JSON files as its database.
+3. **Token Conservation (Delta Updates)**: Do not wipe and rewrite 400KB study guides from scratch. We use lightweight append-only loops in `memory_consolidation.py` to add new daily classroom notes to the bottom of existing guides.
+4. **No Direct Database**: This system uses raw markdown files (`mega_index.md`, `curated_brain.md`) and JSON files as its database.
 
 ## Codebase Map
 
