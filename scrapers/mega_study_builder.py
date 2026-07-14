@@ -119,7 +119,51 @@ def search_youtube(topic: str):
                     except Exception:
                         continue
                 videosSearch.next()
+            except TypeError as e:
+                if "proxies" in str(e):
+                    # youtubesearchpython version mismatch - try without proxies
+                    logger.warning("YouTube search: proxies parameter issue, retrying with basic search")
+                    try:
+                        videosSearch = VideosSearch(f"{topic} educational tutorial", limit=20)
+                        result = videosSearch.result()
+                        if result and "result" in result and result["result"]:
+                            for video in result["result"]:
+                                if len(meta_titles) >= 100: break
+                                try:
+                                    transcript = ytt_api.fetch(video["id"])
+                                    combined_text += f"\n--- VIDEO: {video['title']} ---\n"
+                                    combined_text += " ".join([s.text for s in transcript.snippets])
+                                    meta_titles.append(video["title"])
+                                except Exception:
+                                    continue
+                    except Exception as e2:
+                        logger.error(f"YouTube search error (retry): {e2}")
+                else:
+                    logger.error(f"YouTube search page failed: {e}")
+                    break
             except Exception as e:
+                # Handle 'proxies' keyword argument error from youtubesearchpython
+                if "proxies" in str(e):
+                    logger.warning("YouTube search: proxies parameter issue in request, retrying")
+                    try:
+                        videosSearch = VideosSearch(f"{topic} educational tutorial", limit=20)
+                        result = videosSearch.result()
+                        if result and "result" in result and result["result"]:
+                            for video in result["result"]:
+                                if len(meta_titles) >= 100: break
+                                try:
+                                    transcript = ytt_api.fetch(video["id"])
+                                    combined_text += f"\n--- VIDEO: {video['title']} ---\n"
+                                    combined_text += " ".join([s.text for s in transcript.snippets])
+                                    meta_titles.append(video["title"])
+                                except Exception:
+                                    continue
+                        return {"title": f"Fetched {len(meta_titles)} YouTube Transcripts | " + " | ".join(meta_titles[:5]) + "...", "link": "Multiple Videos"}, combined_text
+                    except Exception as e2:
+                        logger.error(f"YouTube search error (retry): {e2}")
+                else:
+                    logger.error(f"YouTube search page failed: {e}")
+                    break
                 logger.error(f"YouTube search page failed: {e}")
                 break
                 

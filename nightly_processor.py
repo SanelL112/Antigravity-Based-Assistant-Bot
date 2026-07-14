@@ -159,15 +159,23 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
         if not success:
             print(f"Git add failed: {output}")
             return
-        success, output = run_cmd_safe(f'git commit -m "docs: Nightly autonomous update of {filename_base} study guide"', timeout=30)
-        if not success:
-            print(f"Git commit failed: {output}")
-            return
-        success, output = run_cmd_safe("git push", timeout=60)
-        if not success:
-            print(f"Git push failed: {output}")
-            return
-        print(f"Nightly build for '{topic}' completely successfully!")
+        # Check if there are actually changes to commit
+        success, output = run_cmd_safe("git diff --cached --quiet", timeout=10)
+        if success:
+            # No changes staged - nothing to commit
+            print("No changes to commit (study guide already up to date)")
+            print(f"Nightly build for '{topic}' completed successfully (no changes)!")
+        else:
+            # Has changes - proceed with commit
+            success, output = run_cmd_safe(f'git commit -m "docs: Nightly autonomous update of {filename_base} study guide"', timeout=30)
+            if not success:
+                print(f"Git commit failed: {output}")
+                return
+            success, output = run_cmd_safe("git push", timeout=60)
+            if not success:
+                print(f"Git push failed: {output}")
+                return
+            print(f"Nightly build for '{topic}' completed successfully!")
     else:
         print(f"Failed to process study guide for {topic}.")
 
@@ -186,8 +194,9 @@ def main():
     print("Executing Google Classroom & Drive Sync...")
     try:
         from scrapers.nightly_processor import run_nightly_job
+        from config import SANEL_CHAT_ID
         # Safely run the async sync job in the event loop
-        asyncio.run(run_nightly_job(None, 8534649457))
+        asyncio.run(run_nightly_job(None, SANEL_CHAT_ID))
         print("Successfully synced and downloaded all new queued PDFs and Docs into the memory bank.")
     except Exception as e:
         print(f"Warning: Failed to drain nightly sync queue: {e}")

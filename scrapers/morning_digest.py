@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 NOTION_API_KEY = os.getenv("NOTION_API_KEY")
 DATABASE_ID = "38309c49-e758-8004-8005-c5440093e2cb"
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-SANEL_CHAT_ID = 8534649457
+from config import SANEL_CHAT_ID
 
 def get_pending_tasks():
     """Fetch ALL pending Notion tasks with pagination (not just first 100)."""

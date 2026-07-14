@@ -67,7 +67,7 @@ async def consolidate_memory():
     )
     
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=5.0)) as client:
             response = await client.post(
                 "http://localhost:11434/api/generate",
                 json={
@@ -83,10 +83,10 @@ async def consolidate_memory():
         if response.status_code == 200:
             brain = response.json().get("response", "").strip()
         else:
-            raise Exception(f"Ollama returned {response.status_code}")
+            raise Exception(f"Ollama returned {response.status_code}: {response.text[:500]}")
             
     except Exception as e:
-        logger.warning(f"Local Llama 3.2 failed to consolidate memory ({e}). Falling back to secure local G1 Flash to protect PII...")
+        logger.warning(f"Local Llama 3.2 failed to consolidate memory ({type(e).__name__}: {e}). Falling back to secure local G1 Flash to protect PII...")
         from ai_processor import call_agy
         brain = call_agy(prompt, timeout=180, model="flash")
 
@@ -107,7 +107,7 @@ async def consolidate_memory():
             # Merge old and new
             merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
             try:
-                async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=5.0)) as client:
+                async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=5.0)) as client:
                     resp2 = await client.post(
                         "http://localhost:11434/api/generate",
                         json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": merge_prompt, "stream": False}

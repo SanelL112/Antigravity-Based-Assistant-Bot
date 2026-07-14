@@ -82,8 +82,8 @@ if __name__ == "__main__":
     import sys
     # For testing manually
     from telegram import Bot
+    from config import SANEL_CHAT_ID
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-    SANEL_CHAT_ID = 8534649457
     if TELEGRAM_BOT_TOKEN:
         bot = Bot(token=TELEGRAM_BOT_TOKEN)
         asyncio.run(run_nightly_job(bot, SANEL_CHAT_ID))
