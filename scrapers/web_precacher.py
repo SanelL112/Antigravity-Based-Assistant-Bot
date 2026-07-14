@@ -14,6 +14,14 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import OR_FALLBACK_MODEL
 
+REFUSAL_PREFIXES = ("i cannot", "i'm sorry", "i don't know", "as an ai")
+
+def is_refusal(text):
+    if not text:
+        return True
+    lower_text = text.lower()[:50]
+    return any(p in lower_text for p in REFUSAL_PREFIXES)
+
 async def pre_cache_web():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     brain_file = os.path.join(base_dir, "curated_brain.md")
@@ -49,10 +57,10 @@ async def pre_cache_web():
                 return None
                
         topic = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
-        if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+        if is_refusal(topic):
             logger.warning(f"Nemotron failed in precacher, falling back to {OR_FALLBACK_MODEL}...")
             fallback = _call_or(OR_FALLBACK_MODEL, prompt)
-            if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+            if fallback and not is_refusal(fallback):
                 topic = fallback
             else:
                 logger.warning("Fallback failed, falling back to local G1 Flash...")
@@ -108,10 +116,10 @@ async def pre_cache_web():
                 # Summarize
                 sum_prompt = f"Summarize the following educational text about {topic}. Extract key formulas, facts, and examples.\n\nTEXT:\n{text[:10000]}"
                 summary = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", sum_prompt)
-                if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+                if is_refusal(summary):
                     logger.warning(f"Nemotron failed summarization, falling back to {OR_FALLBACK_MODEL}...")
                     fallback = _call_or(OR_FALLBACK_MODEL, sum_prompt)
-                    if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+                    if fallback and not is_refusal(fallback):
                         summary = fallback
                     else:
                         logger.warning("Fallback failed summarization, falling back to local G1 Flash...")
