@@ -128,19 +128,39 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     new_tasks = []
     seen_titles = state.setdefault("seen_tasks", [])
     
+    seen_titles_set = set(seen_titles)
+    matcher = difflib.SequenceMatcher()
+
     for task in ai_result.get("tasks", []):
         task_title = task.get("title", "").strip().lower()
         if not task_title: continue
         
+        if task_title in seen_titles_set:
+            continue
+
         is_duplicate = False
+        t_len = len(task_title)
+        matcher.set_seq1(task_title)
+
         for seen in seen_titles:
-            if difflib.SequenceMatcher(None, task_title, seen).ratio() > 0.8:
+            s_len = len(seen)
+            if t_len == 0 or s_len == 0:
+                continue
+
+            # Mathematical upper bound on ratio based on string lengths
+            max_ratio = 2.0 * min(t_len, s_len) / (t_len + s_len)
+            if max_ratio <= 0.8:
+                continue
+
+            matcher.set_seq2(seen)
+            if matcher.real_quick_ratio() > 0.8 and matcher.quick_ratio() > 0.8 and matcher.ratio() > 0.8:
                 is_duplicate = True
                 break
                 
         if not is_duplicate:
             new_tasks.append(task)
             seen_titles.append(task_title)
+            seen_titles_set.add(task_title)
             
     state["seen_tasks"] = seen_titles
     save_state(state)
