@@ -221,21 +221,41 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not internal_notes:
         internal_notes = "None"
 
-    from llm_router import call_openrouter
+    from llm_router import call_openrouter, estimate_tokens
     from config import OPENROUTER_API_KEY
-    
+
     if not OPENROUTER_API_KEY:
         return "❌ Missing OPENROUTER_API_KEY in .env"
 
+    # Token budget: max 500K tokens per night (prevents 21M token nights)
+    MAX_NIGHTLY_TOKENS = 500000
+    nightly_tokens_used = 0
+
     def _call_or(prompt_text, timeout=3600):
-        """Unified OpenRouter caller — delegates to llm_router."""
-        return call_openrouter(
+        """Unified OpenRouter caller — delegates to llm_router with token tracking."""
+        global nightly_tokens_used
+    
+        # Estimate tokens before call
+        prompt_tokens = estimate_tokens(prompt_text)
+        if nightly_tokens_used + prompt_tokens > MAX_NIGHTLY_TOKENS:
+            logger.warning(f"Token budget exceeded ({nightly_tokens_used}/{MAX_NIGHTLY_TOKENS}), skipping call")
+            return ""
+    
+        result = call_openrouter(
             model=OR_FALLBACK_MODEL,
             prompt=prompt_text,
             task="study-guide",
             fallback_chain=[OR_THIRD_MODEL],
             timeout=timeout,
         )
+    
+        # Track tokens used (approximate from result)
+        if result:
+            result_tokens = estimate_tokens(result)
+            nightly_tokens_used += prompt_tokens + result_tokens
+            logger.info(f"Token usage: {nightly_tokens_used}/{MAX_NIGHTLY_TOKENS} (this call: ~{prompt_tokens + result_tokens})")
+    
+        return result
 
     logger.info("Assembling and cleaning context payload...")
     

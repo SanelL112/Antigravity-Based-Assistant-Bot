@@ -40,6 +40,7 @@ def run_cmd_safe(cmd: str, timeout: int = 120, cwd: str = None) -> tuple[bool, s
     except Exception as e:
         return False, f"Error: {e}"
 
+
 def extract_dynamic_topics(pdf_text: str, num_topics: int = 3) -> list:
     """Uses the AI to extract new, highly specific topics from the user's classroom notes."""
     prompt = f"""You are an intelligent topic extractor. Scan the following classroom notes and identify exactly {num_topics} distinct, highly specific academic topics or chapters that would make great study guides.
@@ -67,46 +68,46 @@ Notes:
 
     return ["General Mathematics", "Advanced Grammar", "Test Strategies"]
 
+
 def build_and_push(topic: str):
     """Generates or updates the massive study guide and automatically pushes it to GitHub."""
     print(f"\n==============================================")
     print(f"Starting Nightly Build Pipeline for: {topic}")
     print(f"==============================================\n")
-    
+
     filename_base = topic.replace(" ", "_").replace("/", "_")
     output_md = f"/home/sanel/personal-assistant-bot/study_guides/{filename_base}_Study_Guide.md"
     output_docx = f"/home/sanel/personal-assistant-bot/study_guides/{filename_base}_Study_Guide.docx"
-    
+
     # Check if we should append to save tokens instead of rebuilding
     if os.path.exists(output_md):
         print(f"Study guide for {topic} already exists. Running lightweight append-only update to save tokens...")
-        
+
         internal_notes = ""
         notes_file = "/home/sanel/personal-assistant-bot/scrapers/source_cache/combined_summaries.txt"
         pdf_file = "/home/sanel/personal-assistant-bot/scrapers/source_cache/pdf_exports.txt"
-        
+
         if os.path.exists(notes_file):
             with open(notes_file, "r") as f:
                 internal_notes += f.read().replace('\x00', '').strip()
         if os.path.exists(pdf_file):
             with open(pdf_file, "r") as f:
                 internal_notes += "\n\n" + f.read().replace('\x00', '').strip()
-                
+
         if not internal_notes.strip():
             print("No new classroom notes to append. Skipping update.")
             return
-            
+
         today = datetime.datetime.now().strftime("%Y-%m-%d")
         prompt = f"""You are an elite academic tutor. We are appending a new section to an existing master study guide on "{topic}".
-Below are the LATEST classroom notes from today. 
-Write a highly detailed new section titled "## 📅 Update: {today} - New Concepts" that perfectly synthesizes these new notes. 
+Below are the LATEST classroom notes from today.
+Write a highly detailed new section titled "## 📅 Update: {today} - New Concepts" that perfectly synthesizes these new notes.
 DO NOT rewrite the entire study guide, ONLY output the new section to be appended to the bottom.
 
 --- NEW CLASSROOM NOTES ---
-{internal_notes}
-"""
+{internal_notes}"""
         print("Calling OpenRouter for Delta-Append generation...")
-        
+
         scrubbed_prompt = scrub_pii(prompt)
         try:
             new_section = call_openrouter(
@@ -119,12 +120,12 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
         except Exception as e:
             print(f"OpenRouter connection error: {e}")
             new_section = ""
-        
+
         if new_section:
             # Clean up <thought> tags
             import re
             new_section = re.sub(r'<thought>.*?</thought>', '', new_section, flags=re.DOTALL).strip()
-            
+
             with open(output_md, "a", encoding="utf-8") as f:
                 f.write(f"\n\n---\n\n{new_section}\n")
             print(f"Successfully appended new concepts to {output_md}")
@@ -132,7 +133,7 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
         else:
             print("Failed to generate append section.")
             result = False
-            
+
     else:
         print(f"No existing guide found for {topic}. Running full 10-chapter Mega Build...")
         result_text = generate_mega_guide(topic)
@@ -179,6 +180,7 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
     else:
         print(f"Failed to process study guide for {topic}.")
 
+
 def main():
     print(f"=== Nightly Processor Started at {datetime.datetime.now()} ===")
 
@@ -189,7 +191,7 @@ def main():
     success, output = run_cmd_safe("git pull", timeout=60)
     if not success:
         print(f"Git pull failed (continuing anyway): {output}")
-    
+
     # 0. Sync New Google Classroom & Google Drive Files
     print("Executing Google Classroom & Drive Sync...")
     try:
@@ -200,12 +202,12 @@ def main():
         print("Successfully synced and downloaded all new queued PDFs and Docs into the memory bank.")
     except Exception as e:
         print(f"Warning: Failed to drain nightly sync queue: {e}")
-    
+
     # 1. Separated Core Study Guides (Disciplinary Split)
     build_and_push("SAT Math and Geometry Master Guide")
     build_and_push("SAT Reading Comprehension Master Guide")
     build_and_push("SAT Writing and Grammar Master Guide")
-    
+
     # 2. Load the Google Classroom PDF text to find dynamic topics
     pdf_path = "/home/sanel/personal-assistant-bot/scrapers/source_cache/pdf_exports.txt"
     pdf_text = ""
@@ -214,19 +216,36 @@ def main():
             pdf_text = f.read()
             # Strip null-bytes just to be safe
             pdf_text = pdf_text.replace('\x00', '')
-    
+
     if pdf_text:
         # 3. Extract 3 dynamic topics based on the classroom material
         topics = extract_dynamic_topics(pdf_text, num_topics=3)
         print(f"Discovered dynamic topics for tonight's run: {topics}")
-        
+
         # 4. Build a massive study guide for each discovered topic
-        for dynamic_topic in topics:
+        # SAFETY LIMIT: max 3 dynamic topics per night (already enforced by extract_dynamic_topics)
+        max_topics = 3
+        for dynamic_topic in topics[:max_topics]:
             build_and_push(dynamic_topic)
     else:
         print("No Classroom PDF data found. Skipping dynamic topic generation.")
-        
+
     print(f"=== Nightly Processor Finished at {datetime.datetime.now()} ===")
+
+
+if __name__ == "__main__":
+    import subprocess
+    import time
+
+    # Run the main processor
+    main()
+
+    # Nightly Build Complete: Stop Ollama to save RAM for the next day
+    print("Nightly build complete. Stopping Ollama...")
+    success, output = run_cmd_safe("pkill -f 'ollama serve'", timeout=10)
+    if not success:
+        print(f"Failed to stop Ollama: {output}")
+
 
 if __name__ == "__main__":
     import subprocess
