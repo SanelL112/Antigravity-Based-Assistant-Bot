@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
 from youtubesearchpython import VideosSearch
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from youtube_transcript_api import YouTubeTranscriptApi
 from ai_processor import call_agy
 
@@ -50,32 +51,50 @@ def search_web_article(topic: str):
     logger.info(f"Searching Web for: {topic}...")
     try:
         queries = [f"{topic} tutorial", f"{topic} explanation", f"{topic} study guide", f"{topic} practice problems", f"{topic} advanced concepts"]
-        combined_text = ""
-        sources_list = []
         
+        unique_results = []
+        seen_hrefs = set()
         for q in queries:
             logger.info(f"Querying DuckDuckGo: {q}...")
             try:
                 results = DDGS().text(q, max_results=20)
                 if not results: continue
-                
                 for res in results:
-                    if len(sources_list) >= 100: break
-                    if any(s["href"] == res["href"] for s in sources_list): continue
-                    
-                    try:
-                        resp = requests.get(res["href"], timeout=5)
-                        soup = BeautifulSoup(resp.content, "html.parser")
-                        combined_text += f"\n--- SOURCE: {res['title']} ---\n"
-                        combined_text += " ".join([p.text for p in soup.find_all("p")])
-                        sources_list.append({"title": res["title"], "href": res["href"]})
-                    except Exception:
-                        continue
+                    href = res.get("href")
+                    if href not in seen_hrefs:
+                        seen_hrefs.add(href)
+                        unique_results.append(res)
+                        if len(unique_results) >= 100:
+                            break
             except Exception as e:
                 logger.error(f"Web search query failed: {e}")
                 pass
-            if len(sources_list) >= 100: break
+            if len(unique_results) >= 100:
+                break
                 
+        combined_text = ""
+        sources_list = []
+
+        def fetch_url(res):
+            try:
+                resp = requests.get(res["href"], timeout=5)
+                if resp.status_code == 200:
+                    soup = BeautifulSoup(resp.content, "html.parser")
+                    text = " ".join([p.text for p in soup.find_all("p")])
+                    return res, text
+            except Exception:
+                pass
+            return res, None
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_res = {executor.submit(fetch_url, res): res for res in unique_results}
+            for future in as_completed(future_to_res):
+                res, text = future.result()
+                if text:
+                    combined_text += f"\n--- SOURCE: {res['title']} ---\n"
+                    combined_text += text
+                    sources_list.append({"title": res["title"], "href": res["href"]})
+
         if sources_list:
             logger.info(f"Successfully scraped {len(sources_list)} Web Articles.")
             return sources_list, combined_text
