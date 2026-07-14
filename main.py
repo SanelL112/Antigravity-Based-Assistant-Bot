@@ -122,8 +122,11 @@ async def watchdog_check(context: ContextTypes.DEFAULT_TYPE):
     if watchdog_lock.locked():
         logger.warning("watchdog already running, skipping")
         return
-    async with watchdog_lock:
-        await _watchdog_impl(context)
+    try:
+        async with watchdog_lock:
+            await _watchdog_impl(context)
+    except Exception as e:
+        logger.error(f"Watchdog failed: {e}")
 
 
 async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
