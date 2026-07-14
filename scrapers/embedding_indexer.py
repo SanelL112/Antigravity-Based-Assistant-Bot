@@ -168,17 +168,22 @@ def collect_sources() -> list[dict]:
 
 async def ensure_model():
     """Pull nomic-embed-text if not already present."""
-    async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
-        resp = await client.get(f"{OLLAMA_URL}/api/tags")
-        if resp.status_code == 200:
-            models = [m["name"] for m in resp.json().get("models", [])]
-            if any(EMBED_MODEL in m for m in models):
-                logger.info(f"Model {EMBED_MODEL} already present")
-                return
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
+            resp = await client.get(f"{OLLAMA_URL}/api/tags")
+            if resp.status_code == 200:
+                models = [m["name"] for m in resp.json().get("models", [])]
+                if any(EMBED_MODEL in m for m in models):
+                    logger.info(f"Model {EMBED_MODEL} already present")
+                    return
         logger.info(f"Pulling {EMBED_MODEL} (first run only, ~274 MB)...")
-        resp = await client.post(f"{OLLAMA_URL}/api/pull", json={"name": EMBED_MODEL}, timeout=httpx.Timeout(connect=10.0, read=600.0, write=10.0, pool=5.0))
-        if resp.status_code != 200:
-            raise RuntimeError(f"Failed to pull {EMBED_MODEL}: {resp.text}")
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=600.0, write=10.0, pool=5.0)) as client:
+            resp = await client.post(f"{OLLAMA_URL}/api/pull", json={"name": EMBED_MODEL}, timeout=httpx.Timeout(connect=10.0, read=600.0, write=10.0, pool=5.0))
+            if resp.status_code != 200:
+                raise RuntimeError(f"Failed to pull {EMBED_MODEL}: {resp.text}")
+    except Exception as e:
+        logger.error(f"Failed to ensure model {EMBED_MODEL}: {type(e).__name__}: {e}")
+        raise
 
 
 async def embed_texts(texts: list[str]) -> np.ndarray:
@@ -209,13 +214,21 @@ async def embed_texts(texts: list[str]) -> np.ndarray:
                     raise RuntimeError(f"No embeddings returned for batch at index {i}")
                 all_embeddings.extend(embeddings)
                 break  # success
-            except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError):
+            except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.HTTPStatusError) as e:
                 if attempt < 2:
-                    logger.warning(f"Timeout on batch {i//BATCH_SIZE} (attempt {attempt+1}/3), retrying...")
+                    logger.warning(f"Timeout on batch {i//BATCH_SIZE} (attempt {attempt+1}/3): {type(e).__name__}, retrying...")
                     await asyncio.sleep(5)
                 else:
-                    logger.error(f"Batch {i//BATCH_SIZE} failed after 3 attempts, using zero vectors")
+                    logger.error(f"Batch {i//BATCH_SIZE} failed after 3 attempts, using zero vectors: {type(e).__name__}: {e}")
                     all_embeddings.extend([[0.0] * DIM for _ in range(len(batch))])
+            except Exception as e:
+                logger.error(f"Unexpected error on batch {i//BATCH_SIZE}: {type(e).__name__}: {e}")
+                if attempt < 2:
+                    await asyncio.sleep(5)
+                else:
+                    logger.error(f"Batch {i//BATCH_SIZE} failed after 3 attempts, using zero vectors: {type(e).__name__}: {e}")
+                    all_embeddings.extend([[0.0] * DIM for _ in range(len(batch))])
+                    break
 
         if i + BATCH_SIZE < len(texts):
             logger.info(f"  Embedded {i + len(batch)}/{len(texts)} chunks...")

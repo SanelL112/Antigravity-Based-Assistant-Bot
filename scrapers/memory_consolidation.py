@@ -81,7 +81,11 @@ async def consolidate_memory():
             )
         
         if response.status_code == 200:
-            brain = response.json().get("response", "").strip()
+            response_data = response.json()
+            brain = response_data.get("response", "")
+            if brain is None:
+                brain = ""
+            brain = brain.strip()
         else:
             raise Exception(f"Ollama returned {response.status_code}: {response.text[:500]}")
             
@@ -113,7 +117,11 @@ async def consolidate_memory():
                         json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": merge_prompt, "stream": False}
                     )
                     if resp2.status_code == 200:
-                        final_brain = resp2.json().get("response", "").strip()
+                        response_data = resp2.json()
+                        final_brain = response_data.get("response", "")
+                        if final_brain is None:
+                            final_brain = ""
+                        final_brain = final_brain.strip()
                     else:
                         raise Exception("Ollama merge failed")
             except Exception as e:

@@ -813,7 +813,7 @@ def check_rpc_memory_ok(server_min_mb: int = 1500, worker_min_mb: int = 800) -> 
     Returns:
         (ok, reason) — ok=True if both machines have sufficient RAM.
     """
-    from config import RPC_WORKER_URL
+    # RPC_WORKER_URL is defined at module level
 
     server_free = get_free_memory_mb()
     if server_free == -1:
