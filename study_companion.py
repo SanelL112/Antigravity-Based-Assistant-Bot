@@ -48,6 +48,25 @@ def search_youtube(topic: str) -> dict:
                 "link": video.get("link"),
                 "channel": video.get("channel", {}).get("name", "Unknown")
             }
+    except TypeError as e:
+        if "proxies" in str(e):
+            # youtubesearchpython version mismatch - try without proxies
+            logger.warning("YouTube search: proxies parameter issue, retrying with basic search")
+            try:
+                videosSearch = VideosSearch(f"{topic} educational tutorial", limit=1)
+                result = videosSearch.result()
+                if result and "result" in result and len(result["result"]) > 0:
+                    video = result["result"][0]
+                    return {
+                        "id": video.get("id"),
+                        "title": video.get("title"),
+                        "link": video.get("link"),
+                        "channel": video.get("channel", {}).get("name", "Unknown")
+                    }
+            except Exception as e2:
+                logger.error(f"YouTube search error (retry): {e2}")
+        else:
+            logger.error(f"YouTube search error: {e}")
     except Exception as e:
         logger.error(f"YouTube search error: {e}")
     return None

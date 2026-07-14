@@ -9,7 +9,7 @@ from telegram.ext import ContextTypes
 from bot.security import require_auth
 from bot.state import load_state, save_state
 from utils import create_backup, list_backups, restore_backup, get_correlation_summary, get_health_status
-from config import SANEL_CHAT_ID
+from config import SANEL_CHAT_ID, GROUPME_GROUP_ID, LATEST_DIGEST_FILE
 from bot.runtime import _track_task
 from scrapers.mega_study_builder import build_guide_for_drive_file
 from llm_router import get_cost_summary
@@ -17,6 +17,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
+@require_auth
 async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     args = context.args
@@ -90,6 +91,7 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Model safely switched to *{display_name}* ✅", parse_mode="Markdown")
 
 
+@require_auth
 async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     msg = await context.bot.send_message(chat_id=chat_id, text="⏳ Generating your summary digest... This might take a minute.")
@@ -102,14 +104,18 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from ai_processor import process_all_sources
     from scrapers.notion_client import add_task_to_notion
     
-    canvas = get_all_canvas_data() or "No Canvas"
-    classroom = get_classroom_assignments() or "No Classroom"
-    gmail = get_unread_emails() or "No Gmail"
-    groupme = get_latest_messages("102851186") or "No GroupMe"
-    announcements = get_classroom_announcements() or "No Announcements"
-    docs = get_recent_google_docs() or "No Docs"
+    # Move ALL data gathering into asyncio.to_thread to avoid blocking the event loop
+    def gather_all_data():
+        canvas = get_all_canvas_data() or "No Canvas"
+        classroom = get_classroom_assignments() or "No Classroom"
+        gmail = get_unread_emails() or "No Gmail"
+        groupme = get_latest_messages(GROUPME_GROUP_ID) or "No GroupMe"
+        announcements = get_classroom_announcements() or "No Announcements"
+        docs = get_recent_google_docs() or "No Docs"
+        return canvas, classroom, gmail, groupme, announcements, docs
     
     try:
+        canvas, classroom, gmail, groupme, announcements, docs = await asyncio.to_thread(gather_all_data)
         ai_result = await asyncio.to_thread(process_all_sources, canvas, classroom, gmail, groupme, announcements, docs)
     except Exception as e:
         logger.error(f"Error during AI digest generation: {e}")
@@ -148,7 +154,7 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         digest += f"\n\n🚨 **NEW TASKS DETECTED** 🚨\n{tasks_str}\nShould I add these to Notion? If yes, reply with their priority (high/medium/low) and progress. If I should ignore any of them, let me know so I can learn!"
     if digest and digest != "Nothing to report right now!":
         try:
-            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "w") as f:
+            with open(LATEST_DIGEST_FILE, "w") as f:
                 f.write(digest)
         except Exception:
             pass
@@ -177,12 +183,9 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=chat_id, text=topic_msg)
 
 
+@require_auth
 async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
-    if chat_id != config.SANEL_CHAT_ID:
-        await context.bot.send_message(chat_id=chat_id, text="❌ Unauthorized.")
-        return
-
     cmd = " ".join(context.args)
     if not cmd:
         await context.bot.send_message(chat_id=chat_id, text="Usage: `/bash <command>`", parse_mode="Markdown")
@@ -196,6 +199,7 @@ async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception:
         await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=reply)
 
+@require_auth
 async def priority_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if len(context.args) != 2:
@@ -223,6 +227,7 @@ async def priority_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=chat_id, text="❌ Failed to update Notion.")
 
+@require_auth
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -276,7 +281,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
             return
     elif data == "digest_dismiss":
-        await query.edit_message_text("� Okay, I won't build a guide right now. Ask me anytime!")
+        await query.edit_message_text("👌 Okay, I won't build a guide right now. Ask me anytime!")
         return
 
     # ── Task priority buttons ────────────────────────────────────────────
@@ -301,7 +306,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # ── Photo response buttons ───────────────────────────────────────────
     if data == "photo:grade":
-        await query.edit_message_text("� To grade a practice test, send a photo of your completed problems with the topic as a caption (e.g. 'SAT Math')")
+        await query.edit_message_text("📝 To grade a practice test, send a photo of your completed problems with the topic as a caption (e.g. 'SAT Math')")
         return
     elif data == "photo:save":
         await query.edit_message_text("✅ Got it — I'll save any photo text I see to your extracts.")
@@ -335,17 +340,20 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             await context.bot.send_message(chat_id=chat_id, text=f"❌ Failed to build guide: {e}")
 
+@require_auth
 async def ping_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Health check: uptime, disk, last digest, queue size, file sizes."""
     await update.message.reply_text(get_health_status(), parse_mode="Markdown")
 
+@require_auth
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Cost dashboard: LLM usage, tokens, estimated cost."""
     await update.message.reply_text(get_cost_summary(), parse_mode="Markdown")
 
+@require_auth
 async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Create a backup now or list available backups."""
-    msg = await update.message.reply_text("� Creating backup...")
+    msg = await update.message.reply_text("📦 Creating backup...")
     path = create_backup()
     if path:
         await context.bot.edit_message_text(
@@ -358,6 +366,7 @@ async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="❌ Backup failed. Check logs."
         )
 
+@require_auth
 async def restore_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """List or restore from backups. Usage: /restore [list|dry-run <path>]"""
     args = context.args
@@ -375,17 +384,15 @@ async def restore_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         result = restore_backup(args[1], dry_run=True)
         await update.message.reply_text(result, parse_mode="Markdown")
 
+@require_auth
 async def correlations_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show cross-source correlation stats."""
     await update.message.reply_text(get_correlation_summary(), parse_mode="Markdown")
 
 
+@require_auth
 async def classroom_pdfs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Download PDFs from Google Classroom assignments."""
-    if update.effective_chat.id != SANEL_CHAT_ID:
-        await update.message.reply_text("Unauthorized.")
-        return
-
     msg = await update.message.reply_text("📥 Downloading Classroom PDFs...")
     try:
         from scrapers.google_scraper import download_classroom_pdfs
@@ -424,13 +431,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(help_text, parse_mode="Markdown")
 
 
+@require_auth
 async def errors_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Scan bot logs for recent errors and report findings."""
     chat_id = update.effective_chat.id
-    if chat_id != SANEL_CHAT_ID:
-        await update.message.reply_text("Unauthorized.")
-        return
-
     msg = await update.message.reply_text("🔍 Scanning logs for issues...")
 
     # Parse optional hours argument
@@ -593,6 +597,7 @@ async def _mc_stop():
         return "🛑 Minecraft server stopping..."
     except Exception as e: return str(e)
 
+@require_auth
 async def server_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
     if not args:
@@ -635,8 +640,7 @@ async def server_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text(f"❌ Unknown module: {cmd}")
 
-# ── NEW: Import unified modules ───────────────────────────────────────────────
-import config
+# ── Import unified modules ───────────────────────────────────────────────
 from llm_router import call_openrouter, get_cost_summary, is_valid_response, OR_DEFAULT_MODEL, OR_FALLBACK_MODEL
 from utils import (
     run_bash_safely, enforce_all_rotations, create_backup,

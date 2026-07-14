@@ -305,6 +305,10 @@ def assemble_digest(summaries: dict) -> dict:
     with _write_lock:
         with open(combined_summaries_path, "a", encoding="utf-8") as f:
             f.write(summary_text)
+    # Rotate combined_summaries.txt to prevent unbounded growth
+    from utils import rotate_file_if_needed
+    from config import MAX_COMBINED_SUMMARIES_CHARS
+    rotate_file_if_needed(Path(combined_summaries_path), MAX_COMBINED_SUMMARIES_CHARS)
         
     # Read and inject local OCR / photo extracts
     extracts_file = os.path.join(BOT_DIR, "important_extracts.txt")
@@ -344,39 +348,34 @@ def assemble_digest(summaries: dict) -> dict:
     topics_match = _re.search(r'STUDY_TOPICS_JSON:(.*?)(?:TASKS_JSON:|$)', digest, _re.DOTALL)
     if topics_match:
         try:
-            topics = json.loads(topics_match.group(1).strip().split('\n')[0])
+            topics = json.loads(topics_match.group(1).strip())
         except Exception as e:
             logger.debug("Malformed topics JSON from LLM (left empty): %r", e)
         digest = digest.replace('STUDY_TOPICS_JSON:' + topics_match.group(1).split('\n')[0], '').strip()
 
-    # ── Deduplication: bullet-level string comparison (fast, no LLM) ─────────
+    # ── Deduplication: bullet-level comparison using persistent hash set ────
+    # Uses seen_bullets.json to track ALL bullets ever seen, preventing
+    # oscillation where old bullets are forgotten and re-notified.
+    import re as _re
     previous_digest_path = LATEST_DIGEST_FILE
-    previous_digest = ""
+    seen_bullets_path = CACHE_DIR / "seen_bullets.json"
+    seen_bullets: set = set()
     try:
-        with open(previous_digest_path, "r", encoding="utf-8") as f:
-            previous_digest = f.read().strip()
+        if seen_bullets_path.exists():
+            seen_bullets = set(json.loads(seen_bullets_path.read_text()))
     except Exception as e:
-        logger.debug("previous_digest unreadable, skipping dedup: %r", e)
+        logger.debug("seen_bullets unreadable, starting fresh: %r", e)
 
-    if previous_digest:
-        import re as _re
-
-        # Extract normalized bullet lines from previous digest
-        prev_bullets = set()
-        for line in previous_digest.split("\n"):
-            line = line.strip()
-            if line.startswith(("•", "-", "✅", "📎", "▶️")):
-                normalized = _re.sub(r'[^\w\s]', '', line).strip().lower()
-                prev_bullets.add(normalized)
-
+    if seen_bullets:
         kept = []
         new_bullet_count = 0
         for line in digest.split("\n"):
             stripped = line.strip()
-            if stripped.startswith(("•", "-", "✅", "�", "▶️")):
+            if stripped.startswith(("•", "-", "✅", "📎", "▶️")):
                 normalized = _re.sub(r'[^\w\s]', '', stripped).strip().lower()
-                if normalized not in prev_bullets:
+                if normalized not in seen_bullets:
                     kept.append(line)
+                    seen_bullets.add(normalized)
                     new_bullet_count += 1
                 # else: duplicate bullet, skip
             else:
@@ -388,10 +387,30 @@ def assemble_digest(summaries: dict) -> dict:
         else:
             digest = "\n".join(kept)
             logger.info(f"Deduplication: kept {new_bullet_count} new bullets, removed duplicates.")
+    else:
+        # First run: seed the persistent set with all current bullets
+        for line in digest.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith(("•", "-", "✅", "📎", "▶️")):
+                normalized = _re.sub(r'[^\w\s]', '', stripped).strip().lower()
+                seen_bullets.add(normalized)
 
-    # Save final digest to file
-    with open(previous_digest_path, "w") as f:
-        f.write(digest)
+    # Persist seen bullets (cap at 5000 to prevent unbounded growth)
+    try:
+        bullet_list = list(seen_bullets)
+        if len(bullet_list) > 5000:
+            bullet_list = bullet_list[-5000:]
+        seen_bullets_path.write_text(json.dumps(bullet_list))
+        logger.info(f"Persisted {len(bullet_list)} seen bullets to {seen_bullets_path}")
+    except Exception as e:
+        logger.error(f"Failed to persist seen bullets: {e}")
+
+    # Save deduped digest to latest_digest.txt for display
+    try:
+        with open(previous_digest_path, "w") as f:
+            f.write(digest)
+    except Exception as e:
+        logger.error(f"Failed to save digest: {e}")
 
     return {"tasks": tasks, "digest": digest, "topics": topics}
 

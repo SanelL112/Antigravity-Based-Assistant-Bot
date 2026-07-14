@@ -18,11 +18,18 @@ class _RateLimiter:
         self.lock = threading.Lock()
 
     def wait(self):
+        # Calculate sleep time under lock, then sleep outside lock
         with self.lock:
             elapsed = _time.time() - self.last_call
             if elapsed < self.min_interval:
-                _time.sleep(self.min_interval - elapsed)
-            self.last_call = _time.time()
+                sleep_time = self.min_interval - elapsed
+            else:
+                sleep_time = 0
+            self.last_call = _time.time() + sleep_time
+        
+        # Sleep outside the lock to avoid blocking other threads
+        if sleep_time > 0:
+            _time.sleep(sleep_time)
 
 _notion_limiter = _RateLimiter()
 

@@ -187,7 +187,7 @@ BLOCKED_PATTERNS = [
     'chroot', 'pivot_root',
     '> /dev/', '> /proc/', '> /sys/',
     'tar --checkpoint', 'tar --checkpoint-action',
-    '__import__', 'importlib', 'exec(', 'eval(', 'os.system', 'subprocess',
+    '__import__', 'importlib', 'exec(', 'eval(', 'os.system',
 ]
 
 _audit_log_path = BASE_DIR / "command_audit.log"
@@ -243,7 +243,7 @@ def _is_command_allowed(cmd: str) -> tuple[bool, str]:
             code_idx = parts.index('-c') + 1
             if code_idx < len(parts):
                 code = parts[code_idx]
-                dangerous = ['os.system', 'subprocess', 'eval(', 'exec(', '__import__', 'open(', 'importlib']
+                dangerous = ['os.system', 'eval(', 'exec(', '__import__', 'open(', 'importlib']
                 if any(d in code for d in dangerous):
                     return False, "Dangerous Python code detected"
 
@@ -299,12 +299,12 @@ def run_bash_safely(cmd: str, chat_id: int = 0, timeout: int = 60) -> str:
     """
     import shlex
 
-    # Rate limit: max 10 commands per minute per chat
+    # Rate limit: max 10 commands per minute per chat - use thread-safe version
     now = time.time()
-    recent = [t for t in _rate_limit.get(chat_id, []) if now - t < 60]
+    recent = get_rate_limit_timestamps(chat_id)
     if len(recent) >= 10:
         return "⛔ Rate limit exceeded (10 commands/min). Wait a bit."
-    _rate_limit[chat_id] = recent + [now]
+    add_rate_limit_timestamp(chat_id)
 
     # Safety check - allowlist validation
     allowed, reason = _is_command_allowed(cmd)

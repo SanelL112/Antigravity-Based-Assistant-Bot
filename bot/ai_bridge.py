@@ -6,7 +6,7 @@ import httpx
 import time
 from utils import scrub_pii, run_bash_safely
 from activity_log import log_llm_call, log_event
-from config import AGENTAPI_BIN, RESPONSE_TIMEOUT
+from config import AGENTAPI_BIN, RESPONSE_TIMEOUT, LATEST_DIGEST_FILE, BOT_CONTEXT_FILE, BASE_DIR
 from bot.state import load_state
 from bot.runtime import _track_task
 
@@ -16,7 +16,8 @@ async def detect_topic(message: str, chat_id: int) -> str:
     """Detect conversation topic using local Ollama model. Returns an existing topic or invents a new one."""
     import glob
     import re
-    history_dir = os.path.dirname(os.path.abspath(__file__))
+    # Use BASE_DIR from config (consistent with other modules) instead of __file__
+    history_dir = BASE_DIR
     existing_files = glob.glob(os.path.join(history_dir, f"chat_history_{chat_id}_*.txt"))
     
     existing_topics = []
@@ -64,13 +65,13 @@ async def detect_topic(message: str, chat_id: int) -> str:
 async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, context=None, status_msg=None) -> str:
     """Uses agy --print for a direct response. Works standalone on Debian."""
     try:
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest_digest.txt"), "r") as f:
+        with open(LATEST_DIGEST_FILE, "r") as f:
             digest_context = f.read()
     except Exception:
         digest_context = "No recent data available."
         
     try:
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bot_context.txt"), "r") as f:
+        with open(BOT_CONTEXT_FILE, "r") as f:
             brain_context = f.read()
     except Exception:
         brain_context = "No offline memory consolidated yet."
@@ -126,8 +127,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         except Exception: pass
     # Detect topic and load the matching history file
     topic = await detect_topic(user_message, chat_id)
-    history_dir = os.path.dirname(os.path.abspath(__file__))
-    history_file = os.path.join(history_dir, f"chat_history_{chat_id}_{topic}.txt")
+    history_file = os.path.join(BASE_DIR, f"chat_history_{chat_id}_{topic}.txt")
     logger.info(f"Topic detected: {topic} -> {os.path.basename(history_file)}")
 
     system = (
@@ -579,7 +579,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         logger.info("Command executed. Dispatching Verification Agent...")
         
         custom_instructions = ""
-        vrules = os.path.join(os.path.dirname(os.path.abspath(__file__)), "verification_rules.txt")
+        vrules = os.path.join(BASE_DIR, "verification_rules.txt")
         if os.path.exists(vrules):
             with open(vrules, "r") as f:
                 custom_instructions = f"\n\nCRITICAL CUSTOM INSTRUCTIONS FROM USER:\n{f.read()}"

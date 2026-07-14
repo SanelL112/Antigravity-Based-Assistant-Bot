@@ -183,14 +183,14 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     if not OPENROUTER_API_KEY:
         return "❌ Missing OPENROUTER_API_KEY in .env"
 
-    def _call_or(prompt_text):
+    def _call_or(prompt_text, timeout=3600):
         """Unified OpenRouter caller — delegates to llm_router."""
         return call_openrouter(
             model=OR_FALLBACK_MODEL,
             prompt=prompt_text,
             task="study-guide",
             fallback_chain=[OR_THIRD_MODEL],
-            timeout=3600,
+            timeout=timeout,
         )
 
     logger.info("Assembling and cleaning context payload...")
@@ -301,7 +301,16 @@ Example: ["Chapter 1: Introduction to Formulas", "Chapter 2: Advanced Mechanics"
             f"document (max 3000 chars) preserving all key facts, formulas, and concepts for "
             f"the topic '{topic}'. Be comprehensive but concise.\n\nSOURCE MATERIAL:\n{source_context}",
             timeout=120,
-        ) or source_context[:8000]  # fallback to truncated original
+        )
+        # Fallback: truncate at sentence boundary instead of arbitrary char count
+        if not condensed_context:
+            # Find last complete sentence within 8000 chars
+            truncated = source_context[:8000]
+            last_period = max(truncated.rfind('.'), truncated.rfind('!'), truncated.rfind('?'))
+            if last_period > 1000:  # If we found a reasonable sentence end
+                condensed_context = truncated[:last_period + 1]
+            else:
+                condensed_context = truncated
 
     # PHASE 2: Chunked Generation
     logger.info(f"PHASE 2: Generating {len(outline)} Chapters...")

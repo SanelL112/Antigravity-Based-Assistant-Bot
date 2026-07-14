@@ -6,3 +6,12 @@
 {"ts": 1783615882.7674348, "time": "12:51:22", "date": "2026-07-09", "cat": "message", "details": {"preview": "Heloo", "routed_to": "unknown"}}
 {"ts": 1783640949.656201, "time": "19:49:09", "date": "2026-07-09", "cat": "llm_call", "details": {"model": "nvidia/nemotron-3-nano-30b-a3b:free", "task": "chat", "duration_s": 0, "cost_usd": 0, "tokens_in": 0, "tokens_out": 0, "local": false}}
 {"ts": 1783640952.0178614, "time": "19:49:12", "date": "2026-07-09", "cat": "message", "details": {"preview": "hi", "routed_to": "unknown"}}
+{"ts": 1783921223.7876327, "time": "01:40:23", "date": "2026-07-13", "cat": "nightly", "details": {"phase": "classroom_pdfs", "status": "completed", "result": "Downloaded 2 Classroom PDFs to classroom_pdfs/:\n  2026 Summer SAT/ACT @ AHA/Bound_L3 (4).pdf (PDF + "}}
+{"ts": 1783921437.589638, "time": "01:43:57", "date": "2026-07-13", "cat": "nightly", "details": {"phase": "embedding_indexer", "status": "started"}}
+{"ts": 1783921752.1630323, "time": "01:49:12", "date": "2026-07-13", "cat": "nightly", "details": {"phase": "embedding_indexer", "status": "completed"}}
+{"ts": 1783921753.8731806, "time": "01:49:13", "date": "2026-07-13", "cat": "nightly", "details": {"phase": "rpc_deep_research", "status": "failed", "message": "cannot import name 'RPC_WORKER_URL' from 'config' (/home/sanel/personal-assistan"}}
+{"ts": 1783922684.449056, "time": "02:04:44", "date": "2026-07-13", "cat": "test", "details": {"email": "sanel.lathiya@email.com", "phone": "555-123-4567", "note": "Call me at 555-123-4567 or email sanel.lathiya@email.com", "task": "SSN 123-45-6789 is needed"}}
+{"ts": 1784006179.1795704, "time": "01:16:19", "date": "2026-07-14", "cat": "nightly", "details": {"phase": "classroom_pdfs", "status": "completed", "result": "Downloaded 3 Classroom PDFs to classroom_pdfs/:\n  2026 Summer SAT/ACT @ AHA/Infer_L3 (2).pdf (PDF + "}}
+{"ts": 1784006398.2971323, "time": "01:19:58", "date": "2026-07-14", "cat": "nightly", "details": {"phase": "embedding_indexer", "status": "started"}}
+{"ts": 1784006399.0479355, "time": "01:19:59", "date": "2026-07-14", "cat": "nightly", "details": {"phase": "embedding_indexer", "status": "completed"}}
+{"ts": 1784006400.5984616, "time": "01:20:00", "date": "2026-07-14", "cat": "nightly", "details": {"phase": "rpc_deep_research", "status": "failed", "message": "cannot import name 'RPC_WORKER_URL' from 'config' (/home/sanel/personal-assistan"}}

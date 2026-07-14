@@ -7,6 +7,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 from config import TOKEN_PATH, CREDENTIALS_PATH
 
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
@@ -47,7 +48,7 @@ TOKEN_PATH = os.path.join(os.path.dirname(__file__), '..', 'token.json')
 
 def get_google_credentials():
     """Get Google credentials with caching and retry on refresh.
-    
+
     Thread-safe: uses _creds_lock to prevent concurrent refreshes.
     """
     global _google_creds, _google_creds_refreshed_at
@@ -84,7 +85,7 @@ def get_google_credentials():
                                 "Run 'python3 google_auth_setup.py' on a machine with a browser to regenerate token.json."
                             )
                             return None
-            
+
             if not creds or not creds.valid:
                 # Token refresh failed — cannot auto-re-auth on headless server.
                 # Run google_auth_setup.py on a machine with a browser, then copy
@@ -98,131 +99,108 @@ def get_google_credentials():
 
         if not creds:
             logger.error(
-                "Google credentials unavailable. Run 'python3 google_auth_setup.py' on a "
-                "machine with a browser to generate token.json, then copy it to the server."
+                "Google credentials unavailable. Ensure token.json exists and is valid."
             )
             return None
 
-        with open(TOKEN_PATH, 'w') as token:
-            token.write(creds.to_json())
-
+        # Update cache
         _google_creds = creds
         _google_creds_refreshed_at = _time.time()
         return creds
 
-def get_unread_emails(limit=5):
-    """Fetch recent unread emails from Gmail."""
+
+def get_unread_emails() -> str:
+    """Fetch up to 5 unread emails from Gmail."""
     creds = get_google_credentials()
     if not creds:
-        return "Google API credentials not configured. Please place credentials.json in the project root."
-        
+        return "Google API credentials not configured."
+
     try:
         service = build('gmail', 'v1', credentials=creds)
-        # Call the Gmail API
-        results = service.users().messages().list(userId='me', labelIds=['UNREAD'], maxResults=limit).execute()
+        results = service.users().messages().list(userId='me', labelIds=['UNREAD'], maxResults=5).execute()
         messages = results.get('messages', [])
 
         if not messages:
             return "No unread emails."
-            
-        result = ["📧 **Recent Unread Emails:**"]
+
+        output = []
         for msg in messages:
-            msg_data = service.users().messages().get(userId='me', id=msg['id'], format='metadata', metadataHeaders=['Subject', 'From']).execute()
-            headers = msg_data['payload']['headers']
-            subject = next((header['value'] for header in headers if header['name'] == 'Subject'), 'No Subject')
-            sender = next((header['value'] for header in headers if header['name'] == 'From'), 'Unknown Sender')
-            result.append(f"From: {sender}\nSubject: {subject}\n")
-            
-        return "\n".join(result)
+            msg_data = service.users().messages().get(userId='me', id=msg['id'], format='full').execute()
+            headers = msg_data['payload'].get('headers', [])
+            subject = next((h['value'] for h in headers if h['name'] == 'Subject'), 'No Subject')
+            sender = next((h['value'] for h in headers if h['name'] == 'From'), 'Unknown Sender')
+            date = next((h['value'] for h in headers if h['name'] == 'Date'), 'Unknown Date')
+            output.append(f"From: {sender}\nSubject: {subject}\nDate: {date}\n---")
+
+        return "\n".join(output)
     except Exception as e:
-        logger.error(f"Error fetching Gmail: {e}")
+        logger.error(f"Error fetching emails: {e}")
         return f"Error connecting to Gmail: {e}"
 
-def get_classroom_assignments():
-    """Fetch coursework from Google Classroom."""
+
+def get_classroom_assignments() -> str:
+    """Fetch assignments from Google Classroom (last 30 days)."""
     creds = get_google_credentials()
     if not creds:
         return "Google API credentials not configured."
-        
+
     try:
         service = build('classroom', 'v1', credentials=creds)
-        # Call the Classroom API
         results = service.courses().list(courseStates=['ACTIVE']).execute()
         courses = results.get('courses', [])
 
         if not courses:
             return "No active Google Classroom courses found."
-        
+
         import datetime
         cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)
 
-        result = ["🏫 **Google Classroom Assignments:**"]
+        output = []
         for course in courses:
             try:
                 coursework = service.courses().courseWork().list(
                     courseId=course['id'],
                     courseWorkStates=['PUBLISHED'],
                     orderBy='updateTime desc',
-                    pageSize=15
+                    pageSize=20
                 ).execute()
                 works = coursework.get('courseWork', [])
+
                 for work in works:
-                    title = work.get('title', 'Untitled')
-                    
-                    # Extract due date if present
-                    due_date_obj = work.get('dueDate')
-                    due_time_obj = work.get('dueTime', {})
-                    due_str = "No due date"
-                    if due_date_obj:
-                        year = due_date_obj.get('year', 0)
-                        month = due_date_obj.get('month', 0)
-                        day = due_date_obj.get('day', 0)
-                        if year and month and day:
-                            due_str = f"{year}-{month:02d}-{day:02d}"
-                            hours = due_time_obj.get('hours', 0)
-                            minutes = due_time_obj.get('minutes', 0)
-                            if hours or minutes:
-                                due_str += f" {hours:02d}:{minutes:02d}"
-                    
-                    # Filter: skip assignments updated more than 30 days ago
                     update_time = work.get('updateTime', '')
                     if update_time:
                         try:
                             updated = datetime.datetime.fromisoformat(update_time.replace('Z', '+00:00'))
-                            if updated < cutoff:  # aware vs aware
+                            if updated < cutoff:
                                 continue
                         except Exception:
                             pass
-                    
-                    materials = work.get('materials', [])
-                    mat_list = []
-                    for mat in materials:
-                        if 'driveFile' in mat and 'driveFile' in mat['driveFile']:
-                            df = mat['driveFile']['driveFile']
-                            mat_list.append(f"📎 {df.get('title')} ({df.get('alternateLink')})")
-                        elif 'link' in mat:
-                            l = mat['link']
-                            mat_list.append(f"🔗 {l.get('title')} ({l.get('url')})")
-                        elif 'youtubeVideo' in mat:
-                            y = mat['youtubeVideo']
-                            mat_list.append(f"▶️ {y.get('title')} ({y.get('alternateLink')})")
-                    
-                    mat_str = "\n    ".join(mat_list) if mat_list else "No attachments"
-                    result.append(f"[{course['name']}] {title} — Due: {due_str}\n    {mat_str}")
+
+                    title = work.get('title', 'Untitled')
+                    due_date = work.get('dueDate', {})
+                    due_str = ""
+                    if due_date:
+                        try:
+                            due_str = f" (Due: {due_date.get('year', '')}-{due_date.get('month', ''):02d}-{due_date.get('day', ''):02d})"
+                        except Exception:
+                            pass
+
+                    output.append(f"  [{course['name']}] {title}{due_str}")
+
             except Exception as e:
-                logger.warning(f"Could not fetch coursework for {course['name']}: {e}")
-                
-        if len(result) == 1:
-             return "No recent published coursework found."
-             
-        return "\n".join(result)
+                logger.warning(f"Error fetching coursework for {course['name']}: {e}")
+
+        if not output:
+            return "No recent assignments found."
+
+        return "Google Classroom Assignments:\n" + "\n".join(output)
+
     except Exception as e:
-        logger.error(f"Error fetching Classroom data: {e}")
-        return f"Error connecting to Google Classroom: {e}"
+        return f"Error: {e}"
 
 
-def get_classroom_announcements(limit=10):
-    """Fetch recent announcements from all active Google Classroom courses."""
+def get_classroom_announcements() -> str:
+    """Fetch announcements from Google Classroom (last 30 days)."""
     creds = get_google_credentials()
     if not creds:
         return "Google API credentials not configured."
@@ -235,87 +213,79 @@ def get_classroom_announcements(limit=10):
         if not courses:
             return "No active Google Classroom courses found."
 
-        result = ["📢 **Google Classroom Announcements:**"]
+        import datetime
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)
+
+        output = []
         for course in courses:
             try:
                 announcements = service.courses().announcements().list(
                     courseId=course['id'],
-                    announcementStates=['PUBLISHED'],
-                    pageSize=limit
+                    orderBy='updateTime desc',
+                    pageSize=10
                 ).execute()
-                items = announcements.get('announcements', [])
-                for item in items:
-                    text = item.get('text', '(no text)').replace('\n', ' ').strip()
-                    if len(text) > 200:
-                        text = text[:200] + '...'
-                    result.append(f"[{course['name']}] {text}")
+                anns = announcements.get('announcements', [])
+
+                for ann in anns:
+                    update_time = ann.get('updateTime', '')
+                    if update_time:
+                        try:
+                            updated = datetime.datetime.fromisoformat(update_time.replace('Z', '+00:00'))
+                            if updated < cutoff:
+                                continue
+                        except Exception:
+                            pass
+
+                    text = ann.get('text', 'No content')
+                    text = text[:200] + "..." if len(text) > 200 else text
+                    output.append(f"  [{course['name']}] {text}")
+
             except Exception as e:
-                logger.warning(f"Could not fetch announcements for {course['name']}: {e}")
+                logger.warning(f"Error fetching announcements for {course['name']}: {e}")
 
-        if len(result) == 1:
-            return "No recent Classroom announcements found."
+        if not output:
+            return "No recent announcements found."
 
-        return "\n".join(result)
+        return "Google Classroom Announcements:\n" + "\n".join(output)
+
     except Exception as e:
-        logger.error(f"Error fetching Classroom announcements: {e}")
-        return f"Error connecting to Google Classroom: {e}"
+        return f"Error: {e}"
 
-def get_recent_google_docs():
-    """Fetches text from Google Docs modified in the last 4 hours."""
+
+def get_recent_google_docs() -> str:
+    """Fetch recently modified Google Docs from Drive (last 30 days)."""
     creds = get_google_credentials()
     if not creds:
-        return "Not authenticated."
+        return "Google API credentials not configured."
 
     try:
-        drive_service = build('drive', 'v3', credentials=creds, cache_discovery=False)
-        docs_service = build('docs', 'v1', credentials=creds, cache_discovery=False)
-
+        service = build('drive', 'v3', credentials=creds)
         import datetime
-        four_hours_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=4)).isoformat().replace("+00:00", "Z")
-        
-        # Search for Google Docs modified in the last 4 hours
-        query = f"mimeType='application/vnd.google-apps.document' and modifiedTime > '{four_hours_ago}' and trashed=false"
-        # Add shared drive support to watchdog query
-        results = drive_service.files().list(
-            q=query, 
-            fields="files(id, name)", 
+        cutoff = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
+        query = f"mimeType='application/vnd.google-apps.document' and modifiedTime > '{cutoff}' and trashed=false"
+        results = service.files().list(
+            q=query,
+            orderBy='modifiedTime desc',
             pageSize=10,
+            fields="files(id, name, modifiedTime, webViewLink)",
             supportsAllDrives=True,
-            includeItemsFromAllDrives=True,
-            corpora="allDrives"
+            includeItemsFromAllDrives=True
         ).execute()
-        items = results.get('files', [])
+        files = results.get('files', [])
 
-        if not items:
-            return "No recently modified Google Docs found."
+        if not files:
+            return "No recent Google Docs found."
 
-        output = ["Recent Google Docs:"]
-        for item in items:
-            doc_id = item['id']
-            title = item['name']
-            try:
-                # Fetch the document content
-                doc = docs_service.documents().get(documentId=doc_id).execute()
-                text_content = ""
-                for element in doc.get('body', {}).get('content', []):
-                    if 'paragraph' in element:
-                        for pe in element['paragraph']['elements']:
-                            if 'textRun' in pe:
-                                text_content += pe['textRun']['content']
-                
-                # Truncate if it's super long to save tokens
-                text_content = text_content.strip()
-                if len(text_content) > 1000:
-                    text_content = text_content[:1000] + "\n...[truncated]"
-                    
-                output.append(f"--- Doc: {title} ---\n{text_content}\n")
-            except Exception as e:
-                logger.warning(f"Could not read doc {title}: {e}")
+        output = []
+        for f in files:
+            output.append(f"  {f['name']} — Modified: {f['modifiedTime'][:10]} — {f.get('webViewLink', '')}")
 
-        return "\n".join(output)
+        return "Recent Google Docs:\n" + "\n".join(output)
+
     except Exception as e:
         logger.error(f"Error fetching Google Docs: {e}")
         return f"Error connecting to Google Drive/Docs: {e}"
+
 
 def download_drive_file(file_id: str, output_path: str) -> bool:
     """Downloads a file from Google Drive by file ID. Automatically exports Google Docs/Workspace files."""
@@ -327,12 +297,12 @@ def download_drive_file(file_id: str, output_path: str) -> bool:
         return False
     try:
         service = build('drive', 'v3', credentials=creds)
-        
+
         # 1. Get file metadata to check mimeType (must support shared drives)
         file_meta = service.files().get(fileId=file_id, fields="mimeType,name", supportsAllDrives=True).execute()
         mime_type = file_meta.get("mimeType", "")
         file_name = file_meta.get("name", "")
-        
+
         # Google Workspace types that MUST be exported (cannot be downloaded directly)
         workspace_types = {
             "application/vnd.google-apps.document": "application/pdf",
@@ -350,7 +320,7 @@ def download_drive_file(file_id: str, output_path: str) -> bool:
             "application/vnd.google-apps.audio": "audio/mpeg",
             "application/vnd.google-apps.video": "video/mp4",
         }
-        
+
         request = None
         if mime_type in workspace_types:
             export_mime = workspace_types[mime_type]
@@ -370,13 +340,13 @@ def download_drive_file(file_id: str, output_path: str) -> bool:
                 except Exception as e2:
                     logger.error(f"Export also failed for {file_id}: {e2}")
                     return False
-        
+
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-        
+
         with open(output_path, 'wb') as f:
             f.write(fh.getvalue())
         return True
@@ -423,7 +393,7 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
                     if update_time:
                         try:
                             updated = datetime.datetime.fromisoformat(update_time.replace('Z', '+00:00'))
-                            if updated < cutoff:  # aware vs aware
+                            if updated < cutoff:
                                 skipped += 1
                                 continue
                         except Exception:
@@ -446,8 +416,8 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
                             try:
                                 drive_service = build('drive', 'v3', credentials=creds)
                                 file_meta = drive_service.files().get(
-                                    fileId=file_id, 
-                                    fields="mimeType,name,capabilities/canDownload", 
+                                    fileId=file_id,
+                                    fields="mimeType,name,capabilities/canDownload",
                                     supportsAllDrives=True
                                 ).execute()
                                 mime_type = file_meta.get('mimeType', '')
@@ -465,62 +435,82 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
                             safe_course_name = "".join(c for c in course['name'] if c.isalnum() or c in (' ', '-', '_', '@')).rstrip()
                             pdf_path = os.path.join(output_dir, f"{safe_course_name}_{safe_name}")
                             txt_path = pdf_path.replace('.pdf', '.txt')
-                            
+
                             # Ensure output directory exists
                             os.makedirs(output_dir, exist_ok=True)
-                            
+
                             if os.path.exists(pdf_path):
                                 skipped += 1
                                 continue
 
-# Determine how to handle this file based on mime type
+                            # Determine how to handle this file based on mime type
                             is_workspace = mime_type.startswith('application/vnd.google-apps.')
                             is_pdf = mime_type == 'application/pdf'
 
                             downloaded_this = False
 
-                            if is_workspace:
-                                # Google Workspace files (Docs, Sheets, Slides) - always export as PDF
-                                logger.info(f"Exporting {file_title} ({mime_type}) as PDF")
-                                if download_drive_file(file_id, pdf_path):
+                            # Wrap all mime type handling in try/except to catch download errors
+                            try:
+                                if is_workspace:
+                                    # Google Workspace files (Docs, Sheets, Slides) - always export as PDF
+                                    logger.info(f"Exporting {file_title} ({mime_type}) as PDF")
                                     try:
-                                        import subprocess as _sp
-                                        _sp.run(['pdftotext', '-layout', pdf_path, txt_path], check=True, timeout=60)
-                                        downloaded.append(f"  {course['name']}/{file_title} (Google Doc → PDF + OCR)")
+                                        if download_drive_file(file_id, pdf_path):
+                                            try:
+                                                import subprocess as _sp
+                                                _sp.run(['pdftotext', '-layout', pdf_path, txt_path], check=True, timeout=60)
+                                                downloaded.append(f"  {course['name']}/{file_title} (Google Doc → PDF + OCR)")
+                                            except Exception as e:
+                                                logger.warning(f"OCR failed for {file_title}: {e}")
+                                                downloaded.append(f"  {course['name']}/{file_title} (Google Doc → PDF, OCR failed)")
+                                            downloaded_this = True
+                                        else:
+                                            logger.warning(f"Export failed for {file_title} ({mime_type})")
                                     except Exception as e:
-                                        logger.warning(f"OCR failed for {file_title}: {e}")
-                                        downloaded.append(f"  {course['name']}/{file_title} (Google Doc → PDF, OCR failed)")
-                                    downloaded_this = True
-                            elif mime_type == 'application/pdf':
-                                # PDF file - check if downloadable
-                                if can_download:
-                                    if download_drive_file(file_id, pdf_path):
-                                        try:
-                                            import subprocess as _sp
-                                            _sp.run(['pdftotext', '-layout', pdf_path, txt_path], check=True, timeout=60)
-                                            downloaded.append(f"  {course['name']}/{file_title} (PDF + OCR)")
-                                        except Exception as e:
-                                            logger.warning(f"OCR failed for {file_title}: {e}")
-                                            downloaded.append(f"  {course['name']}/{file_title} (PDF only, OCR failed)")
-                                        downloaded_this = True
+                                        if "cannotDownloadFile" in str(e):
+                                            logger.info(f"Skipping {file_title} - cannot download (permission denied)")
+                                            skipped += 1
+                                        else:
+                                            logger.warning(f"Export error for {file_title}: {e}")
+                                elif mime_type == 'application/pdf':
+                                    # PDF file - check if downloadable
+                                    if can_download:
+                                        if download_drive_file(file_id, pdf_path):
+                                            try:
+                                                import subprocess as _sp
+                                                _sp.run(['pdftotext', '-layout', pdf_path, txt_path], check=True, timeout=60)
+                                                downloaded.append(f"  {course['name']}/{file_title} (PDF + OCR)")
+                                            except Exception as e:
+                                                logger.warning(f"OCR failed for {file_title}: {e}")
+                                                downloaded.append(f"  {course['name']}/{file_title} (PDF only, OCR failed)")
+                                            downloaded_this = True
+                                    else:
+                                        skipped += 1
+                                        logger.info(f"Skipping {file_title} - cannot download (view-only)")
                                 else:
-                                    skipped += 1
-                                    logger.info(f"Skipping {file_title} - cannot download (view-only)")
-                            else:
-                                # Other file types - try to download if allowed
-                                if can_download:
-                                    if download_drive_file(file_id, pdf_path):
-                                        downloaded.append(f"  {course['name']}/{file_title}")
-                                        downloaded_this = True
-                                else:
-                                    skipped += 1
-                                    logger.info(f"Skipping {file_title} - cannot download (view-only)")
+                                    # Other file types - try to download if allowed
+                                    if can_download:
+                                        if download_drive_file(file_id, pdf_path):
+                                            downloaded.append(f"  {course['name']}/{file_title}")
+                                            downloaded_this = True
+                                    else:
+                                        skipped += 1
+                                        logger.info(f"Skipping {file_title} - cannot download (view-only)")
 
-                            if not downloaded_this:
-                                failed_downloads.append(f"{course['name']}/{file_title}")
+                                if not downloaded_this:
+                                    failed_downloads.append(f"{course['name']}/{file_title}")
+
+                            except Exception as e:
+                                # Handle specific Google Drive API errors
+                                if "cannotDownloadFile" in str(e) or "403" in str(e):
+                                    logger.warning(f"Cannot download {file_title} (permission restricted): {e}")
+                                    failed_downloads.append(f"{course['name']}/{file_title} (permission denied)")
+                                else:
+                                    logger.warning(f"Error downloading from {course['name']}: {e}")
+                                    failed_downloads.append(f"{course['name']}/{file_title} (error: {str(e)[:50]})")
 
             except Exception as e:
-                logger.warning(f"Error downloading from {course['name']}: {e}")
+                logger.warning(f"Error processing course {course['name']}: {e}")
 
     except Exception as e:
         return f"Error: {e}"
@@ -539,8 +529,6 @@ def download_classroom_pdfs(output_dir: str = "classroom_pdfs") -> str:
         return f"No new PDFs downloaded (skipped {skipped} already downloaded or view-only)."
 
     return "\n".join(result_parts)
-
-    return f"Downloaded {len(downloaded)} Classroom PDFs to {output_dir}/:\n" + "\n".join(downloaded)
 
 
 if __name__ == "__main__":

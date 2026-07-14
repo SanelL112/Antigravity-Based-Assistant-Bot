@@ -1,0 +1,1 @@
+Digest generation failed - fallback mode.

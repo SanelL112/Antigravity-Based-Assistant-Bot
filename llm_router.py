@@ -284,7 +284,7 @@ def call_openrouter(
                 task=task,
                 max_tokens=max_tokens,
                 system_prompt=scrubbed_system,
-                timeout=min(timeout, 120),
+                timeout=120 if isinstance(timeout, int) else 120,
             )
     except Exception as e:
         logger.warning(f"Opencode Zen fallback also failed: {e}")
@@ -300,7 +300,7 @@ def call_openrouter(
                 task=task,
                 max_tokens=min(max_tokens, 8000),
                 system_prompt=scrubbed_system,
-                timeout=min(timeout, 120),
+                timeout=120 if isinstance(timeout, int) else 120,
             )
     except Exception as e:
         logger.warning(f"Hack Club AI fallback also failed: {e}")
@@ -318,6 +318,7 @@ def _do_call(
     stream_to_status: Optional[tuple],
 ) -> str:
     """Execute a single OpenRouter API call. Supports streaming with live status updates."""
+    # Use the pooled client from module level (connection reuse)
     client = _get_client()
     from utils import scrub_pii
 
@@ -910,7 +911,7 @@ def call_llamacpp_rpc_with_fallback(
         result = call_ollama(
             prompt=prompt,
             model=RPC_FALLBACK_OLLAMA_MODEL,
-            timeout=min(timeout, 300),
+            timeout=300 if isinstance(timeout, int) else 300,
         )
         if result and len(result.strip()) > 10:
             logger.info(f"Ollama fallback: success ({len(result)} chars)")
@@ -934,7 +935,7 @@ def call_llamacpp_rpc_with_fallback(
             system_prompt=system_prompt,
             max_tokens=max_tokens,
             fallback_chain=[OR_FALLBACK_MODEL],
-            timeout=min(timeout, 120),
+            timeout=120 if isinstance(timeout, int) else 120,
         )
         if result:
             logger.info(f"Cloud fallback: success ({len(result)} chars)")
@@ -996,7 +997,7 @@ def call_opencode(
     start = time.time()
     try:
         client = httpx.Client(
-            timeout=httpx.Timeout(float(timeout), connect=10.0, write=10.0, pool=5.0),
+            timeout=httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0),
             headers={
                 "Authorization": f"Bearer {OPENCODE_ZEN_API_KEY}",
                 "Content-Type": "application/json",
@@ -1137,7 +1138,7 @@ def call_hackclub(
     start = time.time()
     try:
         client = httpx.Client(
-            timeout=httpx.Timeout(float(timeout), connect=10.0, write=10.0, pool=5.0),
+            timeout=httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0),
             headers={
                 "Authorization": f"Bearer {HACKCLUB_AI_API_KEY}",
                 "Content-Type": "application/json",
