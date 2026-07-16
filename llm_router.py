@@ -605,19 +605,54 @@ def call_agy_local(prompt: str, model: str = "flash", timeout: int = 180) -> str
     return result
 
 
-# ── RPC (llama.cpp Remote Procedure Call) ───────────────────────────────────
-# For overnight 7B+ inference split across Server + Orange Pi 5.
-# Architecture: llama-server on server --rpc→ ggml-rpc-server on Orange Pi.
-# Server runs layers 1-N/2, Orange Pi runs layers N/2+1-end.
-# Speed: ~3-8 tok/s (LAN-bound), fine for batch/overnight tasks.
-
-# ── RPC config (override via env vars) ───────────────────────────────────────
-LLAMACPP_RPC_URL = os.getenv("LLAMACPP_RPC_URL", "http://localhost:8080")
+# ── RPC llama-cli (direct binary, no HTTP middle layer) ──────────────────────
+# Runs llama-cli --rpc directly to the Orange Pi ggml-rpc-server.
+# Faster and more reliable than the llama-server HTTP path.
+# Speed: ~9 tok/s for 7B Q4_K_M (confirmed), ~1-2 tok/s for 9B.
+#
+# Model paths (set via env var RPC_GGUF_PATH):
+RPC_GGUF_MODEL_DIR = os.path.dirname(os.getenv(
+    "RPC_GGUF_PATH",
+    "/home/sanel/models/qwen2.5-7b-instruct-q4_K_M.gguf"
+))
+RPC_GGUF_7B = "/home/sanel/models/qwen2.5-7b-instruct-q4_K_M.gguf"
+RPC_GGUF_QWYTHOS_9B = "/home/sanel/models/Qwythos-9B-Claude-Mythos-5-1M-Q4_K_M.gguf"
+RPC_GGUF_QWEN35_9B = "/home/sanel/models/Qwen3.5-9B-Q4_K_M.gguf"
+RPC_GGUF_DEFAULT = RPC_GGUF_7B  # best speed/reliability balance
+# RPC worker
 RPC_WORKER_URL = os.getenv("RPC_WORKER_URL", "10.10.10.2:50052")
-# Default model path on server — pull with: ollama pull qwen2.5:7b-instruct-q3_K_M
-# Q3_K_M quant (~3.2GB) fits in 5.7GB — no RPC needed for 7B.
-# For 14B+ models, switch to Q4_K_M and enable RPC.
-# Find the blob: ls ~/.ollama/models/blobs/sha256-*
+# llama-cli binary (RPC-enabled build)
+LLAMACPP_CLI = "/home/sanel/llama.cpp-build/build/bin/llama-cli"
+LLAMACPP_LD_PATH = "/home/sanel/llama.cpp-build/build/bin"
+
+
+def call_local_rpc(
+    prompt: str,
+    system_prompt: str = "",
+    model_path: str | None = None,
+    max_tokens: int = 1024,
+    temperature: float = 0.0,
+    timeout: int = 120,
+) -> str:
+    """
+    Wrapper that routes the formerly CLI-based local RPC call
+    directly to the Surface tablet's orchestrator API.
+    """
+    logger.info("call_local_rpc intercepted: routing to Surface orchestrator API")
+    return call_llamacpp_rpc(
+        prompt=prompt,
+        model_path=model_path,
+        system_prompt=system_prompt,
+        max_tokens=max_tokens,
+        timeout=timeout,
+        temperature=temperature
+    )
+
+
+# ── RPC (llama-server HTTP path — legacy) ───────────────────────────────────
+# Older path using llama-server HTTP API instead of direct llama-cli.
+# Kept for backward compatibility with overnight research tasks.
+LLAMACPP_RPC_URL = os.getenv("LLAMACPP_RPC_URL", "http://10.0.0.47:8080")
 RPC_MODEL_PATH = os.getenv(
     "RPC_MODEL_PATH",
     "/home/sanel/.ollama/models/blobs/sha256-*qwen2.5*7b*"
