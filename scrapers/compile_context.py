@@ -38,31 +38,26 @@ async def compile_bot_context():
         f"--- RECENT MEGA INDEX ---\n{mega_index_content}"
     )
     
+    # Route through the unified local-inference chain (Surface llama-server
+    # at 10.0.0.47:8080, then Pi Ollama) instead of the old hardcoded
+    # localhost:11434 model that was never pulled here.
+    import asyncio
+    from llm_router import call_local_rpc
     try:
-        import httpx
-        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
-            response = await client.post(
-                "http://localhost:11434/api/generate",
-                json={
-                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {"temperature": 0.1}
-                },
-                timeout=300.0
-            )
-            
-        if response.status_code == 200:
-            context_str = response.json().get("response", "").strip()
-            
+        context_str = await asyncio.to_thread(
+            call_local_rpc,
+            prompt=prompt,
+            max_tokens=1024,
+            temperature=0.1,
+            timeout=300,
+        )
+        if context_str and context_str.strip():
             out_file = os.path.join(base_dir, "bot_context.txt")
             with open(out_file, "w", encoding="utf-8") as f:
-                f.write(context_str)
+                f.write(context_str.strip())
             logger.info("Successfully compiled bot_context.txt")
-        elif response.status_code == 404:
-            logger.info("Ollama is not running (404) — skipping context compilation")
         else:
-            logger.warning(f"Failed to generate context, status {response.status_code}")
+            logger.info("Local inference unavailable (Surface + Pi) — skipping context compilation")
     except Exception as e:
         logger.error(f"Error compiling context: {e}")
 

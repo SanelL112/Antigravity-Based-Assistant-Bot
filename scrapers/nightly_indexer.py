@@ -28,23 +28,24 @@ async def process_chunk(chunk, chunk_index, source_name):
         f"DATA:\n{chunk}"
     )
     
+    # Route through the unified local-inference chain (Surface llama-server
+    # at 10.0.0.47:8080, then Pi Ollama) instead of the old hardcoded
+    # localhost:11434 model that was never pulled here.
+    from llm_router import call_local_rpc
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=3600.0, write=10.0, pool=5.0)) as client:
-            response = await client.post(
-                "http://localhost:11434/api/generate",
-                json={
-                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
-                    "prompt": prompt,
-                    "stream": False
-                }
-            )
-        if response.status_code == 200:
-            return response.json().get("response", "").strip()
-        else:
-            logger.error(f"Error {response.status_code} from Ollama.")
-            return None
+        result = await asyncio.to_thread(
+            call_local_rpc,
+            prompt=prompt,
+            max_tokens=2048,
+            temperature=0.0,
+            timeout=300,
+        )
+        if result and result.strip():
+            return result.strip()
+        logger.error("Local inference returned empty (Surface + Pi both unavailable).")
+        return None
     except Exception as e:
-        logger.error(f"Exception during Ollama call: {e}")
+        logger.error(f"Exception during local inference call: {e}")
         return None
 
 async def run_indexing():

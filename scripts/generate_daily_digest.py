@@ -13,6 +13,7 @@ Runs at 4 AM daily via Hermes cron job.
 """
 
 import os
+import sys
 import json
 import logging
 import asyncio
@@ -21,6 +22,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from dotenv import load_dotenv
+
+# Ensure project root is importable for llm_router (this file lives in scripts/)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 # Load environment
 load_dotenv('/home/sanel/personal-assistant-bot/.env')
@@ -338,29 +344,30 @@ def build_fallback_digest(prompt: str) -> str:
 
 
 async def assemble_digest_with_llm(prompt: str) -> str:
-    """Use local Llama3.2:3B to assemble the final digest."""
+    """Assemble the final digest via the unified local-inference chain.
+
+    Routes through call_local_rpc (Surface llama-server at 10.0.0.47:8080,
+    then Pi Ollama) instead of the old hardcoded localhost:11434 model that
+    was never pulled here.
+    """
     if not prompt:
         return "☀️ **Daily Digest**\n\nNo items to report today. All caught up! 🎉"
 
     try:
-        res = requests.post(
-            f"{OLLAMA_URL}/api/generate",
-            json={
-                "model": DIGEST_MODEL,
-                "prompt": prompt,
-                "stream": False,
-                "options": {"temperature": 0.3, "num_predict": 2000}
-            },
-            timeout=300  # Increased timeout for slow model
+        from llm_router import call_local_rpc
+        response = await asyncio.to_thread(
+            call_local_rpc,
+            prompt=prompt,
+            max_tokens=2000,
+            temperature=0.3,
+            timeout=300,
         )
+        if response and response.strip():
+            response = response.strip()
+            logger.info(f"LLM assembled digest ({len(response)} chars)")
+            return response
 
-        if res.status_code == 200:
-            response = res.json().get("response", "").strip()
-            if response:
-                logger.info(f"LLM assembled digest ({len(response)} chars)")
-                return response
-
-        logger.error(f"LLM assembly failed: HTTP {res.status_code}")
+        logger.error("LLM assembly failed: local inference unavailable (Surface + Pi)")
     except Exception as e:
         logger.error(f"LLM assembly error: {e}")
 

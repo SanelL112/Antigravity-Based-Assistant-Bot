@@ -66,31 +66,24 @@ async def consolidate_memory():
         f"RAW DATA:\n{raw_text[:40000]}"
     )
     
+    # Route through the unified local-inference chain (Surface llama-server
+    # at 10.0.0.47:8080, then Pi Ollama). PII stays on-cluster. Falls back to
+    # secure local G1 Flash (agy) only if the whole local chain is down.
+    from llm_router import call_local_rpc
     try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=5.0)) as client:
-            response = await client.post(
-                "http://localhost:11434/api/generate",
-                json={
-                    "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.2
-                    }
-                }
-            )
-        
-        if response.status_code == 200:
-            response_data = response.json()
-            brain = response_data.get("response", "")
-            if brain is None:
-                brain = ""
+        brain = await asyncio.to_thread(
+            call_local_rpc,
+            prompt=prompt,
+            max_tokens=2048,
+            temperature=0.2,
+            timeout=300,
+        )
+        if brain:
             brain = brain.strip()
-        else:
-            raise Exception(f"Ollama returned {response.status_code}: {response.text[:500]}")
-            
+        if not brain:
+            raise Exception("Local inference chain (Surface + Pi) returned empty")
     except Exception as e:
-        logger.warning(f"Local Llama 3.2 failed to consolidate memory ({type(e).__name__}: {e}). Falling back to secure local G1 Flash to protect PII...")
+        logger.warning(f"Local RPC failed to consolidate memory ({type(e).__name__}: {e}). Falling back to secure local G1 Flash to protect PII...")
         from ai_processor import call_agy
         brain = call_agy(prompt, timeout=180, model="flash")
 
@@ -111,21 +104,19 @@ async def consolidate_memory():
             # Merge old and new
             merge_prompt = f"Merge the old brain and new daily insights into a single cohesive document.\n\nOLD BRAIN:\n{existing_brain}\n\nNEW INSIGHTS:\n{brain}"
             try:
-                async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=5.0)) as client:
-                    resp2 = await client.post(
-                        "http://localhost:11434/api/generate",
-                        json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": merge_prompt, "stream": False}
-                    )
-                    if resp2.status_code == 200:
-                        response_data = resp2.json()
-                        final_brain = response_data.get("response", "")
-                        if final_brain is None:
-                            final_brain = ""
-                        final_brain = final_brain.strip()
-                    else:
-                        raise Exception("Ollama merge failed")
+                merged_out = await asyncio.to_thread(
+                    call_local_rpc,
+                    prompt=merge_prompt,
+                    max_tokens=2048,
+                    temperature=0.2,
+                    timeout=300,
+                )
+                if merged_out and merged_out.strip():
+                    final_brain = merged_out.strip()
+                else:
+                    raise Exception("Local RPC merge returned empty (Surface + Pi down)")
             except Exception as e:
-                logger.warning(f"Local Llama 3.2 failed to merge brain ({e}). Falling back to secure local G1 Flash...")
+                logger.warning(f"Local RPC failed to merge brain ({e}). Falling back to secure local G1 Flash...")
                 from ai_processor import call_agy
                 merged = call_agy(merge_prompt, timeout=180, model="flash")
                 if merged: final_brain = merged

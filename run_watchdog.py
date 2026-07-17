@@ -295,17 +295,23 @@ Rules:
 Summaries:
 {summary_text}"""
 
+    # Route through the unified local-inference chain (Surface llama-server
+    # at 10.0.0.47:8080, then Pi Ollama) instead of the old hardcoded
+    # localhost:11434 model that was never pulled here.
     try:
-        res = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest", "prompt": prompt, "stream": False, "options": {"temperature": 0.3}},
-            timeout=120  # Increased timeout for local CPU inference
+        from llm_router import call_local_rpc
+        result = call_local_rpc(
+            prompt=prompt,
+            max_tokens=1024,
+            temperature=0.3,
+            timeout=120,
         )
-        if res.status_code == 200:
-            return res.json().get("response", "").strip()
+        if result and result.strip():
+            return result.strip()
+        logger.warning("Digest assembly: local inference unavailable (Surface + Pi), using plain concatenation")
     except Exception as e:
         logger.error(f"Digest assembly failed: {e}")
-    
+
     # Fallback: simple concatenation
     return "\n\n".join([f"{k}: {v}" for k, v in summaries.items() if "No urgent" not in v])
 

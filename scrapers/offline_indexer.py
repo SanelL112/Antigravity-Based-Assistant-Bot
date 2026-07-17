@@ -27,36 +27,30 @@ async def process_chunk(chunk, chunk_index, source_name, max_retries=2):
         f"DATA:\n{chunk}"
     )
     
-    last_status = None
+    # Route through the unified local-inference chain (Surface llama-server
+    # at 10.0.0.47:8080, then Pi Ollama). This replaces the old hardcoded
+    # localhost:11434 call that required a model that was never pulled here.
+    from llm_router import call_local_rpc
+
     for attempt in range(max_retries):
         try:
-            import httpx
-            async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)) as client:
-                response = await client.post(
-                    "http://localhost:11434/api/generate",
-                    json={
-                        "model": "hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:latest",
-                        "prompt": prompt,
-                        "stream": False,
-                        "options": {
-                            "num_ctx": 4096
-                        }
-                    }
-                )
-                if response.status_code == 200:
-                    return response.json().get("response", "")
-                last_status = response.status_code
-                # 404 means Ollama is down — no point retrying
-                if response.status_code == 404:
-                    logger.warning(f"Ollama is not running (404). Skipping offline indexing.")
-                    return None
-                logger.warning(f"Ollama returned {response.status_code}. Retrying ({attempt+1}/{max_retries})...")
-                await asyncio.sleep(5)
+            result = await asyncio.to_thread(
+                call_local_rpc,
+                prompt=prompt,
+                max_tokens=2048,
+                temperature=0.1,
+                timeout=120,
+            )
+            if result and result.strip():
+                return result
+            # Empty means all local paths (Surface + Pi) are down — don't retry.
+            logger.warning("Local inference unavailable. Skipping offline indexing.")
+            return None
         except Exception as e:
-            logger.error(f"Error communicating with Ollama: {e}")
+            logger.error(f"Error during local inference: {e}. Retrying ({attempt+1}/{max_retries})...")
             await asyncio.sleep(5)
-    
-    logger.warning(f"Ollama indexing failed after {max_retries} attempts (last status: {last_status})")
+
+    logger.warning(f"Local indexing failed after {max_retries} attempts")
     return None
 
 async def run_indexing():
