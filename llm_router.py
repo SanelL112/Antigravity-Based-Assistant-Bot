@@ -796,13 +796,16 @@ def call_llamacpp_rpc(
             )
             return text
         else:
-            logger.error(f"RPC: HTTP {resp.status_code}: {resp.text[:200]}")
+            # Surface unavailable is NON-fatal: call_local_rpc falls back to
+            # the Pi Ollama next. Log at INFO so it doesn't get forwarded to
+            # Telegram every 30 min as a scary "⚙️ RPC: ..." alert.
+            logger.info(f"RPC: Surface HTTP {resp.status_code} (falling back to Pi)")
             return ""
     except httpx.TimeoutException:
-        logger.error(f"RPC: timed out after {timeout}s")
+        logger.info(f"RPC: Surface timed out after {timeout}s (falling back to Pi)")
         return ""
     except Exception as e:
-        logger.error(f"RPC: call failed: {e}")
+        logger.info(f"RPC: Surface unreachable ({e}) — falling back to Pi")
         return ""
 
 
