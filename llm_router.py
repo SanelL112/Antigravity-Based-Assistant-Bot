@@ -700,22 +700,22 @@ def call_local_rpc(
     try:
         from config import OLLAMA_ORANGEPI_URL
         import httpx
-        client = httpx.Client(timeout=httpx.Timeout(connect=3.0, read=float(timeout), write=10.0, pool=5.0))
-        resp = client.post(
-            f"{OLLAMA_ORANGEPI_URL}/api/generate",
-            json={
-                "model": "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest",
-                "prompt": prompt,
-                "stream": False,
-                "options": {"num_predict": max_tokens, "temperature": temperature},
-            },
-        )
-        if resp.status_code == 200:
-            text = resp.json().get("response", "").strip()
-            if text:
-                logger.info(f"call_local_rpc: Pi Ollama returned {len(text)} chars")
-                return text
-        logger.warning(f"call_local_rpc: Pi Ollama returned empty (HTTP {resp.status_code})")
+        with httpx.Client(timeout=httpx.Timeout(connect=3.0, read=float(timeout), write=10.0, pool=5.0)) as client:
+            resp = client.post(
+                f"{OLLAMA_ORANGEPI_URL}/api/generate",
+                json={
+                    "model": "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest",
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"num_predict": max_tokens, "temperature": temperature},
+                },
+            )
+            if resp.status_code == 200:
+                text = resp.json().get("response", "").strip()
+                if text:
+                    logger.info(f"call_local_rpc: Pi Ollama returned {len(text)} chars")
+                    return text
+            logger.warning(f"call_local_rpc: Pi Ollama returned empty (HTTP {resp.status_code})")
     except Exception as e:
         logger.warning(f"call_local_rpc: Pi Ollama failed: {e}")
 
@@ -773,18 +773,18 @@ def call_llamacpp_rpc(
     start = time.time()
     try:
         import httpx
-        client = httpx.Client(
+        with httpx.Client(
             timeout=httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=10.0),
-        )
-        resp = client.post(
-            f"{LLAMACPP_RPC_URL.rstrip('/')}/v1/chat/completions",
-            json={
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": temperature,
-                "stream": False,
-            },
-        )
+        ) as client:
+            resp = client.post(
+                f"{LLAMACPP_RPC_URL.rstrip('/')}/v1/chat/completions",
+                json={
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "stream": False,
+                },
+            )
         if resp.status_code == 200:
             data = resp.json()
             text = data["choices"][0]["message"]["content"].strip()
@@ -813,9 +813,9 @@ def is_rpc_server_healthy() -> bool:
     """Check if the RPC-enabled llama-server is running and responding."""
     try:
         import httpx
-        client = httpx.Client(timeout=httpx.Timeout(5.0))
-        resp = client.get(f"{LLAMACPP_RPC_URL.rstrip('/')}/health")
-        return resp.status_code == 200
+        with httpx.Client(timeout=httpx.Timeout(5.0)) as client:
+            resp = client.get(f"{LLAMACPP_RPC_URL.rstrip('/')}/health")
+            return resp.status_code == 200
     except Exception:
         return False
 
@@ -1136,22 +1136,22 @@ def call_opencode(
 
     start = time.time()
     try:
-        client = httpx.Client(
+        with httpx.Client(
             timeout=httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0),
             headers={
                 "Authorization": f"Bearer {OPENCODE_ZEN_API_KEY}",
                 "Content-Type": "application/json",
             },
-        )
-        resp = client.post(
-            f"{OPENCODE_ZEN_URL.rstrip('/')}/chat/completions",
-            json={
-                "model": model,
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": temperature,
-            },
-        )
+        ) as client:
+            resp = client.post(
+                f"{OPENCODE_ZEN_URL.rstrip('/')}/chat/completions",
+                json={
+                    "model": model,
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+            )
         if resp.status_code == 200:
             data = resp.json()
             text = data["choices"][0]["message"]["content"].strip()
@@ -1178,12 +1178,12 @@ def is_opencode_healthy() -> bool:
         return False
     try:
         # Call the models endpoint as a lightweight health check
-        client = httpx.Client(timeout=httpx.Timeout(10.0))
-        resp = client.get(
-            f"{OPENCODE_ZEN_URL.rstrip('/')}/models",
-            headers={"Authorization": f"Bearer {OPENCODE_ZEN_API_KEY}"},
-        )
-        return resp.status_code == 200
+        with httpx.Client(timeout=httpx.Timeout(10.0)) as client:
+            resp = client.get(
+                f"{OPENCODE_ZEN_URL.rstrip('/')}/models",
+                headers={"Authorization": f"Bearer {OPENCODE_ZEN_API_KEY}"},
+            )
+            return resp.status_code == 200
     except Exception:
         return False
 
@@ -1277,22 +1277,22 @@ def call_hackclub(
 
     start = time.time()
     try:
-        client = httpx.Client(
+        with httpx.Client(
             timeout=httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=5.0),
             headers={
                 "Authorization": f"Bearer {HACKCLUB_AI_API_KEY}",
                 "Content-Type": "application/json",
             },
-        )
-        resp = client.post(
-            f"{HACKCLUB_AI_BASE_URL.rstrip('/')}/chat/completions",
-            json={
-                "model": model,
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": temperature,
-            },
-        )
+        ) as client:
+            resp = client.post(
+                f"{HACKCLUB_AI_BASE_URL.rstrip('/')}/chat/completions",
+                json={
+                    "model": model,
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+            )
         if resp.status_code == 200:
             data = resp.json()
             raw_content = data["choices"][0]["message"].get("content")

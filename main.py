@@ -684,8 +684,11 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     from llm_router import call_local_rpc, call_openrouter
     try:
-        # Try local RPC first (no rate limits)
-        extracted = call_local_rpc(
+        # Try local RPC first (no rate limits).
+        # Offload the blocking (sync httpx, up to 120s) call to a worker thread
+        # so it doesn't stall the asyncio event loop and freeze the whole bot.
+        extracted = await asyncio.to_thread(
+            call_local_rpc,
             prompt=prompt,
             max_tokens=200,
             timeout=120,
