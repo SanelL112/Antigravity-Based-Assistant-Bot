@@ -78,12 +78,29 @@ GOOGLE_TOKEN=$(python3 -c "
 import json, os, sys
 sys.path.insert(0, '$BOT_DIR')
 os.chdir('$BOT_DIR')
+tok = os.path.join('$BOT_DIR', 'token.json')
+if not os.path.exists(tok):
+    print('missing'); sys.exit()
 try:
     from google.oauth2.credentials import Credentials
-    creds = Credentials.from_authorized_user_file('token.json', [])
-    print('valid' if creds.valid else 'expired')
-except:
-    print('missing')
+    from google.auth.transport.requests import Request
+    d = json.load(open(tok))
+    creds = Credentials.from_authorized_user_info(d, d.get('scopes'))
+    if creds.valid:
+        print('valid')
+    elif creds.expired and creds.refresh_token:
+        # Try a refresh so the check reflects whether the bot CAN recover on its
+        # own (it does this per-call). Persist so downstream calls reuse it.
+        try:
+            creds.refresh(Request())
+            open(tok, 'w').write(creds.to_json())
+            print('valid')
+        except Exception:
+            print('expired')
+    else:
+        print('expired')
+except Exception:
+    print('error')
 " 2>/dev/null || echo "error")
 
 # ── Build report ──────────────────────────────────────────────────────────────

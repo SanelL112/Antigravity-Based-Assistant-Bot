@@ -7,12 +7,10 @@ from google.oauth2.credentials import Credentials
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_google_creds():
-    token_path = os.path.join(BASE_DIR, "..", "token.json")
-    if os.path.exists(token_path):
-        with open(token_path, "r") as f:
-            creds_data = json.load(f)
-        return Credentials.from_authorized_user_info(creds_data)
-    return None
+    # Use the canonical loader (auto-refreshes expired tokens with retries)
+    # rather than returning a possibly-expired token as-is.
+    from scrapers.google_scraper import get_google_credentials
+    return get_google_credentials()
 
 def rescue():
     creds = get_google_creds()

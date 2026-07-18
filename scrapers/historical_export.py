@@ -15,11 +15,12 @@ ARCHIVE_DIR = os.path.join(BASE_DIR, '..', 'offline_archive')
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
 def get_google_creds():
-    from google.oauth2.credentials import Credentials
-    if os.path.exists(TOKEN_PATH):
-        from scrapers.google_scraper import SCOPES
-        return Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
-    return None
+    # Delegate to the canonical credential loader in google_scraper, which
+    # auto-refreshes an expired token via its refresh_token (with retries) and
+    # caches the result. Rolling our own here previously returned an expired
+    # token as-is, causing the nightly "Expired access token" 403 cascade.
+    from scrapers.google_scraper import get_google_credentials
+    return get_google_credentials()
 
 STATE_FILE = os.path.join(ARCHIVE_DIR, 'export_state.json')
 DELTA_FILE = os.path.join(ARCHIVE_DIR, 'delta_export.txt')

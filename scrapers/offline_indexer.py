@@ -53,6 +53,30 @@ async def process_chunk(chunk, chunk_index, source_name, max_retries=2):
     logger.warning(f"Local indexing failed after {max_retries} attempts")
     return None
 
+import hashlib
+
+PROGRESS_FILE = os.path.join(ARCHIVE_DIR, ".delta_index_progress.json")
+
+def _load_progress(delta_hash):
+    """Return the number of chunks already indexed for THIS exact delta content.
+    If the delta file changed (new hash), progress resets to 0 so we don't skip
+    freshly-appended data."""
+    try:
+        with open(PROGRESS_FILE) as f:
+            p = json.load(f)
+        if p.get("delta_hash") == delta_hash:
+            return int(p.get("done", 0))
+    except Exception:
+        pass
+    return 0
+
+def _save_progress(delta_hash, done):
+    try:
+        with open(PROGRESS_FILE, "w") as f:
+            json.dump({"delta_hash": delta_hash, "done": done}, f)
+    except Exception as e:
+        logger.error(f"Failed to persist index progress: {e}")
+
 async def run_indexing():
     logger.info("Starting Massive Historical Indexing...")
     delta_file = os.path.join(ARCHIVE_DIR, "delta_export.txt")
@@ -73,15 +97,26 @@ async def run_indexing():
         
     chunks = list(chunk_text(text, chunk_size=8000))
     total_chunks = len(chunks)
-    
-    success_count = 0
-    local_inference_down = False
-    for i, chunk in enumerate(chunks):
-        # Circuit breaker: if local inference is down, stop hammering it. Emit a
-        # single summary line instead of one misleading warning per chunk.
-        if local_inference_down:
-            continue
 
+    # Resume from where a previous partial run left off (keyed to the delta
+    # content hash) so we don't re-index — and DUPLICATE in mega_index.md —
+    # chunks that already succeeded. A changed delta file resets the cursor.
+    delta_hash = hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()
+    already_done = _load_progress(delta_hash)
+    if already_done >= total_chunks:
+        # Everything already indexed on a prior run; clear delta + progress.
+        open(delta_file, 'w').close()
+        _save_progress(delta_hash, 0)
+        logger.info("Delta already fully indexed — cleared. Nothing to do.")
+        return
+    if already_done > 0:
+        logger.info(f"Resuming delta indexing at chunk {already_done+1}/{total_chunks} "
+                    f"({already_done} already indexed).")
+
+    success_count = already_done
+    local_inference_down = False
+    for i in range(already_done, total_chunks):
+        chunk = chunks[i]
         logger.info(f"Processing chunk {i+1}/{total_chunks} for delta_export...")
         result = await process_chunk(chunk, i+1, "delta_export")
         if result:
@@ -89,19 +124,23 @@ async def run_indexing():
                 out_f.write(f"\n\n## Source: Nightly Delta (Part {i+1}/{total_chunks})\n\n")
                 out_f.write(result)
             success_count += 1
-        elif i == 0:
-            # First chunk failed — the whole local-inference chain (Surface
-            # llama-server + Pi fallback) is unavailable. Circuit-break so we
-            # don't retry 174 more times and spam Telegram.
+            _save_progress(delta_hash, success_count)
+        else:
+            # local-inference chain (Surface llama-server + Pi fallback) is
+            # unavailable. Circuit-break so we don't retry the rest and spam
+            # Telegram. Progress is saved, so the next run resumes here.
             local_inference_down = True
-            skipped = total_chunks - 1
+            skipped = total_chunks - i
             logger.warning(
-                f"Local inference (Surface RPC + Pi) unavailable — skipping "
-                f"{skipped} remaining chunk(s). Delta preserved for next run."
+                f"Local inference (Surface RPC + Pi) unavailable at chunk {i+1} — "
+                f"skipping {skipped} remaining chunk(s). Progress saved; delta "
+                f"preserved for next run."
             )
+            break
                 
     if success_count == total_chunks:
         open(delta_file, 'w').close()
+        _save_progress(delta_hash, 0)
         logger.info("Delta Indexing Complete. Output appended to mega_index.md.")
     else:
         logger.warning(f"Only {success_count}/{total_chunks} chunks were indexed. Delta file was NOT cleared to prevent data loss.")
