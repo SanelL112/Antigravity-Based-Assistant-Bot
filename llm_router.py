@@ -906,45 +906,81 @@ def get_free_memory_mb() -> int:
     return -1
 
 
+def _get_surface_free_mb() -> int:
+    """Free RAM (MB) on the Surface orchestrator via SSH. -1 if unreachable.
+
+    The Surface is the node that actually LOADS the model into RAM, so it's the
+    one that OOMs — not the Dell (which only runs a ggml-rpc-server worker that
+    holds a fraction of the layers). This is the memory check that matters."""
+    surface_host = LLAMACPP_RPC_URL.replace("http://", "").replace("https://", "").split(":")[0]
+    surface_user = os.getenv("SURFACE_SSH_USER", "sanel-lathiya")
+    try:
+        import subprocess as _sp
+        result = _sp.run(
+            ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes",
+             f"{surface_user}@{surface_host}",
+             "awk '/MemAvailable:/{print int($2/1024)}' /proc/meminfo"],
+            capture_output=True, text=True, timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return int(result.stdout.strip())
+    except Exception:
+        pass
+    return -1
+
+
 def check_rpc_memory_ok(server_min_mb: int = 1500, worker_min_mb: int = 800) -> tuple[bool, str]:
     """
     Check if cluster nodes have enough free RAM for inference.
 
     In the 3-node topology:
-      - Server = Dell (this machine) — runs ggml-rpc-server for Surface
-      - Orchestrator = Surface (10.0.0.47) — runs llama-server, checked by is_rpc_server_healthy()
-      - Worker = Orange Pi (10.10.10.2) — runs ggml-rpc-server, checked via SSH
+      - Orchestrator = Surface (10.0.0.47) — runs llama-server and LOADS THE MODEL.
+        This is the node that OOMs, so its free RAM is the primary gate.
+      - Worker = Dell (this machine) — runs ggml-rpc-server; holds only offloaded
+        layers, so a lower bar applies.
+      - Worker = Orange Pi (10.10.10.2) — runs ggml-rpc-server, checked via SSH.
 
     Returns:
         (ok, reason) — ok=True if all reachable nodes have sufficient RAM.
     """
-    # RPC_WORKER_URL is defined at module level
+    # RPC_WORKER_URL is defined at module level.
+    #
+    # IMPORTANT: llama-web is a PERSISTENT service — the model is loaded once and
+    # stays resident. Worker nodes (Dell, Pi) run ggml-rpc-server and legitimately
+    # hold their share of the model's layers, so their "free RAM" is LOW precisely
+    # when the cluster is healthy and serving. Vetoing on low worker RAM would
+    # wrongly block a working cluster. OOM risk lives at model-LOAD time, which is
+    # now guarded in cluster_manager.validate_model (size + quant checks).
+    #
+    # So the runtime gate is: the Surface orchestrator must not be thrashing. The
+    # actual serving readiness is confirmed separately by is_rpc_server_healthy().
+    # Worker RAM is reported for observability only, never used to veto.
+    surface_free = _get_surface_free_mb()
+    if surface_free == -1:
+        logger.info("check_rpc_memory_ok: Surface RAM unreadable (SSH) — relying on health check")
+    elif surface_free < server_min_mb:
+        return False, f"Surface RAM too low ({surface_free}MB free, need {server_min_mb}MB) — orchestrator thrashing"
 
-    server_free = get_free_memory_mb()
-    if server_free == -1:
-        return False, "Cannot read server memory"
-    if server_free < server_min_mb:
-        return False, f"Server RAM too low ({server_free}MB free, need {server_min_mb}MB)"
-
-    # Check Orange Pi via SSH (non-blocking, quick check)
+    # Observability only (NOT a veto): workers holding model layers is healthy.
+    dell_free = get_free_memory_mb()
+    pi_free = None
     worker_host = RPC_WORKER_URL.split(":")[0]
     try:
         import subprocess as _sp
         result = _sp.run(
-            ["ssh", "-o", "ConnectTimeout=5", f"root@{worker_host}",
+            ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes", f"root@{worker_host}",
              "awk '/MemAvailable:/{print int($2/1024)}' /proc/meminfo"],
             capture_output=True, text=True, timeout=10
         )
         if result.returncode == 0 and result.stdout.strip():
-            worker_free = int(result.stdout.strip())
-            if worker_free < worker_min_mb:
-                return False, f"Orange Pi RAM too low ({worker_free}MB free, need {worker_min_mb}MB)"
-            return True, f"Server: {server_free}MB, Orange Pi: {worker_free}MB"
-        else:
-            # Can't reach Orange Pi — assume it's fine (RPC will just run solo if worker unreachable)
-            return True, f"Server: {server_free}MB (Orange Pi unreachable — will run solo)"
+            pi_free = int(result.stdout.strip())
     except Exception:
-        return True, f"Server: {server_free}MB (Orange Pi check skipped)"
+        pass
+
+    surface_s = f"Surface: {surface_free}MB" if surface_free != -1 else "Surface: n/a"
+    dell_s = f"Dell(worker): {dell_free}MB" if dell_free != -1 else "Dell: n/a"
+    pi_s = f"Pi(worker): {pi_free}MB" if pi_free is not None else "Pi: unreachable"
+    return True, f"{surface_s}, {dell_s}, {pi_s}"
 
 
 def call_llamacpp_rpc_with_fallback(
