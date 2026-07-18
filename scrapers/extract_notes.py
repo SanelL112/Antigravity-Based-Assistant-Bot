@@ -7,6 +7,20 @@ logger.setLevel(logging.INFO)
 
 AGENTAPI_BIN = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
 
+
+def _agy_model(alias: str) -> str:
+    """Resolve an internal agy alias (flash/pro) to the current valid model ID."""
+    try:
+        import sys
+        _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if _root not in sys.path:
+            sys.path.insert(0, _root)
+        from llm_router import _resolve_agy_model
+        return _resolve_agy_model(alias)
+    except Exception:
+        return "Gemini 3.1 Pro (Low)" if alias == "pro" else "Gemini 3.5 Flash (Medium)"
+
+
 def transcribe_handwritten_pdf(pdf_path: str) -> str:
     """Uploads a PDF to Gemini Vision via Antigravity CLI and extracts handwritten notes."""
     logger.info(f"Asking Antigravity CLI to transcribe {pdf_path}...")
@@ -21,7 +35,7 @@ def transcribe_handwritten_pdf(pdf_path: str) -> str:
     try:
         # Run agy with --dangerously-skip-permissions so it can autonomously use view_file without prompting the user
         result = subprocess.run(
-            [AGENTAPI_BIN, "--dangerously-skip-permissions", "--model", "pro", "--print", prompt],
+            [AGENTAPI_BIN, "--dangerously-skip-permissions", "--model", _agy_model("pro"), "--print", prompt],
             capture_output=True,
             text=True,
             timeout=300

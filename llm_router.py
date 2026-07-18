@@ -39,7 +39,7 @@ def _get_client() -> httpx.Client:
     global _or_client
     if _or_client is None:
         # Configure timeouts: connect=10s, read=60s, write=10s, pool=5s
-        timeout = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=5.0)
+        timeout = httpx.Timeout(10.0, connect=10.0, read=60.0, write=10.0, pool=5.0)
         _or_client = httpx.Client(
             timeout=timeout,
             headers={
@@ -517,6 +517,29 @@ def call_ollama(prompt: str, model: str = "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:l
     return result
 
 
+# agy no longer accepts short aliases ("flash"/"pro"); it wants the full
+# display-name model IDs (see `agy models`). Map our internal short names to
+# the current valid identifiers. Update this table if `agy models` changes.
+AGY_MODEL_ALIASES = {
+    "flash": "Gemini 3.5 Flash (Medium)",
+    "flash-high": "Gemini 3.5 Flash (High)",
+    "flash-low": "Gemini 3.5 Flash (Low)",
+    "pro": "Gemini 3.1 Pro (Low)",
+    "pro-high": "Gemini 3.1 Pro (High)",
+}
+
+
+def _resolve_agy_model(model: str) -> str:
+    """Map an internal short alias to agy's current display-name model ID.
+
+    Passes through anything already containing a space (a real display name),
+    so callers can specify an exact model if they want one.
+    """
+    if model and (" " in model or model.startswith("openrouter:")):
+        return model
+    return AGY_MODEL_ALIASES.get(model, AGY_MODEL_ALIASES["flash"])
+
+
 def call_agy_local(prompt: str, model: str = "flash", timeout: int = 180) -> str:
     """
     Call local agy CLI via PTY. Safe for PII — runs entirely on your server.
@@ -527,6 +550,7 @@ def call_agy_local(prompt: str, model: str = "flash", timeout: int = 180) -> str
     import re
 
     def _run_model(target_model: str) -> str:
+        target_model = _resolve_agy_model(target_model)
         master = -1
         proc = None
         try:
@@ -605,12 +629,16 @@ def call_agy_local(prompt: str, model: str = "flash", timeout: int = 180) -> str
     return result
 
 
-# ── RPC llama-cli (direct binary, no HTTP middle layer) ──────────────────────
-# Runs llama-cli --rpc directly to the Orange Pi ggml-rpc-server.
-# Faster and more reliable than the llama-server HTTP path.
-# Speed: ~9 tok/s for 7B Q4_K_M (confirmed), ~1-2 tok/s for 9B.
+# ── RPC Cluster (Surface orchestrator + Dell + Pi workers) ────────────────
+# Topology:
+#   Surface Pro (10.0.0.47:8080) — runs llama-server with RPC orchestration
+#     → Dell E5430 (10.10.10.1:50052) — ggml-rpc-server worker
+#     → Orange Pi 5 (10.42.0.139:50052) — ggml-rpc-server worker
 #
-# Model paths (set via env var RPC_GGUF_PATH):
+# Bot sends HTTP requests to Surface's OpenAI-compatible API.
+# Surface handles RPC layer splitting between workers internally.
+#
+# For direct llama-cli (non-Surface path), models live here:
 RPC_GGUF_MODEL_DIR = os.path.dirname(os.getenv(
     "RPC_GGUF_PATH",
     "/home/sanel/models/qwen2.5-7b-instruct-q4_K_M.gguf"
@@ -635,18 +663,64 @@ def call_local_rpc(
     timeout: int = 120,
 ) -> str:
     """
-    Wrapper that routes the formerly CLI-based local RPC call
-    directly to the Surface tablet's orchestrator API.
+    Primary local inference path — tries cluster nodes in order.
+
+    Fallback chain:
+      1. Surface llama-server (10.0.0.47:8080) — primary, short timeout
+      2. Pi Ollama (10.10.10.2:11434) — fast local backup
+      3. Returns empty — caller handles cloud fallback
+
+    Args:
+        prompt: The user prompt
+        system_prompt: Optional system message
+        model_path: Ignored (Surface server has its own model loaded)
+        max_tokens: Max output tokens
+        temperature: 0.0 = deterministic
+        timeout: Max seconds to wait
+
+    Returns:
+        Generated text, or empty string if all local paths fail.
     """
-    logger.info("call_local_rpc intercepted: routing to Surface orchestrator API")
-    return call_llamacpp_rpc(
+    surface_timeout = min(timeout, 45)  # Don't hang on Surface — fall through fast
+
+    logger.info("call_local_rpc: trying Surface orchestrator API (10.0.0.47:8080)")
+    result = call_llamacpp_rpc(
         prompt=prompt,
         model_path=model_path,
         system_prompt=system_prompt,
         max_tokens=max_tokens,
-        timeout=timeout,
+        timeout=surface_timeout,
         temperature=temperature
     )
+    if result and result.strip():
+        logger.info(f"call_local_rpc: Surface API returned {len(result)} chars")
+        return result
+
+    logger.info("call_local_rpc: Surface returned empty, trying Pi Ollama (10.10.10.2:11434)")
+    try:
+        from config import OLLAMA_ORANGEPI_URL
+        import httpx
+        client = httpx.Client(timeout=httpx.Timeout(connect=3.0, read=float(timeout), write=10.0, pool=5.0))
+        resp = client.post(
+            f"{OLLAMA_ORANGEPI_URL}/api/generate",
+            json={
+                "model": "hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest",
+                "prompt": prompt,
+                "stream": False,
+                "options": {"num_predict": max_tokens, "temperature": temperature},
+            },
+        )
+        if resp.status_code == 200:
+            text = resp.json().get("response", "").strip()
+            if text:
+                logger.info(f"call_local_rpc: Pi Ollama returned {len(text)} chars")
+                return text
+        logger.warning(f"call_local_rpc: Pi Ollama returned empty (HTTP {resp.status_code})")
+    except Exception as e:
+        logger.warning(f"call_local_rpc: Pi Ollama failed: {e}")
+
+    logger.warning("call_local_rpc: all local paths exhausted")
+    return ""
 
 
 # ── RPC (llama-server HTTP path — legacy) ───────────────────────────────────
@@ -668,41 +742,29 @@ def call_llamacpp_rpc(
     temperature: float = 0.0,
 ) -> str:
     """
-    Call a local llama-server (OpenAI-compatible API) that internally uses
-    RPC to split layers across Server + Orange Pi 5.
+    Call Surface tablet's llama-server (OpenAI-compatible API) that internally uses
+    RPC to split inference across the cluster (Dell + Orange Pi 5).
 
-    Use this for OVERNIGHT BATCH TASKS only — it's ~5 tok/s over Ethernet.
-    For interactive use, prefer call_ollama() with a model that fits single-machine.
+    The Surface tablet (10.0.0.47:8080) runs llama-server with --rpc flags pointing
+    to the Dell (10.10.10.1:50052) and Pi (10.42.0.139:50052) as RPC workers.
+    This function sends the HTTP request — the Surface handles all RPC orchestration.
 
-    The llama-server must already be running (start with start_rpc_llama_server()
-    or the scripts/start-rpc-overnight.sh script).
+    Use this for OVERNIGHT BATCH TASKS and watchdog inference.
+    For interactive use, prefer call_ollama() with a local model.
+
+    The llama-server must already be running on the Surface (systemd service).
 
     Args:
         prompt: The user prompt
-        model_path: Path to GGUF model (defaults to RPC_MODEL_PATH env var)
+        model_path: Ignored — the Surface's server has its own model loaded
         system_prompt: Optional system message
         max_tokens: Max output tokens
-        timeout: HTTP timeout (longer for slow RPC inference)
+        timeout: HTTP timeout (longer for RPC inference over WiFi)
         temperature: 0.0 = deterministic, higher = creative
 
     Returns:
         Generated text, or empty string on failure.
     """
-    import glob as _glob
-
-    # Resolve model path (may be a glob for Ollama blob paths)
-    path = model_path or RPC_MODEL_PATH
-    if "*" in path:
-        matches = sorted(_glob.glob(path), key=os.path.getsize, reverse=True)
-        if not matches:
-            logger.error(f"RPC: no model found matching {path}")
-            return ""
-        path = matches[0]
-
-    if not os.path.exists(path):
-        logger.error(f"RPC: model not found at {path}")
-        return ""
-
     messages = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
@@ -712,7 +774,7 @@ def call_llamacpp_rpc(
     try:
         import httpx
         client = httpx.Client(
-            timeout=httpx.Timeout(connect=5.0, read=float(timeout), write=10.0),
+            timeout=httpx.Timeout(connect=10.0, read=float(timeout), write=10.0, pool=10.0),
         )
         resp = client.post(
             f"{LLAMACPP_RPC_URL.rstrip('/')}/v1/chat/completions",
@@ -843,10 +905,15 @@ def get_free_memory_mb() -> int:
 
 def check_rpc_memory_ok(server_min_mb: int = 1500, worker_min_mb: int = 800) -> tuple[bool, str]:
     """
-    Check if both server and Orange Pi have enough free RAM for RPC.
+    Check if cluster nodes have enough free RAM for inference.
+
+    In the 3-node topology:
+      - Server = Dell (this machine) — runs ggml-rpc-server for Surface
+      - Orchestrator = Surface (10.0.0.47) — runs llama-server, checked by is_rpc_server_healthy()
+      - Worker = Orange Pi (10.10.10.2) — runs ggml-rpc-server, checked via SSH
 
     Returns:
-        (ok, reason) — ok=True if both machines have sufficient RAM.
+        (ok, reason) — ok=True if all reachable nodes have sufficient RAM.
     """
     # RPC_WORKER_URL is defined at module level
 
@@ -886,15 +953,14 @@ def call_llamacpp_rpc_with_fallback(
     skip_cloud_fallback: bool = False,
 ) -> str:
     """
-    Call llama.cpp RPC with full OOM protection and fallback chain.
+    Call Surface orchestrator API with full OOM protection and fallback chain.
 
     Fallback order:
-      1. RPC via llama-server → Orange Pi (primary, for 7B+ models)
-      2. Solo Ollama on server (qwen2:0.5b or configured fallback model)
+      1. Surface API (primary) — llama-server on 10.0.0.47:8080, RPCs to Dell + Pi
+      2. Solo Ollama on Dell (qwen2:0.5b or configured fallback model)
       3. Cloud API via OpenRouter (free tier) — skipped if skip_cloud_fallback=True
 
-    Each step validates memory before attempting. If RPC fails or OOMs,
-    gracefully degrades to the next fallback.
+    Each step validates memory + server health before attempting.
 
     Args:
         prompt: The user prompt
@@ -1108,7 +1174,7 @@ def is_agy_healthy(model: str = "flash") -> bool:
     import subprocess
     try:
         result = subprocess.run(
-            [AGENTAPI_BIN, "--model", model, "--print", "Say OK"],
+            [AGENTAPI_BIN, "--model", _resolve_agy_model(model), "--print", "Say OK"],
             capture_output=True, text=True, timeout=30
         )
         return result.returncode == 0 and len(result.stdout.strip()) > 0

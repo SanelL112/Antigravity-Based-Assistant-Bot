@@ -12,6 +12,16 @@ from bot.runtime import _track_task
 
 logger = logging.getLogger(__name__)
 
+
+def _agy_model(alias: str) -> str:
+    """Resolve an internal agy alias (flash/pro) to the current valid model ID."""
+    try:
+        from llm_router import _resolve_agy_model
+        return _resolve_agy_model(alias)
+    except Exception:
+        # Fallback to a known-good display name if the resolver is unavailable.
+        return "Gemini 3.5 Flash (Medium)"
+
 async def detect_topic(message: str, chat_id: int) -> str:
     """Detect conversation topic using local Ollama model. Returns an existing topic or invents a new one."""
     import glob
@@ -224,7 +234,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                 asyncio.get_running_loop().run_in_executor(
                     None,
                     lambda: subprocess.run(
-                        [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", privacy_prompt],
+                        [AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", privacy_prompt],
                         capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL
                     )
                 ),
@@ -399,7 +409,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                                 result = await asyncio.wait_for(
                                     asyncio.get_running_loop().run_in_executor(
                                         None,
-                                        lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
+                                        lambda: subprocess.run([AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
                                     ), timeout=RESPONSE_TIMEOUT + 5)
                                 out = result.stdout.strip()
                                 actual_model_used = "flash (local fallback)"
@@ -458,7 +468,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                                 result = await asyncio.wait_for(
                                     asyncio.get_running_loop().run_in_executor(
                                         None,
-                                        lambda: subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
+                                        lambda: subprocess.run([AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
                                     ), timeout=RESPONSE_TIMEOUT + 5)
                                 out = result.stdout.strip()
                                 actual_model_used = "flash (local fallback)"
@@ -480,7 +490,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                 asyncio.get_running_loop().run_in_executor(
                     None,
                     lambda: subprocess.run(
-                        [AGENTAPI_BIN, "--model", model, "--dangerously-skip-permissions", "--print", full_prompt],
+                        [AGENTAPI_BIN, "--model", _agy_model(model), "--dangerously-skip-permissions", "--print", full_prompt],
                         capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL
                     )
                 ),
@@ -514,7 +524,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                     asyncio.get_running_loop().run_in_executor(
                         None,
                         lambda: subprocess.run(
-                            [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", sanity_prompt],
+                            [AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", sanity_prompt],
                             capture_output=True, text=True, timeout=15, stdin=subprocess.DEVNULL
                         )
                     ),
@@ -535,7 +545,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                             asyncio.get_running_loop().run_in_executor(
                                 None,
                                 lambda: subprocess.run(
-                                    [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", recovery_prompt],
+                                    [AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", recovery_prompt],
                                     capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL
                                 )
                             ),

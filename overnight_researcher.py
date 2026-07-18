@@ -13,6 +13,18 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = "/home/sanel/personal-assistant-bot"
 KB_DIR = os.path.join(BASE_DIR, "knowledge_base")
+
+
+def _agy_model(alias: str) -> str:
+    """Resolve an internal agy alias (flash/pro) to the current valid model ID."""
+    try:
+        import sys
+        if BASE_DIR not in sys.path:
+            sys.path.insert(0, BASE_DIR)
+        from llm_router import _resolve_agy_model
+        return _resolve_agy_model(alias)
+    except Exception:
+        return "Gemini 3.1 Pro (Low)" if alias == "pro" else "Gemini 3.5 Flash (Medium)"
 AGENTAPI_BIN = "/home/sanel/.local/bin/agy"
 
 def run_overnight_research():
@@ -54,7 +66,7 @@ def run_overnight_research():
     )
     
     try:
-        r = subprocess.run([AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", topic_prompt], 
+        r = subprocess.run([AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", topic_prompt],
                            capture_output=True, text=True, timeout=120)
         topics_raw = r.stdout.strip()
         
@@ -151,7 +163,7 @@ def _research_topic_with_fallbacks(topic: str, context: str) -> str:
     try:
         logger.info(f"  Falling back to agy flash for '{topic}'...")
         r = subprocess.run(
-            [AGENTAPI_BIN, "--model", "flash", "--dangerously-skip-permissions", "--print", research_prompt],
+            [AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", research_prompt],
             capture_output=True, text=True, timeout=300
         )
         if r.returncode == 0 and r.stdout.strip():

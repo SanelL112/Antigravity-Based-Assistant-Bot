@@ -13,6 +13,15 @@ from config import AGENTAPI_BIN
 logger = logging.getLogger(__name__)
 
 
+def _agy_model(alias: str) -> str:
+    """Resolve an internal agy alias (flash/pro) to the current valid model ID."""
+    try:
+        from llm_router import _resolve_agy_model
+        return _resolve_agy_model(alias)
+    except Exception:
+        return "Gemini 3.1 Pro (Low)" if alias == "pro" else "Gemini 3.5 Flash (Medium)"
+
+
 def transcribe_voice(file_path: str) -> str:
     """
     Transcribe a voice message locally. Tries whisper.cpp first (faster),
@@ -86,7 +95,7 @@ def _try_agy_audio(file_path: str) -> str:
     )
     try:
         result = subprocess.run(
-            [AGENTAPI_BIN, "--model", "pro", "--dangerously-skip-permissions", "--print", prompt],
+            [AGENTAPI_BIN, "--model", _agy_model("pro"), "--dangerously-skip-permissions", "--print", prompt],
             capture_output=True, text=True, timeout=180
         )
         text = result.stdout.strip()

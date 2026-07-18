@@ -52,19 +52,27 @@ Notes:
     print("Extracting dynamic topics from classroom notes using OpenRouter...")
 
     scrubbed_prompt = scrub_pii(prompt)
-    try:
-        result = call_openrouter(
-            model="meta-llama/llama-3.3-70b-instruct:free",
-            prompt=scrubbed_prompt,
-            task="extract_topics",
-            max_tokens=500,
-            timeout=600,
-        )
-        if result:
-            topics = [t.strip() for t in result.split(",") if t.strip()]
+    
+    # Try local RPC first (no rate limits)
+    from llm_router import call_local_rpc
+    result = call_local_rpc(prompt=scrubbed_prompt, max_tokens=500, timeout=180)
+    if not result:
+        print("Topic extraction: local RPC failed, trying OpenRouter free tier...")
+        try:
+            result = call_openrouter(
+                model="meta-llama/llama-3.3-70b-instruct:free",
+                prompt=scrubbed_prompt,
+                task="extract_topics",
+                max_tokens=500,
+                timeout=600,
+            )
+        except Exception as e:
+            print(f"Extraction error: {e}")
+
+    if result:
+        topics = [t.strip() for t in result.split(",") if t.strip()]
+        if topics:
             return topics[:num_topics]
-    except Exception as e:
-        print(f"Extraction error: {e}")
 
     return ["General Mathematics", "Advanced Grammar", "Test Strategies"]
 
@@ -109,17 +117,26 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
         print("Calling OpenRouter for Delta-Append generation...")
 
         scrubbed_prompt = scrub_pii(prompt)
+        new_section = ""
         try:
-            new_section = call_openrouter(
-                model="meta-llama/llama-3.3-70b-instruct:free",
-                prompt=scrubbed_prompt,
-                task="delta_append",
-                max_tokens=4000,
-                timeout=600,
-            )
+            from llm_router import call_local_rpc
+            new_section = call_local_rpc(prompt=scrubbed_prompt, max_tokens=4000, timeout=300)
         except Exception as e:
-            print(f"OpenRouter connection error: {e}")
-            new_section = ""
+            print(f"Local RPC error: {e}")
+
+        if not new_section:
+            print("Local RPC append failed, trying OpenRouter free tier...")
+            try:
+                new_section = call_openrouter(
+                    model="meta-llama/llama-3.3-70b-instruct:free",
+                    prompt=scrubbed_prompt,
+                    task="delta_append",
+                    max_tokens=4000,
+                    timeout=600,
+                )
+            except Exception as e:
+                print(f"OpenRouter connection error: {e}")
+                new_section = ""
 
         if new_section:
             # Clean up <thought> tags

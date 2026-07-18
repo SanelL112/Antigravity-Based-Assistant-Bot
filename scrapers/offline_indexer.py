@@ -75,11 +75,11 @@ async def run_indexing():
     total_chunks = len(chunks)
     
     success_count = 0
-    ollama_failed = False
+    local_inference_down = False
     for i, chunk in enumerate(chunks):
-        # Circuit breaker: if Ollama is down, stop processing all remaining chunks
-        if ollama_failed:
-            logger.warning(f"Skipping chunk {i+1}/{total_chunks} — Ollama is not available")
+        # Circuit breaker: if local inference is down, stop hammering it. Emit a
+        # single summary line instead of one misleading warning per chunk.
+        if local_inference_down:
             continue
 
         logger.info(f"Processing chunk {i+1}/{total_chunks} for delta_export...")
@@ -90,8 +90,15 @@ async def run_indexing():
                 out_f.write(result)
             success_count += 1
         elif i == 0:
-            # First chunk failed — Ollama is likely down. Circuit-break.
-            ollama_failed = True
+            # First chunk failed — the whole local-inference chain (Surface
+            # llama-server + Pi fallback) is unavailable. Circuit-break so we
+            # don't retry 174 more times and spam Telegram.
+            local_inference_down = True
+            skipped = total_chunks - 1
+            logger.warning(
+                f"Local inference (Surface RPC + Pi) unavailable — skipping "
+                f"{skipped} remaining chunk(s). Delta preserved for next run."
+            )
                 
     if success_count == total_chunks:
         open(delta_file, 'w').close()

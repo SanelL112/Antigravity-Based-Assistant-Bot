@@ -243,32 +243,58 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
             f"DATA:\n{raw_data}"
         )
     try:
-        from llm_router import call_openrouter
+        from llm_router import call_local_rpc, call_openrouter
         from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
 
-        result = call_openrouter(
-            model="nvidia/nemotron-3-ultra-550b-a55b:free",
-            prompt=f"Read the following recent school and email notifications. "
-                  f"Look ONLY for critical anomalies or urgent updates. "
-                  f"If there is nothing urgent, reply exactly: NO_ALERT\n\n"
-                  f"DATA:\n{raw_data}",
-            task="watchdog",
-            fallback_chain=[OR_FALLBACK_MODEL, OR_THIRD_MODEL],
-            timeout=45,
+        # Try local RPC first (no rate limits, always available)
+        result = await asyncio.to_thread(
+            call_local_rpc,
+            prompt=prompt,
+            max_tokens=150,
+            timeout=90,
         )
+
+        # Fall back to OpenRouter free tier if local fails
+        if not result or "NO_ALERT" not in result and len(result) < 10:
+            logger.info("Watchdog: local RPC returned empty, trying OpenRouter free tier")
+            result = call_openrouter(
+                model="nvidia/nemotron-3-ultra-550b-a55b:free",
+                prompt=prompt,
+                task="watchdog",
+                fallback_chain=[OR_FALLBACK_MODEL, OR_THIRD_MODEL],
+                timeout=45,
+            )
 
         # Send alert regardless of which model produced the result
         # But filter out the "all models failed" fallback message
         if (result and "NO_ALERT" not in result and len(result) > 10
                 and "All models failed" not in result):
-            logger.info(f"Watchdog triggered: {result}")
-            from utils import sanitize_markdown
-            safe_result = sanitize_markdown(result)
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text=f"🚨 **WATCHDOG ALERT** 🚨\n\n{safe_result}",
-                parse_mode="Markdown"
-            )
+            # Dedup: don't re-send the same urgent alert every 30 min.
+            # Normalize (lowercase, collapse whitespace, drop punctuation) so
+            # minor LLM phrasing drift on the same event still hashes equal.
+            import re as _re
+            normalized = _re.sub(r"[^a-z0-9 ]", "", result.lower())
+            normalized = _re.sub(r"\s+", " ", normalized).strip()
+            alert_hash = get_hash(normalized)
+
+            seen_alerts = state.setdefault("seen_alerts", [])
+            if alert_hash in seen_alerts:
+                logger.info("Watchdog: duplicate alert suppressed (already sent).")
+            else:
+                seen_alerts.append(alert_hash)
+                # Keep the list bounded so it doesn't grow forever.
+                if len(seen_alerts) > 100:
+                    state["seen_alerts"] = seen_alerts[-100:]
+                save_state(state)
+
+                logger.info(f"Watchdog triggered: {result}")
+                from utils import sanitize_markdown
+                safe_result = sanitize_markdown(result)
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=f"🚨 **WATCHDOG ALERT** 🚨\n\n{safe_result}",
+                    parse_mode="Markdown"
+                )
         elif result and "All models failed" in result:
             logger.warning("Watchdog: all LLM models failed (rate limited), skipping check")
         else:
@@ -656,15 +682,23 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Caption: {caption}\nPhoto OCR Text:\n{ocr_text}"
     )
     
-    from llm_router import call_openrouter
+    from llm_router import call_local_rpc, call_openrouter
     try:
-        extracted = call_openrouter(
-            model="nvidia/nemotron-3-ultra-550b-a55b:free",
+        # Try local RPC first (no rate limits)
+        extracted = call_local_rpc(
             prompt=prompt,
-            task="photo-extract",
-            fallback_chain=["meta-llama/llama-3.3-70b-instruct:free"],
+            max_tokens=200,
             timeout=120,
         )
+        if not extracted or extracted in ("UNSURE",):
+            logger.info("Photo: local RPC returned empty, trying OpenRouter free tier")
+            extracted = call_openrouter(
+                model="nvidia/nemotron-3-ultra-550b-a55b:free",
+                prompt=prompt,
+                task="photo-extract",
+                fallback_chain=["meta-llama/llama-3.3-70b-instruct:free"],
+                timeout=120,
+            )
     except Exception:
         logger.info("Falling back to G1 Flash for photo extraction...")
         from ai_processor import call_agy

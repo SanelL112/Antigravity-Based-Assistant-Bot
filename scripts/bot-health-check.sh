@@ -12,13 +12,39 @@ CHAT_ID="8534649457"
 
 # ── Gather health data ────────────────────────────────────────────────────────
 
+# service_state <unit> — return the systemd active-state as a single word.
+# `systemctl is-active` prints the state (active/activating/failed/...) to
+# stdout but exits non-zero for anything other than "active". The old
+# `$(... || echo unknown)` captured BOTH the real state AND "unknown" on a
+# second line (hence the "activating\nunknown" garbage in reports). Capture
+# stdout unconditionally and fall back to "unknown" only when it's empty.
+service_state() {
+    local s
+    s=$(systemctl is-active "$1" 2>/dev/null)
+    [ -n "$s" ] && echo "$s" || echo "unknown"
+}
+
+# For a service that may be mid-restart, re-check once after a short pause so
+# a transient "activating"/"deactivating" doesn't fire a false DOWN alarm.
+service_state_settled() {
+    local s
+    s=$(service_state "$1")
+    if [ "$s" = "activating" ] || [ "$s" = "deactivating" ] || [ "$s" = "reloading" ]; then
+        sleep 5
+        s=$(service_state "$1")
+    fi
+    echo "$s"
+}
+
 # Bot service
-BOT_ACTIVE=$(systemctl is-active bot.service 2>/dev/null || echo "unknown")
-BOT_UPTIME=$(systemctl show bot.service -p ActiveEnterTimestamp 2>/dev/null | cut -d= -f2 || echo "?")
-BOT_PID=$(systemctl show bot.service -p MainPID 2>/dev/null | cut -d= -f2 || echo "?")
+BOT_ACTIVE=$(service_state_settled bot.service)
+BOT_UPTIME=$(systemctl show bot.service -p ActiveEnterTimestamp --value 2>/dev/null)
+[ -n "$BOT_UPTIME" ] || BOT_UPTIME="?"
+BOT_PID=$(systemctl show bot.service -p MainPID --value 2>/dev/null)
+[ -n "$BOT_PID" ] || BOT_PID="?"
 
 # Ollama
-OLLAMA_ACTIVE=$(systemctl is-active ollama.service 2>/dev/null || echo "unknown")
+OLLAMA_ACTIVE=$(service_state_settled ollama.service)
 OLLAMA_MODELS=$(curl -sf --max-time 3 http://localhost:11434/api/tags 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('models',[])))" 2>/dev/null || echo "?")
 
 # Disk
@@ -26,7 +52,11 @@ DISK_PCT=$(df -h / | tail -1 | awk '{print $5}' | tr -d '%')
 DISK_FREE=$(df -h / | tail -1 | awk '{print $4}')
 
 # Recent errors (last 4 hours)
-ERROR_COUNT=$(journalctl -u bot.service --no-pager --since "4 hours ago" 2>/dev/null | grep -ciE "error|fail|traceback" || echo "0")
+# grep -c exits non-zero when there are 0 matches; the old `|| echo 0`
+# appended a second "0" line (hence "Recent errors (4h): 0\n0"). Force a
+# single clean integer with wc -l instead.
+ERROR_COUNT=$( { journalctl -u bot.service --no-pager --since "4 hours ago" 2>/dev/null || true; } | { grep -icE "error|fail|traceback" || true; } | tr -d ' ')
+[ -n "$ERROR_COUNT" ] || ERROR_COUNT="0"
 
 # File sizes
 STATE_KB=$(du -k "$BOT_DIR/state.json" 2>/dev/null | cut -f1 || echo "0")
@@ -58,17 +88,41 @@ except:
 
 # ── Build report ──────────────────────────────────────────────────────────────
 
-BOT_STATUS_EMOJI="✅"
-OLLAMA_STATUS_EMOJI="⚠️"
-if [ "$BOT_ACTIVE" != "active" ]; then BOT_STATUS_EMOJI="🚨"; fi
-if [ "$OLLAMA_ACTIVE" = "active" ]; then OLLAMA_STATUS_EMOJI="✅"; fi
+# Status emoji: active = ✅, transient (activating/deactivating/reloading) = ⏳
+# (informational, no alarm), anything else = 🚨/⚠️.
+status_emoji() {
+    case "$1" in
+        active) echo "✅" ;;
+        activating|deactivating|reloading) echo "⏳" ;;
+        *) echo "$2" ;;  # $2 = severity emoji for a genuinely bad state
+    esac
+}
+
+BOT_STATUS_EMOJI=$(status_emoji "$BOT_ACTIVE" "🚨")
+OLLAMA_STATUS_EMOJI=$(status_emoji "$OLLAMA_ACTIVE" "⚠️")
+
+# Only treat a service as truly down/degraded when it's neither active nor
+# in a transient restart state — avoids false alarms during a normal restart.
+is_bad_state() {
+    case "$1" in
+        active|activating|deactivating|reloading) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+# Clean up the Ollama model count for display.
+if [ "$OLLAMA_ACTIVE" = "active" ] && [ "$OLLAMA_MODELS" = "?" ]; then
+    OLLAMA_MODELS_DISPLAY="count unavailable"
+else
+    OLLAMA_MODELS_DISPLAY="$OLLAMA_MODELS models loaded"
+fi
 
 REPORT=$(cat << ENDREPORT
 🤖 **Bot Health Check** — $(date '+%Y-%m-%d %H:%M %Z')
 
 **Services:**
 • Telegram bot: $BOT_STATUS_EMOJI $BOT_ACTIVE (since $(echo $BOT_UPTIME | cut -d' ' -f2-3))
-• Ollama: $OLLAMA_STATUS_EMOJI $OLLAMA_ACTIVE ($OLLAMA_MODELS models loaded)
+• Ollama: $OLLAMA_STATUS_EMOJI $OLLAMA_ACTIVE ($OLLAMA_MODELS_DISPLAY)
 
 **System:**
 • Disk: ${DISK_PCT}% used (${DISK_FREE} free)
@@ -86,8 +140,8 @@ REPORT=$(cat << ENDREPORT
 $([ "$ERROR_COUNT" -gt 0 ] && echo "⚠️ $ERROR_COUNT errors in last 4 hours — check journalctl -u bot.service")
 $([ "$GOOGLE_TOKEN" = "expired" ] && echo "⚠️ Google token expired — run google_auth_setup.py")
 $([ "$GOOGLE_TOKEN" = "missing" ] && echo "🚨 No token.json found!")
-$([ "$OLLAMA_ACTIVE" != "active" ] && echo "⚠️ Ollama is not running — nightly pipeline will fail")
-$([ "$BOT_ACTIVE" != "active" ] && echo "🚨 Bot is DOWN — check systemctl status bot.service")
+$(is_bad_state "$OLLAMA_ACTIVE" && echo "⚠️ Ollama is not running — nightly pipeline will fail")
+$(is_bad_state "$BOT_ACTIVE" && echo "🚨 Bot is DOWN — check systemctl status bot.service")
 ENDREPORT
 )
 

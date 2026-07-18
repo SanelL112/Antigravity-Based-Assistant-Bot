@@ -41,23 +41,29 @@ async def pre_cache_web():
             logger.warning("No OPENROUTER_API_KEY found, aborting web precache.")
             return
 
-        from llm_router import call_openrouter
+        from llm_router import call_local_rpc, call_openrouter
+        
         def _call_or(m_name, prompt_text):
             try:
                 return call_openrouter(model=m_name, prompt=prompt_text, task="web-precache", timeout=120)
             except Exception:
                 return None
-               
-        topic = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
-        if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-            logger.warning(f"Nemotron failed in precacher, falling back to {OR_FALLBACK_MODEL}...")
-            fallback = _call_or(OR_FALLBACK_MODEL, prompt)
-            if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-                topic = fallback
-            else:
-                logger.warning("Fallback failed, falling back to local G1 Flash...")
-                from ai_processor import call_agy
-                topic = call_agy(prompt, timeout=120, model="flash")
+        
+        # Try local RPC first (no rate limits)
+        topic = call_local_rpc(prompt=prompt, max_tokens=50, timeout=120)
+        if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai", "none"]):
+            logger.info("Web precacher: local RPC failed, trying OpenRouter free tier...")
+                      
+            topic = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
+            if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+                logger.warning(f"Nemotron failed in precacher, falling back to {OR_FALLBACK_MODEL}...")
+                fallback = _call_or(OR_FALLBACK_MODEL, prompt)
+                if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+                    topic = fallback
+                else:
+                    logger.warning("Fallback failed, falling back to local G1 Flash...")
+                    from ai_processor import call_agy
+                    topic = call_agy(prompt, timeout=120, model="flash")
            
         if not topic: topic = ""
         topic = re.sub(r'[^a-zA-Z0-9\s]', '', topic)
@@ -105,9 +111,12 @@ async def pre_cache_web():
                 page_soup = BeautifulSoup(page_res.text, "html.parser")
                 text = " ".join([p.text for p in page_soup.find_all('p')])
                
-                # Summarize
+                # Summarize — try local RPC first
                 sum_prompt = f"Summarize the following educational text about {topic}. Extract key formulas, facts, and examples.\n\nTEXT:\n{text[:10000]}"
-                summary = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", sum_prompt)
+                summary = call_local_rpc(prompt=sum_prompt, max_tokens=500, timeout=120)
+                if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
+                    logger.info("Web precacher summarization: local RPC failed, trying OpenRouter...")
+                    summary = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", sum_prompt)
                 if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
                     logger.warning(f"Nemotron failed summarization, falling back to {OR_FALLBACK_MODEL}...")
                     fallback = _call_or(OR_FALLBACK_MODEL, sum_prompt)

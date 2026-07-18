@@ -117,6 +117,11 @@ def _call_agy_inline(prompt: str, timeout: int = 180, model: str = "flash") -> s
         proc = None
         try:
             master, slave = pty.openpty()
+            try:
+                from llm_router import _resolve_agy_model
+                target_model = _resolve_agy_model(target_model)
+            except Exception:
+                pass
             proc = subprocess.Popen(
                 [AGENTAPI_BIN, "--model", target_model, "--print", prompt],
                 stdin=slave, stdout=slave, stderr=slave,
