@@ -1,14 +1,19 @@
 [Unit]
 Description=Personal Assistant Telegram Bot
-After=network.target
+# Wait for full network + Tailscale MagicDNS (100.100.100.100) before start.
+# Fixes startup race: get_me() -> api.telegram.org DNS lookup failing with
+# "Temporary failure in name resolution" when launched before the resolver is up.
+After=network-online.target tailscale-online.target
+Wants=network-online.target tailscale-online.target
 
 [Service]
 User=sanel
-WorkingDirectory=/opt/personal-assistant-bot
-ExecStart=/opt/personal-assistant-bot/venv/bin/python main.py
+WorkingDirectory=/home/sanel/personal-assistant-bot
+ExecStart=/home/sanel/personal-assistant-bot/venv/bin/python main.py
 Restart=always
 RestartSec=5
-# Adjust these paths depending on where you clone the repo on your Debian server
+Environment=HOME=/home/sanel
+Environment=PYTHONWARNINGS=ignore::ResourceWarning
 
 [Install]
 WantedBy=multi-user.target
