@@ -1,18 +1,18 @@
 # Consolidated Bug Audit and Remediation Guide
 
-Audit date: 2026-07-21
+Audit date: 2026-07-21 (live hardware follow-up: 2026-07-22)
 Code baseline: `deae8ce9360185a63ce2761776a6724046e24a5b` (`main` and `origin/main`)
 Repository: `SanelL112/Antigravity-Based-Assistant-Bot`
 
 ## Purpose and scope
 
-This is the repair handoff for the current bot revision. It consolidates the code audit, `journalctl -u bot.service`, local activity/chat histories, the preserved Telegram alert transcript, Hermes MCP logs, the installed systemd units, the live Composio probes, and the live Ollama endpoint checks.
+This is the repair handoff for the current bot revision. It consolidates the code audit, `journalctl -u bot.service`, local activity/chat histories, the preserved Telegram alert transcript, Hermes MCP logs, the installed systemd units, the live Composio probes, the live Ollama endpoint checks, and the 2026-07-22 Surface/Orange-Pi follow-up probes.
 
 This document is intentionally more conservative than the older audit files in this repository. It distinguishes:
 
 - **Active** — confirmed in the current source, configuration, credential state, or live service behavior.
 - **Historical/resolved** — present in older logs but already corrected in the current revision.
-- **Deferred** — requires the Surface or Orange Pi, which were offline during this audit.
+- **Deferred** — requires a production topology change, a currently unavailable interface/route, or a controlled restart; the 2026-07-22 read-only hardware probes are recorded separately below.
 - **Operational** — not necessarily a code defect, but requires credential, secret, or deployment work.
 
 No bot implementation was changed as part of this audit. The only intended change is this documentation file. Existing generated files and the dirty worktree must be preserved.
@@ -24,14 +24,52 @@ The audit found confirmed defects, but it cannot prove that no additional defect
 - Local `main` and GitHub `origin/main` both resolved to the baseline commit above.
 - The installed `/etc/systemd/system/bot.service` matched the repository service file.
 - `bot.service` was active from the July 20 restart; that restart did not reproduce the older DNS startup crash.
-- Local `ollama.service` and its health timer were active. The local API returned four installed models.
-- The application-configured Pi Ollama endpoint timed out while the local API succeeded.
+- During the original 2026-07-21 audit, local `ollama.service` and its health timer were active and the local API returned four installed models; the application-configured Pi endpoint timed out.
+- In the 2026-07-22 follow-up, the local Dell `ollama.service` was failed/start-limit-hit with no local listener, while Pi Ollama returned HTTP 200 and exposed `nomic-embed-text` and the configured Qwen model. This is a changed live state and does not invalidate the historical log finding.
 - Read-only Composio probes succeeded for Gmail, Classroom, and Drive; Canvas alone returned an expired connected-account token.
 - All 63 Python files parsed. Two `SyntaxWarning`s remain and are listed as WARN-01.
 - Root `nightly_queue.json` contained 280 rows/63 unique IDs; the queue read by `scrapers/nightly_processor.py` was empty.
 - Current `cache/` files were updated July 21, while important consumers still read July 1 or older legacy cache trees.
 - Safe pytest collection was not possible because test-named scratch files perform live requests during import.
-- Surface and Orange Pi execution was not tested because both devices were offline.
+- Surface and Orange Pi were subsequently reachable for read-only checks. Surface `/health`, `/v1/models`, and a chat completion returned HTTP 200; Pi Ollama `/api/tags` and a generation request returned HTTP 200; both RPC worker services were active. Distributed RPC was not confirmed because the running Surface server had no `--rpc` argument and the Surface could not route to Pi.
+
+## Live hardware follow-up (2026-07-22)
+
+This section supersedes only the hardware-dependent “offline” note above. No bot, systemd unit, or remote machine was modified.
+
+### Observed addresses and routes
+
+| Node | Interface/address observed | Relevant service |
+|---|---|---|
+| Dell running the bot | `enp12s0: 10.10.10.1/24`; `wlp2s0: 10.0.0.61/24` | local `ggml-rpc-server` on `0.0.0.0:50052` |
+| Surface Pro | `wlp1s0: 10.0.0.47/24` | `llama-web.service` on `0.0.0.0:8080` |
+| Orange Pi 5 | `end1: 10.10.10.2/24` | `llama-rpc.service` on `0.0.0.0:50052`; Ollama on `*:11434` |
+
+The proposed `10.0.42.1` and `10.0.42.2` addresses were also probed. Neither host has that address or a connected route; both probes timed out. The currently connected RPC link is `10.10.10.1–10.10.10.2`. The Surface has no `10.10.10.0/24` or `10.0.42.0/24` interface/route. Its unit’s ignored `ExecStartPre` attempts to add `10.10.10.0/24 via 10.42.0.139 dev usb0`, but no `usb0`/`10.42.0.139` interface was present.
+
+### RPC results
+
+- Surface `/health`: HTTP 200, `{"status":"ok"}`.
+- Surface `/v1/models`: HTTP 200; the expected 7B GGUF was loaded.
+- Surface chat completion: HTTP 200 and valid content (`SURFACE_RPC_OK`). This proves solo Surface inference only.
+- Surface process command: `llama-server ... -m ... -c 4096 --host 0.0.0.0 --port 8080`; no `--rpc` argument was present.
+- Surface could reach Dell’s Wi-Fi worker address `10.0.0.61:50052` but could not reach Pi `10.10.10.2:50052` or `10.42.0.139:50052`.
+- Dell and Pi both had active `ggml-rpc-server` services listening on port 50052. TCP reachability from Dell to Pi succeeded.
+- `llama-server --help` confirms this build accepts a comma-separated `--rpc host:port,...` list; the launch script’s list syntax is not the observed failure.
+- The launch script detects workers only once at service start. Surface started before the workers were reachable and remained in solo mode; `Restart=always` does not re-run detection while the server process remains healthy.
+
+### Ollama and application-path results
+
+- Pi `GET /api/tags`: HTTP 200 with both required models; Pi generation: HTTP 200.
+- Bot configuration resolves both `OLLAMA_URL` and `OLLAMA_ORANGEPI_URL` to `http://10.10.10.2:11434`.
+- The bot’s health functions reported `configured_ollama_health=True`, `orangepi_ollama_health=True`, and `local_ollama_health=False` for `http://127.0.0.1:11434`.
+- `check_rpc_memory_ok()` returned `(True, "Surface: 2464MB, Dell(worker): 4055MB, Pi(worker): 3624MB")`. This is an observability/memory result, not proof that Surface has an active RPC worker connection.
+
+### What remains deferred
+
+- Do not claim distributed inference until the Surface service is launched with an explicit, reachable worker list and its logs show RPC connections.
+- Decide and document the intended subnet/address mapping (`10.10.10.1–2` is the live wired pair; `10.0.42.1–2` is currently absent) before changing endpoint constants or routes.
+- Test Pi participation after a controlled service restart or equivalent isolated staging launch; do not restart production services as part of this documentation-only audit.
 
 ## Immediate risk summary
 
@@ -41,7 +79,7 @@ The highest-risk issues are:
 2. `/start` is not authenticated and lets any Telegram caller schedule private scraping and digest jobs to their chat.
 3. private school, email, conversation, OCR, and curated-memory content can reach cloud providers after local inference fails.
 4. historical journald entries contain the Telegram bot token inside Bot API request URLs. The token must be considered compromised and rotated during remediation.
-5. Ollama health checks test the healthy local service, but most bot inference is configured to call the offline Orange Pi. The advertised Dell fallback therefore never runs.
+5. Ollama roles are conflated: most bot inference targets the Pi, `call_local_rpc()` has no Dell fallback, and health scripts test a different endpoint. The live node state can reverse without the router or health report representing it correctly.
 6. Canvas is currently unavailable through Composio because that connected account reports an expired access token.
 7. journald is missing most normal application logs, while warning logs are synchronously forwarded to Telegram and can create alert storms.
 8. three incompatible cache trees and two incompatible nightly-queue locations cause fresh data to be written in one place and stale or empty data to be consumed elsewhere.
@@ -124,7 +162,7 @@ The most important chains are:
 
 - **Command chain:** cloud/local model output → BASH tag parser → `run_bash_safely()` → `python3 -c` → unrestricted file/process/network actions.
 - **Privacy chain:** private input → Surface/Pi unavailable → Dell fallback skipped because of endpoint configuration → cloud fallback → policy violation.
-- **False-health chain:** health script checks `localhost:11434` → reports Ollama healthy → bot calls `10.10.10.2:11434` → timeouts and empty results.
+- **False-health chain:** health script checks `localhost:11434` while the bot calls `10.10.10.2:11434` → either endpoint can fail while the other is reported healthy. The July 21 and July 22 snapshots demonstrated both sides of this mismatch.
 - **Data-staleness chain:** scrapers write `cache/` → consolidation/indexing reads older `scrapers/source_cache/` → stale memory and embeddings → lower-quality answers and repeated work.
 - **Observability chain:** Telegram handler is installed before `basicConfig()` → no normal stream handler → journald is mostly blind → warnings are sent to Telegram synchronously → noisy alerts with no durable matching record.
 - **Task-loss chain:** a task is marked seen before Notion confirms insertion, while state updates are not transactional → failed insertions can be permanently suppressed.
@@ -156,7 +194,7 @@ Do not repair these in arbitrary order. Later work relies on earlier containment
    - quarantine live scripts;
    - build deterministic unit/integration coverage around the security and routing invariants.
 7. **Run hardware tests**
-   - only after the Surface and Orange Pi are back online.
+   - complete the remaining controlled-start, worker-participation, and partition tests after the RPC subnet and routes are corrected.
 
 ---
 
@@ -346,6 +384,7 @@ Anyone with access to the relevant journal entries may be able to control the bo
 - On 2026-07-21, `http://localhost:11434/api/tags` succeeded and listed four models, while the configured Pi endpoint timed out.
 - `ollama.service` and its health timer were active and healthy locally.
 - [`llm_router.py`](./llm_router.py#L511-L516) only retries from Pi to “default” when the two URLs differ. They currently do not.
+- Live follow-up (2026-07-22): the Pi endpoint returned HTTP 200, but the Dell `ollama.service` was failed/start-limit-hit and `127.0.0.1:11434` refused connections. The endpoint-role collision remains a defect even though the Pi is currently online.
 
 **Impact**
 
@@ -443,6 +482,8 @@ The health check must import or consume the same resolved configuration as the a
 - Comments/defaults disagree about Surface, Dell, and Pi RPC addresses.
 - `call_llamacpp_rpc_with_fallback()` accepts a `timeout` but uses configured constants/fixed fallback timeouts instead of honoring it consistently.
 - Response-schema errors are caught as generic “Surface unreachable,” hiding malformed or model-level failures.
+- Live follow-up (2026-07-22): both Dell and Pi `llama-rpc.service` units were active, but Surface `llama-web.service` was running without `--rpc`. The Surface launch script performs one-time ping-based worker discovery; it can start successfully in solo mode before workers appear and never re-evaluate them. The Surface could reach Dell at `10.0.0.61:50052` but had no route to Pi’s `10.10.10.2:50052` or the absent `10.42.0.139` address.
+- The Surface unit’s ignored route command references `dev usb0` and `10.42.0.139`, neither of which was present in the live interface map. The code comments, `.env`, service units, and live topology therefore describe different networks.
 
 **Repair**
 
@@ -1017,7 +1058,8 @@ Minimum required suites:
 - `AsyncClient.aclose()` is not awaited reliably.
 - `duckduckgo_search` rename/deprecation warnings remain.
 - Most normal current application logs do not reach journald because of LOG-01.
-- Local Ollama is active and healthy, but the application endpoint configuration does not use it correctly.
+- The application endpoint configuration still conflates Pi and general Ollama roles. The 2026-07-22 follow-up found Pi Ollama healthy but Dell-local Ollama failed/start-limit-hit; the original 2026-07-21 snapshot had the opposite reachability state.
+- Surface health and inference pass, but the running process is solo and has no `--rpc` argument despite both worker services being active.
 - Canvas's Composio connected account is expired; Gmail, Classroom, and Drive were healthy in read-only probes.
 
 ## Historical issues already resolved in current `main`
@@ -1050,7 +1092,7 @@ The repeated alert count is historical, but it proves LLM-01/02/04, LOG-02, DATA
 
 # Hardware-dependent verification plan
 
-The Surface and Orange Pi were offline during the audit. When they return, run these tests without changing production data:
+The Surface and Orange Pi were offline during the original audit and became reachable on 2026-07-22. The non-mutating health, model-discovery, simple-inference, service, socket, memory, and route checks are recorded in the live follow-up section. The tests below still require a controlled staging launch or an explicitly authorized production restart/configuration change:
 
 ## Surface
 
@@ -1061,6 +1103,8 @@ The Surface and Orange Pi were offline during the audit. When they return, run t
 - service cgroup/PID ownership;
 - available-memory reporting;
 - behavior when one or both RPC workers are absent.
+- proof from process arguments and worker logs that the Surface is actually using RPC rather than serving solo;
+- late-worker discovery/recovery after Surface starts before the workers.
 
 ## Orange Pi
 
@@ -1071,6 +1115,7 @@ The Surface and Orange Pi were offline during the audit. When they return, run t
 - low-memory/OOM behavior;
 - restart/recovery behavior;
 - ensure model names/quantizations fit the device.
+- end-to-end participation in Surface-hosted distributed inference after routing is corrected.
 
 ## Partition matrix
 
