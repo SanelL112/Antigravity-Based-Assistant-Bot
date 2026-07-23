@@ -118,8 +118,6 @@ ALLOWED_COMMAND_TEMPLATES = [
     ("diff", ["-u", "<path>", "<path>"]),
     ("sort", ["<path>"]),
     ("uniq", ["<path>"]),
-    ("awk", ["<script>", "<path>"]),
-    ("sed", ["<script>", "<path>"]),
     ("cut", ["-d", "<delim>", "-f", "<fields>", "<path>"]),
     ("tr", ["<set1>", "<set2>"]),
     # Network (read-only, no output redirection)
@@ -138,7 +136,6 @@ ALLOWED_COMMAND_TEMPLATES = [
     ("git", ["branch"]),
     ("git", ["branch", "-a"]),
     # Python/Node tools
-    ("python3", ["-c", "<code>"]),  # validated separately
     ("pip", ["list"]),
     ("pip", ["show", "<package>"]),
     ("npm", ["list"]),
@@ -236,17 +233,6 @@ def _is_command_allowed(cmd: str) -> tuple[bool, str]:
     if not matched_template:
         return False, f"Command not in allowlist: {base_cmd} {args}"
 
-    # Additional validation for specific commands
-    if base_cmd in ('python3', 'python'):
-        # Prevent dangerous imports in python -c code
-        if '-c' in parts:
-            code_idx = parts.index('-c') + 1
-            if code_idx < len(parts):
-                code = parts[code_idx]
-                dangerous = ['os.system', 'eval(', 'exec(', '__import__', 'open(', 'importlib']
-                if any(d in code for d in dangerous):
-                    return False, "Dangerous Python code detected"
-
     return True, "OK"
 
 
@@ -262,11 +248,9 @@ def _match_args(args: list[str], template_args: list[str]) -> bool:
     if template_args == ["*"]:
         return len(args) == 1
     
-    # Count required positional args (non-placeholder)
-    required_count = sum(1 for a in template_args if not a.startswith('<') and not a.endswith('>'))
-    placeholder_count = len(template_args) - required_count
-    
-    if len(args) < required_count:
+    # Every template describes the complete argv shape. Allowing a suffix after
+    # a placeholder would let command-specific flags bypass the allowlist.
+    if len(args) != len(template_args):
         return False
     
     # Simple matching: check fixed args match at their positions
@@ -282,10 +266,6 @@ def _match_args(args: list[str], template_args: list[str]) -> bool:
             if arg_idx >= len(args) or args[arg_idx] != tmpl_arg:
                 return False
             arg_idx += 1
-    
-    # Allow extra arguments only if there are placeholders to consume them
-    if arg_idx < len(args) and placeholder_count == 0:
-        return False
     
     return True
 
@@ -663,7 +643,7 @@ def get_correlation_summary() -> str:
         sources[s] = sources.get(s, 0) + 1
 
     lines = [
-        f"� **Correlation Engine**",
+        f"⚙️ **Correlation Engine**",
         f"Nodes: {nodes} | Correlations: {edges}",
         "",
         "**By Source:**",
@@ -697,7 +677,8 @@ def get_health_status() -> str:
     # Last digest time
     last_digest = "never"
     try:
-        mtime = os.path.getmtime(BASE_DIR / "latest_digest.txt")
+        from config import LATEST_DIGEST_FILE
+        mtime = os.path.getmtime(LATEST_DIGEST_FILE)
         age_min = int((time.time() - mtime) / 60)
         if age_min < 60:
             last_digest = f"{age_min}m ago"
@@ -883,30 +864,40 @@ def get_requests_session() -> requests.Session:
             _cached_sessions['requests'] = requests.Session()
         return _cached_sessions['requests']
 
-# Cleanup function for atexit
-def _cleanup_caches():
-    """Close HTTP clients and clear caches on exit."""
+def _drain_cached_sessions() -> list[object]:
+    """Detach cached clients once so shutdown paths cannot close them twice."""
     with _cached_sessions_lock:
-        for name, session in _cached_sessions.items():
-            try:
-                if hasattr(session, 'aclose'):
-                    import asyncio
-                    try:
-                        loop = asyncio.get_event_loop()
-                        if loop.is_running():
-                            loop.create_task(session.aclose())
-                        else:
-                            loop.run_until_complete(session.aclose())
-                    except Exception:
-                        pass
-                else:
-                    session.close()
-            except Exception:
-                pass
+        sessions = list(_cached_sessions.values())
         _cached_sessions.clear()
-    
+    return sessions
+
+
+def _cleanup_caches() -> None:
+    """Synchronous interpreter-exit fallback; never create async coroutines."""
+    for session in _drain_cached_sessions():
+        if hasattr(session, "aclose"):
+            continue
+        try:
+            session.close()
+        except Exception:
+            pass
     with _rate_limit_lock:
         _rate_limit_cache.clear()
+
+
+async def cleanup_async_caches() -> None:
+    """Application-lifecycle cleanup for sync and async cached HTTP clients."""
+    for session in _drain_cached_sessions():
+        try:
+            if hasattr(session, "aclose"):
+                await session.aclose()
+            else:
+                session.close()
+        except Exception:
+            pass
+    with _rate_limit_lock:
+        _rate_limit_cache.clear()
+
 
 import atexit
 atexit.register(_cleanup_caches)

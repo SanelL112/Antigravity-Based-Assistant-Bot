@@ -1,6 +1,7 @@
 import http.server
 import socketserver
 import json
+import secrets
 import glob
 import os
 import subprocess
@@ -113,6 +114,8 @@ HTML = """
             <div class="tab active" onclick="switchTab('local')">My Cluster Models</div>
             <div class="tab" onclick="switchTab('discover')">Discover & Download</div>
             <div class="tab" onclick="switchTab('console')">System Console</div>
+            <div style="flex-grow: 1;"></div>
+            <input type="password" id="api-token-input" class="search-bar" style="width:200px; margin-bottom: 0;" placeholder="API Token" onchange="sessionStorage.setItem('apiToken', this.value)">
         </div>
         
         <div class="card tab-content active" id="tab-local">
@@ -158,6 +161,22 @@ HTML = """
         let pollInterval = null;
         let consoleInterval = null;
 
+        // Initialize token
+        document.addEventListener('DOMContentLoaded', () => {
+            if(sessionStorage.getItem('apiToken')) {
+                const tokenInput = document.getElementById('api-token-input');
+                if (tokenInput) tokenInput.value = sessionStorage.getItem('apiToken');
+            }
+        });
+
+        async function apiFetch(url, options = {}) {
+            options = options || {};
+            options.headers = options.headers || {};
+            const token = sessionStorage.getItem('apiToken');
+            if(token) { options.headers['Authorization'] = 'Bearer ' + token; }
+            return fetch(url, options);
+        }
+
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -176,7 +195,7 @@ HTML = """
 
         async function fetchLogs() {
             try {
-                const res = await fetch('/api/logs');
+                const res = await apiFetch('/api/logs');
                 const data = await res.json();
                 const container = document.getElementById('console-output');
                 
@@ -223,7 +242,7 @@ HTML = """
 
         async function fetchModels() {
             try {
-                const res = await fetch('/api/models');
+                const res = await apiFetch('/api/models');
                 const data = await res.json();
                 const list = document.getElementById('local-model-list');
                 list.innerHTML = '';
@@ -250,7 +269,7 @@ HTML = """
 
         async function checkDownloads() {
             try {
-                const res = await fetch('/api/downloads');
+                const res = await apiFetch('/api/downloads');
                 const data = await res.json();
                 const container = document.getElementById('downloads-container');
                 const list = document.getElementById('downloads-list');
@@ -289,7 +308,7 @@ HTML = """
             const list = document.getElementById('hf-model-list');
             list.innerHTML = '<div class="spinner-small"></div><div style="text-align:center;color:#94a3b8">Querying HuggingFace & verifying single-file compatibility...</div>';
             try {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const res = await apiFetch(`/api/search?q=${encodeURIComponent(query)}`);
                 const data = await res.json();
                 list.innerHTML = '';
                 if(data.results.length === 0) { list.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:2rem;">No single-file compatible GGUFs found.</div>'; return; }
@@ -315,7 +334,7 @@ HTML = """
         async function downloadModel(url, filename, btn) {
             btn.disabled = true; btn.textContent = "Starting...";
             try {
-                const res = await fetch('/api/download', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url, filename }) });
+                const res = await apiFetch('/api/download', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url, filename }) });
                 if(res.ok) {
                     btn.textContent = "Downloading!"; btn.style.background = "#10b981";
                     switchTab('local');
@@ -325,7 +344,7 @@ HTML = """
         }
 
         async function checkStatus() {
-            try { const res = await fetch('/api/status'); const data = await res.json(); return data.status === 'ready'; } catch(e) { return false; }
+            try { const res = await apiFetch('/api/status'); const data = await res.json(); return data.status === 'ready'; } catch(e) { return false; }
         }
 
         async function switchModel(modelName) {
@@ -336,7 +355,7 @@ HTML = """
             pbar.style.width = '0%'; ptext.textContent = 'Initiating Cluster Reboot...';
 
             try {
-                const res = await fetch('/api/switch', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ model: modelName }) });
+                const res = await apiFetch('/api/switch', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ model: modelName }) });
                 if(res.status === 422) {
                     let reason = 'Model rejected';
                     try { const d = await res.json(); reason = d.reason || reason; } catch(e) {}
@@ -349,7 +368,7 @@ HTML = """
                     
                     const logInterval = setInterval(async () => {
                         try {
-                            const logRes = await fetch('/api/logs');
+                            const logRes = await apiFetch('/api/logs');
                             const logData = await logRes.json();
                             const lines = logData.logs.split('\\n').filter(l => l.trim() !== '');
                             if (lines.length > 0) {
@@ -471,14 +490,33 @@ def validate_model(model_path):
     return True, "OK"
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    def check_auth(self):
+        token = os.environ.get('CLUSTER_MANAGER_API_TOKEN')
+        if not token:
+            return False
+        auth_header = self.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return False
+        provided_token = auth_header[7:]
+        return secrets.compare_digest(provided_token, token)
+
     def do_GET(self):
         if self.path == '/':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(HTML.encode('utf-8'))
+            return
+
+        if self.path.startswith('/api/'):
+            if not self.check_auth():
+                self.send_response(401)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(b'{"error": "Unauthorized"}')
+                return
             
-        elif self.path.startswith('/api/search?q='):
+        if self.path.startswith('/api/search?q='):
             query = urllib.parse.unquote(self.path.split('=')[1])
             results = []
             try:
@@ -594,6 +632,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers()
 
     def do_POST(self):
+        if self.path.startswith('/api/'):
+            if not self.check_auth():
+                self.send_response(401)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(b'{"error": "Unauthorized"}')
+                return
+
         if self.path == '/api/switch':
             length = int(self.headers.get('content-length'))
             body = json.loads(self.rfile.read(length))
@@ -631,6 +677,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             filename = body.get('filename')
             
             if url and filename:
+                if '/' in filename or '\\' in filename or '..' in filename:
+                    self.send_response(400); self.end_headers(); return
+
+                if not url.startswith('https://huggingface.co/') or '/resolve/' not in url:
+                    self.send_response(400); self.end_headers(); return
+
                 out_path = os.path.join(MODELS_DIR, filename)
                 log_path = os.path.join(MODELS_DIR, f"wget_{filename}.log")
                 cmd = f"wget -c {shlex.quote(url)} -O {shlex.quote(out_path)} > {shlex.quote(log_path)} 2>&1 && rm -f {shlex.quote(log_path)}"
@@ -644,6 +696,7 @@ class ThreadingSimpleServer(socketserver.ThreadingMixIn, http.server.HTTPServer)
     pass
 
 if __name__ == '__main__':
-    with ThreadingSimpleServer(("0.0.0.0", PORT), Handler) as httpd:
-        print("Serving at port", PORT)
+    bind_host = os.environ.get('CLUSTER_MANAGER_BIND_HOST', '127.0.0.1')
+    with ThreadingSimpleServer((bind_host, PORT), Handler) as httpd:
+        print("Serving at", bind_host, "port", PORT)
         httpd.serve_forever()

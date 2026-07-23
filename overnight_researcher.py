@@ -2,6 +2,7 @@ import os
 import glob
 import subprocess
 import logging
+from config import COMBINED_SUMMARIES_FILE, CURATED_BRAIN_FILE
 try:
     import telegram_logger
     telegram_logger.setup_telegram_logging()
@@ -40,8 +41,8 @@ def run_overnight_research():
     """
     os.makedirs(KB_DIR, exist_ok=True)
     
-    brain_file = os.path.join(BASE_DIR, "study_guides", "curated_brain.md")
-    summaries = os.path.join(BASE_DIR, "scrapers", "source_cache", "combined_summaries.txt")
+    brain_file = CURATED_BRAIN_FILE
+    summaries = COMBINED_SUMMARIES_FILE
     
     context = ""
     if os.path.exists(brain_file):

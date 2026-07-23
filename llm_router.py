@@ -53,7 +53,7 @@ def _get_client() -> httpx.Client:
 
 
 def _cleanup_clients():
-    """Clean up HTTP clients on exit."""
+    """Synchronously close pooled clients for interpreter-exit fallback."""
     global _or_client, _or_session
     if _or_client is not None:
         try:
@@ -67,6 +67,12 @@ def _cleanup_clients():
         except Exception:
             pass
         _or_session = None
+
+
+async def cleanup_llm_clients() -> None:
+    """Application-lifecycle cleanup hook used by PTB post_shutdown."""
+    _cleanup_clients()
+
 
 atexit.register(_cleanup_clients)
 
@@ -661,6 +667,7 @@ def call_local_rpc(
     max_tokens: int = 1024,
     temperature: float = 0.0,
     timeout: int = 120,
+    allow_cloud: bool = True,
 ) -> str:
     """
     Primary local inference path — tries cluster nodes in order.
@@ -668,7 +675,8 @@ def call_local_rpc(
     Fallback chain:
       1. Surface llama-server (10.0.0.47:8080) — primary, short timeout
       2. Pi Ollama (10.10.10.2:11434) — fast local backup
-      3. Returns empty — caller handles cloud fallback
+      3. Dell local Ollama
+      4. Cloud (if allow_cloud=True)
 
     Args:
         prompt: The user prompt
@@ -677,9 +685,10 @@ def call_local_rpc(
         max_tokens: Max output tokens
         temperature: 0.0 = deterministic
         timeout: Max seconds to wait
+        allow_cloud: Whether to fallback to cloud if local paths fail.
 
     Returns:
-        Generated text, or empty string if all local paths fail.
+        Generated text, or empty string/warning if all local paths fail.
     """
     surface_timeout = min(timeout, 45)  # Don't hang on Surface — fall through fast
 
@@ -719,8 +728,42 @@ def call_local_rpc(
     except Exception as e:
         logger.warning(f"call_local_rpc: Pi Ollama failed: {e}")
 
-    logger.warning("call_local_rpc: all local paths exhausted")
-    return ""
+    logger.info("call_local_rpc: Pi returned empty, trying Dell local")
+    try:
+        from config import OLLAMA_LOCAL_URL, RPC_FALLBACK_OLLAMA_MODEL
+        import httpx
+        with httpx.Client(timeout=httpx.Timeout(connect=3.0, read=float(timeout), write=10.0, pool=5.0)) as client:
+            resp = client.post(
+                f"{OLLAMA_LOCAL_URL}/api/generate",
+                json={
+                    "model": RPC_FALLBACK_OLLAMA_MODEL,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"num_predict": max_tokens, "temperature": temperature},
+                },
+            )
+            if resp.status_code == 200:
+                text = resp.json().get("response", "").strip()
+                if text:
+                    logger.info(f"call_local_rpc: Dell local returned {len(text)} chars")
+                    return text
+            logger.warning(f"call_local_rpc: Dell local returned empty (HTTP {resp.status_code})")
+    except Exception as e:
+        logger.warning(f"call_local_rpc: Dell local failed: {e}")
+
+    if allow_cloud:
+        logger.warning("call_local_rpc: all local paths exhausted, falling back to cloud")
+        from config import RPC_FALLBACK_CLOUD_MODEL
+        return call_openrouter(
+            model=RPC_FALLBACK_CLOUD_MODEL,
+            prompt=prompt,
+            system_prompt=system_prompt,
+            max_tokens=max_tokens,
+            timeout=timeout,
+        )
+
+    logger.warning("call_local_rpc: all local paths exhausted and allow_cloud=False")
+    return "⚠️ Local inference unavailable and cloud fallback disabled."
 
 
 # ── RPC (llama-server HTTP path — legacy) ───────────────────────────────────

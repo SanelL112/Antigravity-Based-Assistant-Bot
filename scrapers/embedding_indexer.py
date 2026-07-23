@@ -112,10 +112,11 @@ def collect_sources() -> list[dict]:
         for f in sorted(glob.glob(os.path.join(sg_dir, "*.md"))):
             try:
                 with open(f, "r", encoding="utf-8", errors="replace") as fh:
-                    content = fh.read(20000)  # first 20KB has the overview
+                    full_content = fh.read()
+                    content = full_content[:20000]  # first 20KB has the overview
                 if not content.strip():
                     continue
-                md5 = hashlib.md5(content.encode()).hexdigest()
+                md5 = hashlib.md5(full_content.encode()).hexdigest()
                 sources.append({"path": f, "content": content, "md5": md5})
             except Exception as e:
                 logger.warning(f"Failed to read {f}: {e}")
@@ -125,12 +126,13 @@ def collect_sources() -> list[dict]:
     if os.path.exists(mega_path):
         try:
             with open(mega_path, "r", encoding="utf-8", errors="replace") as f:
-                content = f.read()
-            if content.strip():
+                full_content = f.read()
+            if full_content.strip():
+                content = full_content
                 # Take last 50KB for most recent context
                 if len(content) > 50000:
                     content = "[...earlier entries omitted...]\n" + content[-50000:]
-                md5 = hashlib.md5(content.encode()).hexdigest()
+                md5 = hashlib.md5(full_content.encode()).hexdigest()
                 sources.append({"path": mega_path, "content": content, "md5": md5})
         except Exception as e:
             logger.warning(f"Failed to read {mega_path}: {e}")
@@ -145,10 +147,15 @@ def collect_sources() -> list[dict]:
             _add_file(f)
 
     # Source cache summaries
-    sc_dir = os.path.join(BASE_DIR, "scrapers", "source_cache")
-    if os.path.isdir(sc_dir):
-        for f in sorted(glob.glob(os.path.join(sc_dir, "*.txt"))):
-            _add_file(f)
+    from config import CACHE_DIR
+    sc_dir = CACHE_DIR
+    legacy_sc_dir = os.path.join(BASE_DIR, "scrapers", "source_cache")
+    for d in [sc_dir, legacy_sc_dir]:
+        if os.path.isdir(d):
+            if d == legacy_sc_dir:
+                logger.warning(f"Reading stale legacy cache from {legacy_sc_dir}")
+            for f in sorted(glob.glob(os.path.join(d, "*.txt"))):
+                _add_file(f)
 
     # Chat histories
     for f in sorted(glob.glob(os.path.join(BASE_DIR, "chat_history_*.txt"))):

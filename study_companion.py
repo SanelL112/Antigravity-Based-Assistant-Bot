@@ -74,8 +74,9 @@ def search_youtube(topic: str) -> dict:
 def get_transcript(video_id: str) -> str:
     """Fetches the transcript for a video ID."""
     try:
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-        text = " ".join([item["text"] for item in transcript_list])
+        ytt_api = YouTubeTranscriptApi()
+        transcript = ytt_api.fetch(video_id)
+        text = " ".join([s.text for s in transcript.snippets])
         return text
     except Exception as e:
         logger.error(f"Transcript error for {video_id}: {e}")

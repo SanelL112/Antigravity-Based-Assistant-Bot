@@ -20,7 +20,7 @@ def get_new_tasks_keyboard(task_ids: list) -> InlineKeyboardMarkup:
         buttons.append([
             InlineKeyboardButton(f"🔴 {tid} - High", callback_data=f"task_prio:{tid}:high"),
             InlineKeyboardButton(f"🟡 {tid} - Medium", callback_data=f"task_prio:{tid}:medium"),
-            InlineKeyboardButton(f"� {tid} - Low", callback_data=f"task_prio:{tid}:low"),
+            InlineKeyboardButton(f"🔽 {tid} - Low", callback_data=f"task_prio:{tid}:low"),
         ])
     buttons.append([
         InlineKeyboardButton("✅ Ignore All", callback_data="task_ignore_all"),
@@ -38,7 +38,7 @@ def get_digest_topic_keyboard(topics: list) -> InlineKeyboardMarkup:
     buttons = []
     for topic in topics[:4]:
         buttons.append([
-            InlineKeyboardButton(f"� Build Guide: {topic}", callback_data=f"build_guide:{topic}"),
+            InlineKeyboardButton(f"🛠 Build Guide: {topic}", callback_data=f"build_guide:{topic}"),
         ])
     buttons.append([
         InlineKeyboardButton("❌ Dismiss", callback_data="digest_dismiss"),
@@ -55,10 +55,10 @@ def get_study_guide_keyboard(guide_name: str) -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton("📝 Grade Practice Photo", callback_data=f"grade_guide:{guide_name}"),
-            InlineKeyboardButton("� Schedule Study Time", callback_data=f"schedule_guide:{guide_name}"),
+            InlineKeyboardButton("📅 Schedule Study Time", callback_data=f"schedule_guide:{guide_name}"),
         ],
         [
-            InlineKeyboardButton("� Open in Obsidian", callback_data=f"obsidian_guide:{guide_name}"),
+            InlineKeyboardButton("📝 Open in Obsidian", callback_data=f"obsidian_guide:{guide_name}"),
         ],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -73,14 +73,14 @@ def get_quick_actions_keyboard() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton("📊 Digest", callback_data="cmd:summary"),
-            InlineKeyboardButton("� Health", callback_data="cmd:ping"),
+            InlineKeyboardButton("🏥 Health", callback_data="cmd:ping"),
         ],
         [
             InlineKeyboardButton("💰 Stats", callback_data="cmd:stats"),
-            InlineKeyboardButton("� Backup", callback_data="cmd:backup"),
+            InlineKeyboardButton("💾 Backup", callback_data="cmd:backup"),
         ],
         [
-            InlineKeyboardButton("� Correlations", callback_data="cmd:correlations"),
+            InlineKeyboardButton("📊 Correlations", callback_data="cmd:correlations"),
         ],
     ]
     return InlineKeyboardMarkup(buttons)

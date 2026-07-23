@@ -52,5 +52,6 @@ _STUDENT_ID_RE = _re.compile(r'\\b(?:student\\s*id|sid|id\\s*#?)\\s*:?\\s*\\d{4,
     with open('utils.py', 'w') as f:
         f.write(content)
 
-fix_utils_pii()
-print("Fixed utils.py PII")
+if __name__ == "__main__":
+    fix_utils_pii()
+    print("Fixed utils.py PII")

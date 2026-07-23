@@ -194,15 +194,16 @@ Items:
 Return JSON array: [{"id": "...", "classification": "...", "confidence": 0.XX}, ...]"""
 
         try:
-            res = requests.post(
+            res = await asyncio.to_thread(
+                requests.post,
                 f"{OLLAMA_URL}/api/generate",
                 json={
                     "model": CLASSIFY_MODEL,
                     "prompt": prompt,
                     "stream": False,
-                    "options": {"temperature": 0.0, "num_predict": 1000}
+                    "options": {"temperature": 0.0, "num_predict": 1000},
                 },
-                timeout=60
+                timeout=60,
             )
 
             if res.status_code == 200:
@@ -402,28 +403,30 @@ async def send_telegram_digest(digest: str) -> bool:
         full_msg = prefix + chunk
 
         try:
-            res = requests.post(
+            res = await asyncio.to_thread(
+                requests.post,
                 url,
                 json={
                     "chat_id": TELEGRAM_CHAT_ID,
                     "text": full_msg,
                     "parse_mode": "Markdown",
-                    "disable_notification": False
+                    "disable_notification": False,
                 },
-                timeout=30
+                timeout=30,
             )
 
             if res.status_code == 200:
                 logger.info(f"Telegram chunk {i+1}/{len(chunks)} sent successfully")
             else:
                 # Try without markdown
-                res2 = requests.post(
+                res2 = await asyncio.to_thread(
+                    requests.post,
                     url,
                     json={
                         "chat_id": TELEGRAM_CHAT_ID,
-                        "text": full_msg
+                        "text": full_msg,
                     },
-                    timeout=30
+                    timeout=30,
                 )
                 if res2.status_code == 200:
                     logger.info(f"Telegram chunk {i+1}/{len(chunks)} sent (plain text fallback)")

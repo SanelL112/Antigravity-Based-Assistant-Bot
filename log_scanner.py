@@ -169,10 +169,24 @@ def scan_activity_log(hours: int = 24) -> list[dict]:
             continue
 
         ts_str = entry.get("timestamp", "")
+        ts_num = entry.get("ts", None)
+        date_str = entry.get("date", "")
+        time_str = entry.get("time", "00:00:00")
         try:
-            entry_ts = datetime.fromisoformat(ts_str)
-        except (ValueError, TypeError):
-            entry_ts = datetime.now(timezone.utc)
+            if ts_num is not None:
+                entry_ts = datetime.fromtimestamp(ts_num, timezone.utc)
+            elif ts_str:
+                entry_ts = datetime.fromisoformat(ts_str)
+            elif date_str:
+                entry_ts = datetime.fromisoformat(f"{date_str}T{time_str}")
+            else:
+                entry_ts = datetime.fromtimestamp(0, timezone.utc)
+            if entry_ts.tzinfo is None:
+                entry_ts = entry_ts.replace(tzinfo=timezone.utc)
+            else:
+                entry_ts = entry_ts.astimezone(timezone.utc)
+        except (ValueError, TypeError, OverflowError):
+            entry_ts = datetime.fromtimestamp(0, timezone.utc)
 
         if entry_ts < cutoff:
             continue
@@ -181,9 +195,12 @@ def scan_activity_log(hours: int = 24) -> list[dict]:
         msg = json.dumps(entry.get("details", {}), default=str)
 
         if cat in ("error", "critical", "nightly_fail"):
+            display_ts = ts_str or f"{date_str} {time_str}".strip()
+            if not display_ts and ts_num is not None:
+                display_ts = entry_ts.isoformat()
             matches.append({
                 "source": "activity_log",
-                "timestamp": ts_str,
+                "timestamp": display_ts,
                 "category": cat.upper(),
                 "message": f"[{cat}] {msg[:300]}",
             })

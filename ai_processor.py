@@ -222,7 +222,7 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
     if not force_reprocess:
         try:
             from utils import has_changed
-            if not has_changed(name, data[:1000]):
+            if not has_changed(name, data):
                 try:
                     with open(cache_file, "r", encoding="utf-8") as f:
                         cached = f.read()
@@ -288,7 +288,7 @@ def process_source(name: str, data: str, skip_llm_filter: bool = False, force_re
 
     try:
         from utils import mark_processed as _mark_processed
-        _mark_processed(name, data[:1000])
+        _mark_processed(name, data)
     except ImportError:
         pass
 

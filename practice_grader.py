@@ -212,7 +212,7 @@ def _format_grading_results(results: list, topic: str) -> str:
     lines = [
         f"📝 **Practice Test Results** — {topic or 'General'}",
         f"Score: **{correct_count}/{total}** ({pct}%)",
-        f"✅ {correct_count} correct | ❌ {wrong_count} wrong | � {review_count} need review",
+        f"✅ {correct_count} correct | ❌ {wrong_count} wrong | ⚠️ {review_count} need review",
         "",
     ]
 
@@ -226,7 +226,7 @@ def _format_grading_results(results: list, topic: str) -> str:
 
     # Logged message
     if wrong:
-        lines.append(f"\n� Logged {len(wrong)} gaps — tonight's study guide will target them!")
+        lines.append(f"\n📝 Logged {len(wrong)} gaps — tonight's study guide will target them!")
 
     # Emoji feedback
     if pct >= 90:

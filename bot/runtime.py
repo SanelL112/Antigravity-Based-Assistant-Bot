@@ -12,9 +12,18 @@ def _track_task(task: asyncio.Task) -> asyncio.Task:
     task.add_done_callback(_background_tasks.discard)
     return task
 
-def _cleanup_background_tasks():
-    """Cancel any lingering tasks on shutdown to prevent error spam."""
-    if _background_tasks:
-        logger.info(f"Cancelling {len(_background_tasks)} background tasks...")
-        for task in _background_tasks:
-            task.cancel()
+async def cleanup_background_tasks() -> None:
+    """Cancel tracked tasks and await their cleanup in application shutdown."""
+    tasks = tuple(_background_tasks)
+    if not tasks:
+        return
+    logger.info("Cancelling %d background tasks...", len(tasks))
+    for task in tasks:
+        task.cancel()
+    await asyncio.gather(*tasks, return_exceptions=True)
+
+
+def _cleanup_background_tasks() -> None:
+    """Synchronous compatibility wrapper; use cleanup_background_tasks in PTB."""
+    for task in tuple(_background_tasks):
+        task.cancel()

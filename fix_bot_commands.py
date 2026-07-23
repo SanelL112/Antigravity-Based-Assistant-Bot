@@ -106,5 +106,6 @@ def fix_bot_commands():
     with open('bot/commands.py', 'w') as f:
         f.write(content)
 
-fix_bot_commands()
-print("Fixed bot/commands.py")
+if __name__ == "__main__":
+    fix_bot_commands()
+    print("Fixed bot/commands.py")

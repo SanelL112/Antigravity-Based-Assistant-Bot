@@ -60,7 +60,7 @@ ERROR_COUNT=$( { journalctl -u bot.service --no-pager --since "4 hours ago" 2>/d
 
 # File sizes
 STATE_KB=$(du -k "$BOT_DIR/state.json" 2>/dev/null | cut -f1 || echo "0")
-SUMMARIES_KB=$(du -k "$BOT_DIR/source_cache/combined_summaries.txt" 2>/dev/null | cut -f1 || echo "0")
+SUMMARIES_KB=$(du -k "$BOT_DIR/cache/combined_summaries.txt" 2>/dev/null | cut -f1 || echo "0")
 BRAIN_KB=$(du -k "$BOT_DIR/curated_brain.md" 2>/dev/null | cut -f1 || echo "0")
 INDEX_KB=$(du -k "$BOT_DIR/mega_index.md" 2>/dev/null | cut -f1 || echo "0")
 

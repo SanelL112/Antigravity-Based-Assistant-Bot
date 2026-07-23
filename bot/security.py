@@ -18,10 +18,13 @@ def require_auth(func):
     """
     @wraps(func)
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
-        # Allow missing update (e.g. from tests or internal calls)
+        # A command without a Telegram update has no identity to authorize.
+        # Never treat this as an internal/trusted call: handlers are an external
+        # boundary and must fail closed when Telegram context is unavailable.
         if not update:
-            return await func(update, context, *args, **kwargs)
-            
+            logger.warning("Unauthorized handler invocation without an update")
+            return None
+
         # Get chat ID safely
         chat_id = None
         if update.effective_chat:
@@ -29,7 +32,7 @@ def require_auth(func):
         elif update.callback_query and update.callback_query.message:
             chat_id = update.callback_query.message.chat_id
             
-        if chat_id and str(chat_id) != str(SANEL_CHAT_ID):
+        if chat_id is None or str(chat_id) != str(SANEL_CHAT_ID):
             logger.warning(f"Unauthorized access attempt from chat_id: {chat_id}")
             if update.message:
                 await update.message.reply_text("⛔ Unauthorized. You do not have permission to use this bot.")

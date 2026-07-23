@@ -73,12 +73,12 @@ def patch_utils():
 
     cmd_lower = cmd_stripped.lower()
     dangerous_patterns = [
-        r'rm\s+-rf\s+/', r'dd\s+if=', r':\(\)\{', r'fork bomb',
-        r'>\s*/dev/', r'>\s*/proc/', r'>\s*/sys/', r'chmod\s+-r\s+777\s+/',
-        r'curl.*\|.*bash', r'wget.*\|.*sh',
-        r'systemctl\s+(start|stop|restart|enable|disable)',
-        r'tar\s+--checkpoint', r'__import__', r'importlib',
-        r'exec\(', r'eval\(', r'os\.system', r'subprocess\.'
+        r'rm\\s+-rf\\s+/', r'dd\\s+if=', r':\\(\\)\\{', r'fork bomb',
+        r'>\\s*/dev/', r'>\\s*/proc/', r'>\\s*/sys/', r'chmod\\s+-r\\s+777\\s+/',
+        r'curl.*\\|.*bash', r'wget.*\\|.*sh',
+        r'systemctl\\s+(start|stop|restart|enable|disable)',
+        r'tar\\s+--checkpoint', r'__import__', r'importlib',
+        r'exec\\(', r'eval\\(', r'os\\.system', r'subprocess\\.'
     ]
     for pat in dangerous_patterns:
         if re.search(pat, cmd_lower):
@@ -90,5 +90,6 @@ def patch_utils():
     with open('utils.py', 'w') as f:
         f.write(content)
 
-patch_utils()
-print("Fixed utils.py")
+if __name__ == "__main__":
+    patch_utils()
+    print("Fixed utils.py")

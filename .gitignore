@@ -21,3 +21,16 @@ learning_rules.txt
 state.json.bak
 classroom_pdfs/
 embedding_data/
+
+# Binary backups and archives
+backups/
+*.tar.gz
+
+# Data indexes and logs
+embedding_data/
+*.npz
+*.jsonl
+
+# Editor swap files
+.*.swp
+*.swp
