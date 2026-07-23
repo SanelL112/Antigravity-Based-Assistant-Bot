@@ -7,7 +7,7 @@ google-auth-oauthlib==1.4.0
 httpx==0.28.1
 requests==2.34.2
 pytesseract==0.3.13
-Pillow==12.2.0
+Pillow==12.3.0
 numpy==2.5.0
 python-docx
 beautifulsoup4==4.15.0
