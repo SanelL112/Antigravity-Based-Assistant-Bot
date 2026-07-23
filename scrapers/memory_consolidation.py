@@ -33,27 +33,32 @@ async def consolidate_memory():
         logger.warning(f"Embedding index bootstrap failed (non-critical): {e}")
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    source_cache_dir = os.path.join(base_dir, "scrapers", "source_cache")
-    
+    from config import CACHE_DIR
+
     # Gather raw text
     raw_text = ""
-    
+
     # 1. Read combined_summaries.txt
-    summaries_file = os.path.join(source_cache_dir, "combined_summaries.txt")
-    if os.path.exists(summaries_file):
-        with open(summaries_file, "r") as f:
+    summaries_file = os.path.join(CACHE_DIR, "combined_summaries.txt")
+    legacy_summaries = os.path.join(base_dir, "scrapers", "source_cache", "combined_summaries.txt")
+
+    target_file = summaries_file if os.path.exists(summaries_file) else legacy_summaries
+    if os.path.exists(target_file):
+        if target_file == legacy_summaries:
+            logger.warning(f"Reading stale legacy cache from {legacy_summaries}")
+        with open(target_file, "r") as f:
             raw_text += "\n--- DAILY SUMMARIES AND NOTES ---\n" + f.read()
-           
+
     # 2. Read chat_history files
     chat_files = glob.glob(os.path.join(base_dir, "chat_history_*.txt"))
     for cf in chat_files:
         with open(cf, "r") as f:
             raw_text += f"\n--- CHAT HISTORY ({os.path.basename(cf)}) ---\n" + f.read()
-           
+
     if not raw_text.strip():
         logger.info("No raw memory to consolidate tonight.")
         return
-       
+
     logger.info("Consolidating memory via Llama 3 8B...")
     prompt = (
         "You are the central Memory Consolidation Engine. It is 2:00 AM. Your task is to process the following raw, messy logs from the day "
@@ -65,7 +70,7 @@ async def consolidate_memory():
         "Discard all redundant greetings, boilerplate text, and irrelevant chatter. Be concise.\n\n"
         f"RAW DATA:\n{raw_text[:40000]}"
     )
-    
+
     # Route through the unified local-inference chain (Surface llama-server
     # at 10.0.0.47:8080, then Pi Ollama). PII stays on-cluster. Falls back to
     # secure local G1 Flash (agy) only if the whole local chain is down.
@@ -77,6 +82,7 @@ async def consolidate_memory():
             max_tokens=2048,
             temperature=0.2,
             timeout=300,
+            allow_cloud=False,
         )
         if brain:
             brain = brain.strip()
@@ -98,7 +104,7 @@ async def consolidate_memory():
         if os.path.exists(brain_file):
             with open(brain_file, "r") as f:
                 existing_brain = f.read()
-        
+
         final_brain = brain
         if existing_brain:
             # Merge old and new
@@ -110,6 +116,7 @@ async def consolidate_memory():
                     max_tokens=2048,
                     temperature=0.2,
                     timeout=300,
+                    allow_cloud=False,
                 )
                 if merged_out and merged_out.strip():
                     final_brain = merged_out.strip()
@@ -120,12 +127,12 @@ async def consolidate_memory():
                 from ai_processor import call_agy
                 merged = call_agy(merge_prompt, timeout=180, model="flash")
                 if merged: final_brain = merged
-                   
+
         with open(brain_file, "w") as f:
             f.write(final_brain)
     except Exception as e:
         logger.error(f"Failed to write brain file: {e}")
-           
+
     # Phase 2: Trigger Deep-Dive Online Researcher
     logger.info("Triggering offline topic researcher...")
     try:
@@ -162,7 +169,7 @@ async def consolidate_memory():
         await run_indexing()
     except Exception as e:
         logger.error(f"Nightly indexer failed: {e}")
-           
+
     # Phase 5: Embedding Index Rebuild (while Ollama is still awake)
     logger.info("Running embedding index rebuild via Ollama nomic-embed-text...")
     try:
@@ -184,7 +191,7 @@ async def consolidate_memory():
     except Exception as e:
         logger.warning(f"Embedding index rebuild failed (non-critical): {e}")
         log_nightly("embedding_indexer", "error", {"message": str(e)[:80]})
-           
+
     logger.info("Daily pipeline complete.")
 
     # Phase 6: Trim raw logs (respect rotation limits, don't fully wipe)

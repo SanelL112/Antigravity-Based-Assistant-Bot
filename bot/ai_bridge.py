@@ -128,9 +128,8 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
             except Exception as e:
                 logger.warning(f"{pi_label} failed ({e})")
 
-        logger.warning("All Pi models failed — falling through to cloud path with scrubbed data")
-        # Replace original message with scrubbed version for the rest of this function
-        user_message = scrubbed_message
+        logger.warning("All Pi models failed for PII request — failing closed to prevent cloud leak.")
+        return "⚠️ Local privacy models are currently unavailable to process this PII-containing request. Cloud fallback is disabled for your privacy."
 
     if status_msg and context:
         try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="🔍 Classifying topic...")
@@ -142,42 +141,26 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
 
     system = (
         f"You are a powerful personal assistant AI for Sanel Lathiya running on his personal Debian server. "
-        f"You have FULL ROOT ACCESS to the server and can execute any shell command automatically.\n\n"
+        f"You DO NOT have root privileges or automatic arbitrary shell execution capabilities. "
+        f"Please instruct the user to use vetted bot commands or standard typed operations if they need to perform server actions.\n\n"
         f"CURRENT CONVERSATION TOPIC: {topic}\n"
         f"You are in a focused conversation about this topic. Stay on topic unless Sanel switches subjects.\n\n"
-        f"CRITICAL INSTRUCTION — COMMAND EXECUTION:\n"
-        f"You are operating in a pure text-generation mode. DO NOT use any of your built-in Antigravity tools (like run_command or write_file). "
-        f"When Sanel asks you to DO something on the server, you MUST instead wrap the shell command in angle-bracket BASH tags like this:\n"
-        f"[BASH]your command here[/BASH] (Note: Use angle brackets <> instead of square brackets [])\n"
-        f"The system's python wrapper will automatically parse these tags and run that command as root, then show you the output in the next turn. "
-        f"You can chain multiple commands. Always include the angle-bracket BASH tags when action is needed.\n\n"
     )
 
     capabilities_str = (
         "OTHER CAPABILITIES:\n"
         "--- SERVER MANAGEMENT ---\n"
-        "- Server Status: Check system resources via bash [BASH]python3 -c 'import subprocess; print(subprocess.run([\"free\", \"-h\"], capture_output=True, text=True).stdout)'[/BASH]\n"
-        "- Embedding Progress: Check the offline indexer via bash [BASH]python3 -c 'import os; print(open(\"/tmp/embed_build4.log\").read()[-500:] if os.path.exists(\"/tmp/embed_build4.log\") else \"No log found\")'[/BASH]\n"
-        "- Minecraft Server: Check MC via bash [BASH]python3 -c 'import asyncio; from bot.commands import _get_mc_status; print(asyncio.run(_get_mc_status()))'[/BASH], start [BASH]python3 -c 'import asyncio; from bot.commands import _mc_start; print(asyncio.run(_mc_start()))'[/BASH], stop [BASH]python3 -c 'import asyncio; from bot.commands import _mc_stop; print(asyncio.run(_mc_stop()))'[/BASH]\n"
-        "- Activity Log: Check recent bot events via bash [BASH]python3 -c 'from activity_log import get_recent_events, format_events; print(format_events(get_recent_events(10)))'[/BASH]\n\n"
+        "- Server Status: Direct the user to use /server or other built-in commands.\n"
+        "- Minecraft Server: Direct the user to use /mc start or /mc stop commands.\n"
+        "- Activity Log: Direct the user to check bot logs directly.\n\n"
         "--- ACADEMIC & STUDY ---\n"
-        "- STUDY COMPANION: If Sanel asks you to build a study guide, find a YouTube video for a topic, or research something to study, you MUST use the mega study builder script via bash:\n"
-        "[BASH]python3 -c 'from scrapers.mega_study_builder import generate_mega_guide; print(generate_mega_guide(\"Topic Name Here\"))'[/BASH]\n"
-        "- DEEP-DIVE KNOWLEDGE BASE: An offline researcher runs every night to compile massive study sheets on your current topics. If Sanel asks a question about an academic topic, check if a guide exists by using bash to list and read files in `/home/sanel/personal-assistant-bot/knowledge_base/` before answering, so you can interact and research much faster!\n"
-        "- KNOWLEDGE GAP TRACKING: If you are grading an answer or helping Sanel with a problem and you notice a weakness (e.g. \"struggles with polynomial factoring\"), you MUST log this to a text file using python: [BASH]python3 -c 'with open(\"/home/sanel/personal-assistant-bot/knowledge_gaps/math.txt\", \"a\") as f: f.write(\"Struggles with factoring when a > 1\\n\")'[/BASH] so the offline researcher can heavily target his weak points tonight.\n\n"
+        "- DEEP-DIVE KNOWLEDGE BASE: An offline researcher runs every night to compile massive study sheets on your current topics. If Sanel asks a question about an academic topic, check if a guide exists in the knowledge base.\n\n"
         "--- LIFE MANAGEMENT ---\n"
         "- Every 4 hours: auto-digest from Canvas, Classroom, Gmail, GroupMe\n"
-        "- Notion: assignments auto-pushed to Tasks Tracker\n"
-        "- Natural Language Notion Pushes: When the background job alerts Sanel about a NEW task and asks him for priority/status, you MUST push it to Notion using the add_task_to_notion python script when he replies! Example:\n"
-        "[BASH]python3 -c 'from scrapers.notion_client import add_task_to_notion; add_task_to_notion(title=\"Math Homework\", priority=\"high\", status=\"Not started\", start_value=0, end_value=100)'[/BASH]\n"
-        "- CALENDAR SCHEDULING: If Sanel asks you to schedule a study session, block off time, or add something to his calendar, you MUST use the calendar manager via bash. Calculate the start time in ISO format based on his request and current time:\n"
-        "[BASH]python3 -c 'from scrapers.calendar_manager import add_study_session; print(add_study_session(\"Task Name\", \"2026-06-20T14:00:00\", 120))'[/BASH] (Remember: Use angle brackets <> instead of [])\n"
-        "- DYNAMIC LEARNING: If Sanel is answering a question about whether a certain type of message, email, or topic is important to track or ignore, you MUST save this rule to the local memory so the local filter AI can use it in the future. To do this, use a bash command:\n"
-        "[BASH]echo 'Ignore all emails from XYZ' >> /home/sanel/personal-assistant-bot/learning_rules.txt[/BASH]\n"
-        "- VERIFICATION CUSTOMIZATION: If Sanel gives you custom instructions on how the Verification Agent should behave (e.g. telling it to auto-fix errors instead of summarizing them), you MUST save his instructions using bash: `echo 'Auto-fix syntax errors' >> /home/sanel/personal-assistant-bot/verification_rules.txt`.\n\n"
+        "- Notion: assignments auto-pushed to Tasks Tracker\n\n"
         "--- BE PROACTIVE ---\n"
         "- Do not wait for permission. If the user asks about the server, check it! If the user asks about Minecraft, check its status and offer to start it! Take initiative.\n\n"
-        "- /summary: manual digest trigger | /server: server dashboard | /bash <cmd>: run commands directly\n\n"
+        "- /summary: manual digest trigger | /server: server dashboard\n\n"
     )
 
     system = system + capabilities_str + (
@@ -263,87 +246,30 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         or_model_name = model.split("openrouter:", 1)[1]
         logger.info(f"OpenRouter model={or_model_name}: {user_message[:60]}")
         log_llm_call(or_model_name, "chat", 0, is_local=False)
-        import httpx
         
         async def _call_or(m_name):
-            import time
-            import json
-            full_response = ""
-            current_thought = ""
-            in_thought = False
-            last_edit_time = 0
-            
-            # SECURITY: Scrub PII from all cloud-bound data
-            scrubbed_system = scrub_pii(system, aggressive=True)
-            scrubbed_chat_history = scrub_pii(chat_history, aggressive=True)
-            scrubbed_user_message = scrub_pii(user_message, aggressive=True)
-            
+            from llm_router import call_openrouter
+            sys_prompt = system + "\n\nCRITICAL: Before answering, you MUST think step-by-step and wrap your internal thought process in <thought>...</thought> tags."
+            usr_prompt = f"--- {topic.upper()} CONVERSATION HISTORY ---\n{chat_history}\n--- END HISTORY ---\n\nUser: {user_message}"
+            loop = asyncio.get_running_loop()
+            stream_info = (context, chat_id, status_msg, loop) if status_msg and context else None
             try:
-                async with httpx.AsyncClient(timeout=httpx.Timeout(connect=10.0, read=180.0, write=10.0, pool=5.0)) as client:
-                    async with client.stream(
-                        "POST",
-                        "https://openrouter.ai/api/v1/chat/completions",
-                        headers={
-                            "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-                            "HTTP-Referer": "https://github.com/SanelL112/Antigravity-Based-Assistant-Bot",
-                            "X-Title": "Antigravity-Based-Assistant-Bot"
-                        },
-                        json={
-                            "model": m_name,
-                            "stream": True,
-                            "messages": [
-                                {"role": "system", "content": scrubbed_system + "\n\nCRITICAL: Before answering, you MUST think step-by-step and wrap your internal thought process in <thought>...</thought> tags."},
-                                {"role": "user", "content": f"--- {topic.upper()} CONVERSATION HISTORY ---\n{scrubbed_chat_history}\n--- END HISTORY ---\n\nUser: {scrubbed_user_message}"}
-                            ]
-                        },
-                        timeout=180.0
-                    ) as resp:
-                        if resp.status_code != 200:
-                            return None
-                            
-                        async for line in resp.aiter_lines():
-                            if line.startswith("data: "):
-                                if line.strip() == "data: [DONE]":
-                                    break
-                                try:
-                                    chunk = json.loads(line[6:])
-                                    delta = chunk["choices"][0].get("delta", {})
-                                    content = delta.get("content", "")
-                                    if content:
-                                        full_response += content
-                                        
-                                        if "<thought>" in full_response and "</thought>" not in full_response:
-                                            in_thought = True
-                                            current_thought = full_response.split("<thought>")[-1]
-                                        elif "</thought>" in full_response:
-                                            in_thought = False
-                                            
-                                        now = time.time()
-                                        if now - last_edit_time > 1.5:
-                                            last_edit_time = now
-                                            if status_msg and context:
-                                                try:
-                                                    if in_thought:
-                                                        disp = current_thought[-400:].strip()
-                                                        from utils import sanitize_markdown
-                                                        safe_disp = sanitize_markdown(disp)
-                                                        await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 **Thinking...**\n_{safe_disp}_", parse_mode="Markdown")
-                                                    else:
-                                                        final_text = full_response.split("</thought>")[-1] if "</thought>" in full_response else full_response
-                                                        disp = final_text[-800:].strip()
-                                                        if disp:
-                                                            await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"✍️ **Typing...**\n{disp}")
-                                                except Exception:
-                                                    pass
-                                except Exception:
-                                    pass
+                out = await loop.run_in_executor(
+                    None,
+                    lambda: call_openrouter(
+                        model=m_name,
+                        prompt=usr_prompt,
+                        task=f"chat-{topic}",
+                        max_tokens=4000,
+                        system_prompt=sys_prompt,
+                        timeout=180,
+                        stream_to_status=stream_info
+                    )
+                )
+                return out
             except Exception as e:
                 logger.error(f"Streaming error: {e}")
                 return None
-                
-            if "</thought>" in full_response:
-                return full_response.split("</thought>")[-1].strip()
-            return full_response.strip()
                 
         try:
             if status_msg and context:
@@ -383,7 +309,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                         from llm_router import call_opencode
                         zen_out = await asyncio.get_running_loop().run_in_executor(
                             None,
-                            lambda: call_opencode("hy3-free", full_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
+                            lambda: call_opencode(prompt=full_prompt, model="hy3-free", task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
                         )
                         if zen_out:
                             out = zen_out
@@ -396,7 +322,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                             from llm_router import call_hackclub
                             hc_out = await asyncio.get_running_loop().run_in_executor(
                                 None,
-                                lambda: call_hackclub("qwen/qwen3-32b", full_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
+                                lambda: call_hackclub(prompt=full_prompt, model="qwen/qwen3-32b", task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
                             )
                             if hc_out:
                                 out = hc_out
@@ -442,7 +368,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                         from llm_router import call_opencode
                         zen_out = await asyncio.get_running_loop().run_in_executor(
                             None,
-                            lambda: call_opencode("hy3-free", full_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
+                            lambda: call_opencode(prompt=full_prompt, model="hy3-free", task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
                         )
                         if zen_out:
                             out = zen_out
@@ -455,7 +381,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
                             from llm_router import call_hackclub
                             hc_out = await asyncio.get_running_loop().run_in_executor(
                                 None,
-                                lambda: call_hackclub("qwen/qwen3-32b", full_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
+                                lambda: call_hackclub(prompt=full_prompt, model="qwen/qwen3-32b", task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT)
                             )
                             if hc_out:
                                 out = hc_out

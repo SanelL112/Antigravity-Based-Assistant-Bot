@@ -66,3 +66,43 @@ def save_state(state):
             logger.error(f"Failed to save state: {e}")
             with open(STATE_FILE, "w") as f:
                 json.dump(state, f)
+
+def update_state(mutator) -> dict:
+    """Lock-held state update primitive: load, mutate, save atomically.
+    The mutator function should take the state dict and modify it in-place.
+    Returns the updated state.
+    """
+    with _state_lock:
+        # Load logic (inline to avoid double locking since load_state takes the lock)
+        state = {"seen_tasks": [], "seen_alerts": [], "pending_priorities": {}, "user_models": {}}
+        if os.path.exists(STATE_FILE):
+            try:
+                with open(STATE_FILE, "r") as f:
+                    loaded = json.load(f)
+                    state.update(loaded)
+            except Exception as e:
+                logger.error(f"Failed to load state in update_state: {e}")
+
+        # Ensure default keys
+        if "pending_priorities" not in state:
+            state["pending_priorities"] = {}
+        if "user_models" not in state:
+            state["user_models"] = {}
+
+        # Mutate
+        mutator(state)
+
+        # Save logic (inline to avoid double locking)
+        try:
+            fd, tmp_path = tempfile.mkstemp(dir=STATE_FILE.parent, suffix='.tmp')
+            with os.fdopen(fd, 'w') as f:
+                json.dump(state, f)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, STATE_FILE)
+        except Exception as e:
+            logger.error(f"Failed to save state in update_state: {e}")
+            with open(STATE_FILE, "w") as f:
+                json.dump(state, f)
+
+        return state

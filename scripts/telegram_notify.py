@@ -99,7 +99,7 @@ def run_health_check() -> str:
     digest_sent = bool(digest_out.strip())
 
     # CHECK 8b: Specific 7 AM today check
-    today_7am_out, _ = run_cmd('journalctl -u bot.service --since "today 07:00" --until "today 07:10" 2>/dev/null | grep -i "digest\|morning\|send_morning"')
+    today_7am_out, _ = run_cmd(r'journalctl -u bot.service --since "today 07:00" --until "today 07:10" 2>/dev/null | grep -i "digest\|morning\|send_morning"')
     digest_7am_fired = bool(today_7am_out.strip())
 
     # Build report - use plain text to avoid MarkdownV2 escaping issues

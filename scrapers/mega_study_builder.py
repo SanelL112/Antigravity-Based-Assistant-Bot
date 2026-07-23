@@ -3,14 +3,14 @@ import json
 import logging
 import requests
 from bs4 import BeautifulSoup
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 from youtubesearchpython import VideosSearch
 from youtube_transcript_api import YouTubeTranscriptApi
 from ai_processor import call_agy
 
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
+from config import CACHE_DIR, OR_FALLBACK_MODEL, OR_THIRD_MODEL
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -193,8 +193,8 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     
     # Pull in the user's internal notes from Canvas/Docs/Classroom and Extracted PDFs
     internal_notes = ""
-    notes_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "source_cache", "combined_summaries.txt")
-    pdf_exports_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "source_cache", "pdf_exports.txt")
+    notes_file = CACHE_DIR / "combined_summaries.txt"
+    pdf_exports_file = CACHE_DIR / "pdf_exports.txt"
     
     if os.path.exists(notes_file):
         try:

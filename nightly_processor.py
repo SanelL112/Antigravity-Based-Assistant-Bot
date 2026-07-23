@@ -12,6 +12,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from scrapers.mega_study_builder import generate_mega_guide
 from llm_router import call_openrouter
 from utils import scrub_pii, retry
+from config import CACHE_DIR
 
 
 def run_cmd(cmd: str, timeout: int = 120, cwd: str = None) -> subprocess.CompletedProcess:
@@ -55,19 +56,10 @@ Notes:
     
     # Try local RPC first (no rate limits)
     from llm_router import call_local_rpc
-    result = call_local_rpc(prompt=scrubbed_prompt, max_tokens=500, timeout=180)
-    if not result:
-        print("Topic extraction: local RPC failed, trying OpenRouter free tier...")
-        try:
-            result = call_openrouter(
-                model="meta-llama/llama-3.3-70b-instruct:free",
-                prompt=scrubbed_prompt,
-                task="extract_topics",
-                max_tokens=500,
-                timeout=600,
-            )
-        except Exception as e:
-            print(f"Extraction error: {e}")
+    result = call_local_rpc(prompt=scrubbed_prompt, max_tokens=500, timeout=180, allow_cloud=False)
+    if not result or result.startswith("⚠️"):
+        print("Topic extraction: local RPC failed or unavailable.")
+        result = None
 
     if result:
         topics = [t.strip() for t in result.split(",") if t.strip()]
@@ -92,8 +84,8 @@ def build_and_push(topic: str):
         print(f"Study guide for {topic} already exists. Running lightweight append-only update to save tokens...")
 
         internal_notes = ""
-        notes_file = "/home/sanel/personal-assistant-bot/scrapers/source_cache/combined_summaries.txt"
-        pdf_file = "/home/sanel/personal-assistant-bot/scrapers/source_cache/pdf_exports.txt"
+        notes_file = os.path.join(CACHE_DIR, "combined_summaries.txt")
+        pdf_file = os.path.join(CACHE_DIR, "pdf_exports.txt")
 
         if os.path.exists(notes_file):
             with open(notes_file, "r") as f:
@@ -120,23 +112,13 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
         new_section = ""
         try:
             from llm_router import call_local_rpc
-            new_section = call_local_rpc(prompt=scrubbed_prompt, max_tokens=4000, timeout=300)
+            new_section = call_local_rpc(prompt=scrubbed_prompt, max_tokens=4000, timeout=300, allow_cloud=False)
         except Exception as e:
             print(f"Local RPC error: {e}")
 
-        if not new_section:
-            print("Local RPC append failed, trying OpenRouter free tier...")
-            try:
-                new_section = call_openrouter(
-                    model="meta-llama/llama-3.3-70b-instruct:free",
-                    prompt=scrubbed_prompt,
-                    task="delta_append",
-                    max_tokens=4000,
-                    timeout=600,
-                )
-            except Exception as e:
-                print(f"OpenRouter connection error: {e}")
-                new_section = ""
+        if not new_section or new_section.startswith("⚠️"):
+            print("Local RPC append failed or unavailable.")
+            new_section = None
 
         if new_section:
             # Clean up <thought> tags
@@ -170,30 +152,6 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
             print(f"Pandoc failed: {output}")
             return
         print(f"Successfully created Word document at {output_docx}")
-
-        # 4. Automatically Sync to GitHub
-        print("Pushing freshly generated study guide to GitHub...")
-        success, output = run_cmd_safe(f"git add {shlex.quote(output_md)} {shlex.quote(output_docx)}", timeout=30)
-        if not success:
-            print(f"Git add failed: {output}")
-            return
-        # Check if there are actually changes to commit
-        success, output = run_cmd_safe("git diff --cached --quiet", timeout=10)
-        if success:
-            # No changes staged - nothing to commit
-            print("No changes to commit (study guide already up to date)")
-            print(f"Nightly build for '{topic}' completed successfully (no changes)!")
-        else:
-            # Has changes - proceed with commit
-            success, output = run_cmd_safe(f'git commit -m "docs: Nightly autonomous update of {filename_base} study guide"', timeout=30)
-            if not success:
-                print(f"Git commit failed: {output}")
-                return
-            success, output = run_cmd_safe("git push", timeout=60)
-            if not success:
-                print(f"Git push failed: {output}")
-                return
-            print(f"Nightly build for '{topic}' completed successfully!")
     else:
         print(f"Failed to process study guide for {topic}.")
 
@@ -203,11 +161,6 @@ def main():
 
     # Ensure the script is running in the correct directory for git tracking
     os.chdir("/home/sanel/personal-assistant-bot")
-
-    # Ensure we have the latest updates
-    success, output = run_cmd_safe("git pull", timeout=60)
-    if not success:
-        print(f"Git pull failed (continuing anyway): {output}")
 
     # 0. Sync New Google Classroom & Google Drive Files
     print("Executing Google Classroom & Drive Sync...")
@@ -226,7 +179,7 @@ def main():
     build_and_push("SAT Writing and Grammar Master Guide")
 
     # 2. Load the Google Classroom PDF text to find dynamic topics
-    pdf_path = "/home/sanel/personal-assistant-bot/scrapers/source_cache/pdf_exports.txt"
+    pdf_path = os.path.join(CACHE_DIR, "pdf_exports.txt")
     pdf_text = ""
     if os.path.exists(pdf_path):
         with open(pdf_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -251,28 +204,7 @@ def main():
 
 
 if __name__ == "__main__":
-    import subprocess
     import time
 
     # Run the main processor
     main()
-
-    # Nightly Build Complete: Stop Ollama to save RAM for the next day
-    print("Nightly build complete. Stopping Ollama...")
-    success, output = run_cmd_safe("pkill -f 'ollama serve'", timeout=10)
-    if not success:
-        print(f"Failed to stop Ollama: {output}")
-
-
-if __name__ == "__main__":
-    import subprocess
-    import time
-
-    # Run the main processor
-    main()
-
-    # Nightly Build Complete: Stop Ollama to save RAM for the next day
-    print("Nightly build complete. Stopping Ollama...")
-    success, output = run_cmd_safe("pkill -f 'ollama serve'", timeout=10)
-    if not success:
-        print(f"Failed to stop Ollama: {output}")

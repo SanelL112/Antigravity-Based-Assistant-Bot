@@ -66,7 +66,7 @@ async def send_morning_digest():
         with open(context_file, "r", encoding="utf-8") as f:
             bot_context = f.read().strip()
             
-    tasks = get_pending_tasks()
+    tasks = await asyncio.to_thread(get_pending_tasks)
     
     msg = "☀️ **GOOD MORNING! Here is your Daily Digest.**\n\n"
     

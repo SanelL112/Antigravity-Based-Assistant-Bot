@@ -7,9 +7,9 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 from bot.security import require_auth
-from bot.state import load_state, save_state
-from utils import create_backup, list_backups, restore_backup, get_correlation_summary, get_health_status
-from config import SANEL_CHAT_ID, GROUPME_GROUP_ID, LATEST_DIGEST_FILE
+from bot.state import load_state, update_state
+from utils import create_backup, get_correlation_summary, get_health_status, list_backups, restore_backup, run_bash_safely
+from config import SANEL_CHAT_ID, GROUPME_GROUP_ID, LATEST_DIGEST_FILE, MAX_SEEN_TASKS
 from bot.runtime import _track_task
 from scrapers.mega_study_builder import build_guide_for_drive_file
 from llm_router import get_cost_summary
@@ -83,9 +83,9 @@ async def model_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Invalid model choice. Type `/model` to see available options.")
         return
         
-    state = load_state()
-    state["user_models"][str(chat_id)] = requested
-    save_state(state)
+    update_state(
+        lambda state: state.setdefault("user_models", {}).update({str(chat_id): requested})
+    )
     
     display_name = requested.replace("openrouter:", "") if requested.startswith("openrouter:") else requested
     await update.message.reply_text(f"Model safely switched to *{display_name}* ✅", parse_mode="Markdown")
@@ -124,26 +124,28 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     # Ask user before pushing tasks to Notion
     import difflib
-    state = load_state()
     new_tasks = []
-    seen_titles = state.setdefault("seen_tasks", [])
-    
-    for task in ai_result.get("tasks", []):
-        task_title = task.get("title", "").strip().lower()
-        if not task_title: continue
-        
-        is_duplicate = False
-        for seen in seen_titles:
-            if difflib.SequenceMatcher(None, task_title, seen).ratio() > 0.8:
-                is_duplicate = True
-                break
-                
-        if not is_duplicate:
+
+    def record_new_tasks(state):
+        """Deduplicate and persist the manual digest in one state transaction."""
+        seen_titles = state.setdefault("seen_tasks", [])
+        for task in ai_result.get("tasks", []):
+            task_title = task.get("title", "").strip().lower()
+            if not task_title:
+                continue
+
+            if any(
+                difflib.SequenceMatcher(None, task_title, seen).ratio() > 0.8
+                for seen in seen_titles
+            ):
+                continue
+
             new_tasks.append(task)
             seen_titles.append(task_title)
-            
-    state["seen_tasks"] = seen_titles
-    save_state(state)
+
+        state["seen_tasks"] = seen_titles[-MAX_SEEN_TASKS:]
+
+    update_state(record_new_tasks)
     
     digest = ai_result.get("digest", "Nothing to report right now!")
     
@@ -192,7 +194,7 @@ async def bash_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     msg = await context.bot.send_message(chat_id=chat_id, text=f"💻 Running: `{cmd}`...", parse_mode="Markdown")
-    output = run_bash_safely(cmd, chat_id=chat_id)
+    output = await asyncio.to_thread(run_bash_safely, cmd, chat_id=chat_id)
     reply = "💻 **`" + cmd[:100] + "`**\n\n```\n" + output[:3800] + "\n```"
     try:
         await context.bot.edit_message_text(chat_id=chat_id, message_id=msg.message_id, text=reply, parse_mode="Markdown")
@@ -220,9 +222,8 @@ async def priority_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from scrapers.notion_client import update_notion_task
     
-    if update_notion_task(page_id, priority=priority):
-        del state["pending_priorities"][short_id]
-        save_state(state)
+    if await asyncio.to_thread(update_notion_task, page_id, priority=priority):
+        update_state(lambda current: current.setdefault("pending_priorities", {}).pop(short_id, None))
         await context.bot.send_message(chat_id=chat_id, text=f"✅ Task priority updated to **{priority.capitalize()}** in Notion!", parse_mode="Markdown")
     else:
         await context.bot.send_message(chat_id=chat_id, text="❌ Failed to update Notion.")
@@ -246,7 +247,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(get_cost_summary(), parse_mode="Markdown")
         return
     elif data == "cmd:backup":
-        path = create_backup()
+        path = await asyncio.to_thread(create_backup)
         await query.edit_message_text(
             f"✅ Backup created: `{os.path.basename(path)}`" if path else "❌ Backup failed"
         )
@@ -293,7 +294,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 from scrapers.notion_client import update_notion_task
                 state = load_state()
                 page_id = state.get("pending_priorities", {}).get(tid)
-                if page_id and update_notion_task(page_id, priority=prio):
+                if page_id and await asyncio.to_thread(update_notion_task, page_id, priority=prio):
+                    update_state(lambda current: current.setdefault("pending_priorities", {}).pop(tid, None))
                     await query.edit_message_text(f"✅ Task `{tid}` priority set to **{prio}**")
                 else:
                     await query.edit_message_text(f"❌ Could not update `{tid}`")
@@ -354,7 +356,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def backup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Create a backup now or list available backups."""
     msg = await update.message.reply_text("📦 Creating backup...")
-    path = create_backup()
+    path = await asyncio.to_thread(create_backup)
     if path:
         await context.bot.edit_message_text(
             chat_id=update.effective_chat.id, message_id=msg.message_id,
@@ -396,7 +398,7 @@ async def classroom_pdfs_command(update: Update, context: ContextTypes.DEFAULT_T
     msg = await update.message.reply_text("📥 Downloading Classroom PDFs...")
     try:
         from scrapers.google_scraper import download_classroom_pdfs
-        result = download_classroom_pdfs("classroom_pdfs")
+        result = await asyncio.to_thread(download_classroom_pdfs, "classroom_pdfs")
         await context.bot.edit_message_text(
             chat_id=update.effective_chat.id, message_id=msg.message_id,
             text=result
@@ -407,6 +409,7 @@ async def classroom_pdfs_command(update: Update, context: ContextTypes.DEFAULT_T
             text=f"❌ Error downloading PDFs: {e}"
         )
 
+@require_auth
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show all available commands organized by category."""
     help_text = (
@@ -449,9 +452,12 @@ async def errors_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         import subprocess
         scanner = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "log_scanner.py")
-        result = subprocess.run(
+        result = await asyncio.to_thread(
+            subprocess.run,
             [sys.executable, scanner, "--hours", str(hours), "--json"],
-            capture_output=True, text=True, timeout=60
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
 
         if result.returncode == 2:
@@ -514,7 +520,7 @@ async def errors_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def _get_server_overview():
     try:
         import subprocess
-        res = subprocess.check_output(["uptime"], text=True).strip()
+        res = (await asyncio.to_thread(subprocess.check_output, ["uptime"], text=True)).strip()
         return f"🖥️ **Server Overview**\n`{res}`"
     except Exception as e: return str(e)
 
@@ -522,7 +528,9 @@ async def _get_mc_status():
     try:
         import subprocess
         try:
-            res = subprocess.check_output(["systemctl", "is-active", "minecraft"], text=True).strip()
+            res = (await asyncio.to_thread(
+                subprocess.check_output, ["systemctl", "is-active", "minecraft"], text=True
+            )).strip()
         except subprocess.CalledProcessError:
             res = "inactive"
         return f"⛏️ **Minecraft Server**\nStatus: `{res}`"
@@ -544,7 +552,9 @@ async def _get_embed_status():
 async def _get_bot_status():
     try:
         import subprocess
-        res = subprocess.check_output(["systemctl", "status", "antigravity-bot"], text=True)
+        res = await asyncio.to_thread(
+            subprocess.check_output, ["systemctl", "status", "antigravity-bot"], text=True
+        )
         res = "\n".join(res.splitlines()[:5]).strip()
         return f"🤖 **Bot Service**\n```\n{res}\n```"
     except Exception as e: return str(e)
@@ -552,21 +562,29 @@ async def _get_bot_status():
 async def _get_mc_log():
     try:
         import subprocess
-        res = subprocess.check_output(["journalctl", "-u", "minecraft", "-n", "10", "--no-pager"], text=True).strip()
+        res = (await asyncio.to_thread(
+            subprocess.check_output,
+            ["journalctl", "-u", "minecraft", "-n", "10", "--no-pager"],
+            text=True,
+        )).strip()
         return f"📜 **MC Logs**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
 async def _get_ram_status():
     try:
         import subprocess
-        res = subprocess.check_output(["free", "-h"], text=True).strip()
+        res = (await asyncio.to_thread(subprocess.check_output, ["free", "-h"], text=True)).strip()
         return f"💾 **RAM Usage**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
 async def _get_services_status():
     try:
         import subprocess
-        res = subprocess.check_output(["systemctl", "list-units", "--type=service", "--state=running"], text=True)
+        res = await asyncio.to_thread(
+            subprocess.check_output,
+            ["systemctl", "list-units", "--type=service", "--state=running"],
+            text=True,
+        )
         res = "\n".join(res.splitlines()[:10]).strip()
         return f"⚙️ **Services**\n```\n{res}\n```"
     except Exception as e: return str(e)
@@ -579,21 +597,25 @@ async def _get_activity_feed():
 async def _get_bot_log():
     try:
         import subprocess
-        res = subprocess.check_output(["journalctl", "-u", "antigravity-bot", "-n", "10", "--no-pager"], text=True).strip()
+        res = (await asyncio.to_thread(
+            subprocess.check_output,
+            ["journalctl", "-u", "antigravity-bot", "-n", "10", "--no-pager"],
+            text=True,
+        )).strip()
         return f"🤖 **Bot Logs**\n```\n{res}\n```"
     except Exception as e: return str(e)
 
 async def _mc_start():
     try:
         import subprocess
-        subprocess.check_output(["sudo", "systemctl", "start", "minecraft"])
+        await asyncio.to_thread(subprocess.check_output, ["sudo", "systemctl", "start", "minecraft"])
         return "✅ Minecraft server starting..."
     except Exception as e: return str(e)
 
 async def _mc_stop():
     try:
         import subprocess
-        subprocess.check_output(["sudo", "systemctl", "stop", "minecraft"])
+        await asyncio.to_thread(subprocess.check_output, ["sudo", "systemctl", "stop", "minecraft"])
         return "🛑 Minecraft server stopping..."
     except Exception as e: return str(e)
 

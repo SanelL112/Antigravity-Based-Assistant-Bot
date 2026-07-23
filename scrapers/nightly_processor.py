@@ -3,6 +3,10 @@ import json
 import logging
 import asyncio
 from dotenv import load_dotenv
+from scrapers.google_scraper import download_drive_file
+import tempfile
+import PyPDF2
+import httpx
 
 load_dotenv()
 
@@ -10,7 +14,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 async def run_nightly_job(bot, chat_id):
-    queue_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nightly_queue.json")
+    from config import NIGHTLY_QUEUE_FILE, CACHE_DIR
+    queue_path = NIGHTLY_QUEUE_FILE
     if not os.path.exists(queue_path):
         return
         
@@ -21,11 +26,6 @@ async def run_nightly_job(bot, chat_id):
         return
         
     logger.info(f"Running nightly processing on {len(queue)} files...")
-    
-    import tempfile
-    from scrapers.google_scraper import download_drive_file
-    import PyPDF2
-    import httpx
     
     successful = []
     
@@ -57,7 +57,7 @@ async def run_nightly_job(bot, chat_id):
                 
                 if len(text.strip()) > 50:
                     # Export the extracted PDF text to the massive memory bank instead of sending a Telegram message
-                    output_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "source_cache", "pdf_exports.txt")
+                    output_file = os.path.join(CACHE_DIR, "pdf_exports.txt")
                     os.makedirs(os.path.dirname(output_file), exist_ok=True)
                     
                     with open(output_file, "a", encoding="utf-8") as f:
@@ -67,16 +67,25 @@ async def run_nightly_job(bot, chat_id):
                     logger.info(f"Successfully exported {title} to text file.")
                     successful.append(item)
             except Exception as e:
-                logger.error(f"Failed to process PDF {title}: {e}")
+                item["attempt_count"] = item.get("attempt_count", 0) + 1
+                item["last_error"] = str(e)
+                item["retryable"] = True
+        else:
+            item["attempt_count"] = item.get("attempt_count", 0) + 1
+            item["last_error"] = "Download failed"
+            item["retryable"] = True
                 
         try:
             os.remove(path)
         except Exception:
             pass
             
-    # Forcefully clear the queue so we don't infinitely retry broken/un-downloadable PDFs every single night
-    with open(queue_path, "w") as f:
-        json.dump([], f)
+    # Write back only failed items
+    remaining = [item for item in queue if item not in successful]
+    fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(queue_path), suffix='.tmp')
+    with os.fdopen(fd, 'w', encoding="utf-8") as f:
+        json.dump(remaining, f, indent=2)
+    os.replace(tmp_path, queue_path)
     
 if __name__ == "__main__":
     import sys

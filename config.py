@@ -41,6 +41,7 @@ if _missing_vars:
 # ── External Services ─────────────────────────────────────────────────────────
 AGENTAPI_BIN = os.getenv("AGENTAPI_BIN", "/home/sanel/.local/bin/agy")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_LOCAL_URL = os.getenv("OLLAMA_LOCAL_URL", "http://127.0.0.1:11434")
 OLLAMA_ORANGEPI_URL = os.getenv("OLLAMA_ORANGEPI_URL", "http://10.10.10.2:11434")  # Orange Pi 5 via ethernet
 OPENCODE_ZEN_API_KEY = os.getenv("OPENCODE_ZEN_API_KEY", "")
 OPENCODE_ZEN_URL = os.getenv("OPENCODE_ZEN_URL", "https://opencode.ai/zen/v1")
