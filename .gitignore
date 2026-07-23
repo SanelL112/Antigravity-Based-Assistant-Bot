@@ -20,15 +20,24 @@ latest_homework.jpg
 learning_rules.txt
 state.json.bak
 classroom_pdfs/
-embedding_data/
 
-# Binary backups and archives
+# Generated runtime and personal data
+activity_log.jsonl
+curated_brain.md
+mega_index.md
+embedding_data/
 backups/
-*.tar.gz
+offline_archive/
+output/
 
-# Data indexes and logs
-embedding_data/
+# Generated binary artifacts and archives
+*.tar.gz
+*.docx
+*.html
 *.npz
+*.bak
+
+# Runtime logs
 *.jsonl
 
 # Editor swap files

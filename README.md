@@ -30,10 +30,18 @@ The system operates across several distinct, asynchronous pipelines:
 
 The system doesn't rely on a traditional database. Instead, it uses markdown and JSON files:
 - `knowledge_base/`: Core subject guides.
-- `study_guides/`: Auto-generated ACT/SAT study guides and the `curated_brain.md` file (which syncs to Obsidian).
-- `mega_index.md`: A historical catalog of user data.
+- `study_guides/`: Auto-generated ACT/SAT study guides, synced locally to Obsidian.
+- `mega_index.md` and `curated_brain.md`: Local historical and short-term memory.
 - `scrapers/source_cache/`: Temporary storage for daily scraped digests.
 - `embedding_data/`: The semantic vector index (`embedding_index.npz`) built by Ollama.
+
+## Repository Hygiene
+
+The repository contains source code, reusable knowledge-base material, and operational
+documentation. Generated or personal runtime data is deliberately local-only: logs,
+memory files, vector indexes, backups, offline archives, daily output, and the contents
+of `study_guides/` are ignored by Git. The bot creates or refreshes those artifacts as it
+runs; do not force-add them to commits.
 
 ## Setup Instructions
 
