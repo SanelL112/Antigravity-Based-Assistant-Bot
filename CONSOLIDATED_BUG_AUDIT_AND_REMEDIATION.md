@@ -4,6 +4,8 @@ Audit date: 2026-07-21 (live hardware follow-up: 2026-07-22)
 Code baseline: `deae8ce9360185a63ce2761776a6724046e24a5b` (`main` and `origin/main`)
 Repository: `SanelL112/Antigravity-Based-Assistant-Bot`
 
+Current-code verification: 2026-07-23 at `1afabff0e54750d541fe4faf466ee02ee6171331` (`main`)
+
 ## Purpose and scope
 
 This is the repair handoff for the current bot revision. It consolidates the code audit, `journalctl -u bot.service`, local activity/chat histories, the preserved Telegram alert transcript, Hermes MCP logs, the installed systemd units, the live Composio probes, the live Ollama endpoint checks, and the 2026-07-22 Surface/Orange-Pi follow-up probes.
@@ -18,6 +20,47 @@ This document is intentionally more conservative than the older audit files in t
 No bot implementation was changed as part of this audit. The only intended change is this documentation file. Existing generated files and the dirty worktree must be preserved.
 
 The audit found confirmed defects, but it cannot prove that no additional defect exists. Treat this as the confirmed repair backlog for the audited baseline.
+
+## Current code verification — 2026-07-23
+
+The detailed findings and status labels below describe the July 21 baseline. This
+section supersedes those labels for the current `main` commit. It is a source and
+test review, not proof of live service, credential, or hardware state.
+
+The local regression suite passes (**41 tests**), but it does not cover every
+private-data call path or the GitHub Actions workflow.
+
+### Still open or only partially remediated
+
+| IDs | Current status | Evidence and required follow-up |
+|---|---|---|
+| SEC-01 | **Partial — high risk remains** | Arbitrary `python3 -c` execution is blocked, but the command allowlist accepts unrestricted `<path>` arguments. An allowed read command can still access service-readable secrets or files outside approved roots. Resolve paths and enforce an explicit allowed-root policy. |
+| SEC-03 | **Open — critical** | Several private-data paths still allow cloud fallback: `scrapers/web_precacher.py` sends `curated_brain.md` to OpenRouter; `scrapers/compile_context.py`, `scrapers/nightly_indexer.py`, and `scripts/generate_daily_digest.py` omit `allow_cloud=False`. Make private the default and require an explicit public classification for every cloud call. |
+| SEC-04 | **Operational action required** | Code reduces future HTTP client noise, but the historical Telegram token exposure still requires rotation, secret-store update, service restart, and journal-retention review. |
+| SEC-05 | **Open** | `bot/ai_bridge.py` logs raw user-message excerpts; `main.py` writes raw OCR into chat histories and `important_extracts.txt`; `activity_log.py` persists arbitrary details before notification scrubbing. Replace prompt excerpts with metadata and define retention/permissions. |
+| LLM-05 | **Partial / operationally unverified** | The router has safer local fallback behavior, but worker participation and the Surface RPC lifecycle still need a controlled deployment/restart test. |
+| MCP-01 | **Operationally open** | Canvas still needs Composio re-authentication. |
+| MCP-02, MCP-03 | **Open** | Composio remains hardcoded on in `main.py`; its wrapper has limited SSE/error recovery and native/Composio credential health is not modeled as configuration. |
+| LOG-02 | **Partial** | `telegram_logger.py` is queue-backed, but `activity_log.log_event()` still makes a synchronous Telegram HTTP request and can block a caller. |
+| LOG-03 | **Partial** | Activity-log timestamp parsing is fixed, but scanning remains root-only rather than covering configured `logs/` roots and does not explicitly classify structured nightly failures. |
+| ASYNC-01 | **Partial** | `web_precacher.py` calls synchronous local/cloud inference inside an async function; the nightly wrapper makes a blocking Pi health request; memory consolidation still performs direct process/download work in its async flow. |
+| DATA-01 | **Partial** | The canonical cache is `cache/`, but memory consolidation and embedding collection still fall back to `scrapers/source_cache`, which can reintroduce stale inputs. |
+| TEST-01 | **Partial** | The tracked `comprehensive_test.py` and `audit_script.py` remain import-side-effect scripts, even though the dedicated `tests/` suite is safe to collect. |
+| TEST-02, TEST-03 | **Open** | GitHub Actions does not run pytest. Its import check sets `TELEGRAM_CHAT_ID=0`, which `config.py` rejects, then silently counts the imports as skipped. Run pytest in CI with valid test defaults and fail on unexpected skipped imports. |
+
+### Confirmed code remediations
+
+- **SEC-02:** `/start` is authenticated and uses the configured owner chat.
+- **LLM-01 through LLM-04, LLM-06, LLM-07:** explicit Dell/Pi roles, local fallback, health-path alignment, provider argument order, and response validation are corrected in source; live service health remains separate.
+- **LOG-01 and LOG-04:** logging setup order and canonical health-report cache path are corrected.
+- **ASYNC-02, ASYNC-03, MEDIA-01, MEDIA-02:** job wrappers, lifecycle cleanup, and media-file cleanup are covered by the repair suite.
+- **STATE-01, NOTION-01, DATA-02 through DATA-05, DEP-01, DEP-02, UI-01, WARN-01:** the documented code changes are present, including atomic state updates, safe queue acknowledgement, full-content hashing, typed Google download handling, dependency/API updates, and syntax/UI fixes.
+
+### Required live verification
+
+1. Rotate the Telegram bot token, update the secret store, restart the bot, and verify the old token fails.
+2. Re-authenticate the Canvas Composio connection.
+3. Deploy the current `main` code, then perform a controlled Surface/Pi/Dell cluster participation test.
 
 ## Audit evidence snapshot
 
@@ -71,7 +114,7 @@ The proposed `10.0.42.1` and `10.0.42.2` addresses were also probed. Neither hos
 - Decide and document the intended subnet/address mapping (`10.10.10.1–2` is the live wired pair; `10.0.42.1–2` is currently absent) before changing endpoint constants or routes.
 - Test Pi participation after a controlled service restart or equivalent isolated staging launch; do not restart production services as part of this documentation-only audit.
 
-## Immediate risk summary
+## Immediate risk summary (historical baseline)
 
 The highest-risk issues are:
 
@@ -84,7 +127,7 @@ The highest-risk issues are:
 7. journald is missing most normal application logs, while warning logs are synchronously forwarded to Telegram and can create alert storms.
 8. three incompatible cache trees and two incompatible nightly-queue locations cause fresh data to be written in one place and stale or empty data to be consumed elsewhere.
 
-## Backlog index
+## Backlog index (historical baseline)
 
 | ID | Severity | Audit status | Short description |
 |---|---|---|---|
