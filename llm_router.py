@@ -667,7 +667,7 @@ def call_local_rpc(
     max_tokens: int = 1024,
     temperature: float = 0.0,
     timeout: int = 120,
-    allow_cloud: bool = True,
+    classification: str = "PRIVATE",
 ) -> str:
     """
     Primary local inference path — tries cluster nodes in order.
@@ -676,7 +676,7 @@ def call_local_rpc(
       1. Surface llama-server (10.0.0.47:8080) — primary, short timeout
       2. Pi Ollama (10.10.10.2:11434) — fast local backup
       3. Dell local Ollama
-      4. Cloud (if allow_cloud=True)
+      4. Cloud (if classification == "PUBLIC")
 
     Args:
         prompt: The user prompt
@@ -685,7 +685,8 @@ def call_local_rpc(
         max_tokens: Max output tokens
         temperature: 0.0 = deterministic
         timeout: Max seconds to wait
-        allow_cloud: Whether to fallback to cloud if local paths fail.
+        classification: "PRIVATE" or "PUBLIC". PRIVATE is default and disables cloud fallback.
+
 
     Returns:
         Generated text, or empty string/warning if all local paths fail.
@@ -751,6 +752,10 @@ def call_local_rpc(
     except Exception as e:
         logger.warning(f"call_local_rpc: Dell local failed: {e}")
 
+    # Backward compatibility for old callers that might still pass kwargs
+    # (Although we should update them all).
+    allow_cloud = (classification.upper() == "PUBLIC")
+
     if allow_cloud:
         logger.warning("call_local_rpc: all local paths exhausted, falling back to cloud")
         from config import RPC_FALLBACK_CLOUD_MODEL
@@ -762,7 +767,7 @@ def call_local_rpc(
             timeout=timeout,
         )
 
-    logger.warning("call_local_rpc: all local paths exhausted and allow_cloud=False")
+    logger.warning(f"call_local_rpc: all local paths exhausted and classification={classification}")
     return "⚠️ Local inference unavailable and cloud fallback disabled."
 
 

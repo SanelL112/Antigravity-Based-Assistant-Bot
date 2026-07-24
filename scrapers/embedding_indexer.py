@@ -149,7 +149,7 @@ def collect_sources() -> list[dict]:
     # Source cache summaries
     from config import CACHE_DIR
     sc_dir = CACHE_DIR
-    legacy_sc_dir = os.path.join(BASE_DIR, "scrapers", "source_cache")
+    legacy_sc_dir = os.path.join(BASE_DIR, "cache")
     for d in [sc_dir, legacy_sc_dir]:
         if os.path.isdir(d):
             if d == legacy_sc_dir:

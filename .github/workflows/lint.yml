@@ -67,7 +67,7 @@ jobs:
           # but are not actually exercised by the import alone (only on function calls).
           # Set safe defaults so the import check doesn't false-positive on missing config.
           TELEGRAM_BOT_TOKEN: ci-dummy-token
-          TELEGRAM_CHAT_ID: '0'
+          TELEGRAM_CHAT_ID: '123456789'
           CONVERSATION_ID: ci-dummy
           OPENROUTER_API_KEY: ci-dummy
         run: |
@@ -122,3 +122,14 @@ jobs:
             exit 1
           fi
           echo "  static-grep: OK"
+
+      - name: "[4/4] Run pytest suite"
+        env:
+          TELEGRAM_BOT_TOKEN: ci-dummy-token
+          TELEGRAM_CHAT_ID: '123456789'
+          CONVERSATION_ID: ci-dummy
+          OPENROUTER_API_KEY: ci-dummy
+        run: |
+          python3 -m pip install pytest pytest-asyncio
+          pytest tests/
+

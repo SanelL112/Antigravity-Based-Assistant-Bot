@@ -24,6 +24,15 @@ GROUPME_GROUP_ID = os.getenv("GROUPME_GROUP_ID", "")
 NOTION_API_KEY = os.getenv("NOTION_API_KEY", "")
 NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID", "")
 
+# ── Feature Flags ─────────────────────────────────────────────────────────────
+USE_COMPOSIO = os.getenv("USE_COMPOSIO", "True").lower() in ("true", "1", "yes", "t")
+
+# ── Safe Roots ────────────────────────────────────────────────────────────────
+# Allowed directories for read-only bash commands (e.g. cat, grep)
+SAFE_BASH_ROOTS = [
+    os.path.abspath(os.path.dirname(__file__))
+]
+
 # Validate required environment variables at startup
 _missing_vars = []
 if not OPENROUTER_API_KEY:

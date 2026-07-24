@@ -39,6 +39,7 @@ async def process_chunk(chunk, chunk_index, source_name):
             max_tokens=2048,
             temperature=0.0,
             timeout=300,
+            classification="PRIVATE",
         )
         if result and result.strip():
             return result.strip()

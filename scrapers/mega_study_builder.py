@@ -112,9 +112,9 @@ def search_youtube(topic: str):
                 for video in result["result"]:
                     if len(meta_titles) >= 100: break
                     try:
-                        transcript = ytt_api.fetch(video["id"])
+                        transcript = YouTubeTranscriptApi.get_transcript(video["id"])
                         combined_text += f"\n--- VIDEO: {video['title']} ---\n"
-                        combined_text += " ".join([s.text for s in transcript.snippets])
+                        combined_text += " ".join([item['text'] for item in transcript])
                         meta_titles.append(video["title"])
                     except Exception:
                         continue
@@ -130,9 +130,9 @@ def search_youtube(topic: str):
                             for video in result["result"]:
                                 if len(meta_titles) >= 100: break
                                 try:
-                                    transcript = ytt_api.fetch(video["id"])
+                                    transcript = YouTubeTranscriptApi.get_transcript(video["id"])
                                     combined_text += f"\n--- VIDEO: {video['title']} ---\n"
-                                    combined_text += " ".join([s.text for s in transcript.snippets])
+                                    combined_text += " ".join([item['text'] for item in transcript])
                                     meta_titles.append(video["title"])
                                 except Exception:
                                     continue
@@ -152,9 +152,9 @@ def search_youtube(topic: str):
                             for video in result["result"]:
                                 if len(meta_titles) >= 100: break
                                 try:
-                                    transcript = ytt_api.fetch(video["id"])
+                                    transcript = YouTubeTranscriptApi.get_transcript(video["id"])
                                     combined_text += f"\n--- VIDEO: {video['title']} ---\n"
-                                    combined_text += " ".join([s.text for s in transcript.snippets])
+                                    combined_text += " ".join([item['text'] for item in transcript])
                                     meta_titles.append(video["title"])
                                 except Exception:
                                     continue

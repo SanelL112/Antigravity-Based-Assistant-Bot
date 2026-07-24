@@ -12,6 +12,10 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+logging.getLogger("PyPDF2").setLevel(logging.ERROR)
+
+import warnings
+warnings.filterwarnings("ignore", module="PyPDF2")
 
 async def run_nightly_job(bot, chat_id):
     from config import NIGHTLY_QUEUE_FILE, CACHE_DIR
@@ -30,6 +34,10 @@ async def run_nightly_job(bot, chat_id):
     successful = []
     
     for item in queue:
+        if not isinstance(item, dict) or 'title' not in item or 'file_id' not in item:
+            logger.warning("Skipping untyped/invalid queue item, preserving it.")
+            continue
+            
         title = item['title']
         file_id = item['file_id']
         
@@ -80,12 +88,15 @@ async def run_nightly_job(bot, chat_id):
         except Exception:
             pass
             
-    # Write back only failed items
+    # Write back only failed items and untyped items
     remaining = [item for item in queue if item not in successful]
-    fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(queue_path), suffix='.tmp')
-    with os.fdopen(fd, 'w', encoding="utf-8") as f:
-        json.dump(remaining, f, indent=2)
-    os.replace(tmp_path, queue_path)
+    try:
+        fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(queue_path), suffix='.tmp')
+        with os.fdopen(fd, 'w', encoding="utf-8") as f:
+            json.dump(remaining, f, indent=2)
+        os.replace(tmp_path, queue_path)
+    except Exception as e:
+        logger.error(f"Failed to write back nightly queue: {e}")
     
 if __name__ == "__main__":
     import sys

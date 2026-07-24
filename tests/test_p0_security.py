@@ -35,6 +35,23 @@ def test_python_bash_tag_execution_behavior():
         mock_run.assert_not_called()
         assert "not in allowlist" in out.lower() or "blocked" in out.lower() or "error" in out.lower() or "not allowed" in out.lower()
 
+def test_path_containment_in_bash():
+    # Inside safe roots
+    import config
+    safe_dir = list(config.SAFE_BASH_ROOTS)[0]
+    allowed, reason = _is_command_allowed(f"cat {safe_dir}/requirements.txt")
+    assert allowed is True, f"Should allow cat inside safe root: {reason}"
+    
+    # Outside safe roots
+    allowed, reason = _is_command_allowed("cat /etc/passwd")
+    assert allowed is False
+    assert "outside safe roots" in reason.lower()
+    
+    # Traverse outside
+    allowed, reason = _is_command_allowed(f"cat {safe_dir}/../../../../etc/passwd")
+    assert allowed is False
+    assert "outside safe roots" in reason.lower()
+
 # ---------------------------------------------------------
 # Test Scope 2: Telegram Authentication Security
 # ---------------------------------------------------------

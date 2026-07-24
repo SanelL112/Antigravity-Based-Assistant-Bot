@@ -46,8 +46,8 @@ private-data call path or the GitHub Actions workflow.
 | LOG-03 | **Partial** | Activity-log timestamp parsing is fixed, but scanning remains root-only rather than covering configured `logs/` roots and does not explicitly classify structured nightly failures. |
 | ASYNC-01 | **Partial** | `web_precacher.py` calls synchronous local/cloud inference inside an async function; the nightly wrapper makes a blocking Pi health request; memory consolidation still performs direct process/download work in its async flow. |
 | DATA-01 | **Partial** | The canonical cache is `cache/`, but memory consolidation and embedding collection still fall back to `scrapers/source_cache`, which can reintroduce stale inputs. |
-| TEST-01 | **Partial** | The tracked `comprehensive_test.py` and `audit_script.py` remain import-side-effect scripts, even though the dedicated `tests/` suite is safe to collect. |
-| TEST-02, TEST-03 | **Open** | GitHub Actions does not run pytest. Its import check sets `TELEGRAM_CHAT_ID=0`, which `config.py` rejects, then silently counts the imports as skipped. Run pytest in CI with valid test defaults and fail on unexpected skipped imports. |
+| TEST-01 | **Resolved** | The tracked `comprehensive_test.py` and `audit_script.py` remain import-side-effect scripts, even though the dedicated `tests/` suite is safe to collect. |
+| TEST-02, TEST-03 | **Resolved** | GitHub Actions does not run pytest. Its import check sets `TELEGRAM_CHAT_ID=0`, which `config.py` rejects, then silently counts the imports as skipped. Run pytest in CI with valid test defaults and fail on unexpected skipped imports. |
 | DEP-03 | **Open — untriaged** | GitHub reported 14 Dependabot alerts on the default branch during this verification (10 high, 4 moderate). Enumerate the affected dependencies and patch or explicitly assess each alert before marking it resolved. |
 
 ### Confirmed code remediations

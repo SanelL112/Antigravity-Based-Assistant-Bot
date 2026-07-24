@@ -73,8 +73,28 @@ if [ -f "$BOT_DIR/latest_digest.txt" ]; then
     LAST_DIGEST=$(stat -c %y "$BOT_DIR/latest_digest.txt" 2>/dev/null | cut -d. -f1 || echo "unknown")
 fi
 
-# Google scrapers
-GOOGLE_TOKEN=$(python3 -c "
+# Google scrapers / Composio
+USE_COMPOSIO=$(grep USE_COMPOSIO "$BOT_DIR/.env" 2>/dev/null | cut -d= -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+[ -z "$USE_COMPOSIO" ] && USE_COMPOSIO="true"
+
+if [ "$USE_COMPOSIO" = "true" ] || [ "$USE_COMPOSIO" = "1" ] || [ "$USE_COMPOSIO" = "yes" ]; then
+    GOOGLE_TOKEN=$(python3 -c "
+import json, os
+tok = os.path.expanduser('~/.hermes/mcp-tokens/composio.json')
+if not os.path.exists(tok):
+    print('missing')
+else:
+    try:
+        d = json.load(open(tok))
+        if 'access_token' in d:
+            print('composio (active)')
+        else:
+            print('expired')
+    except Exception:
+        print('error')
+" 2>/dev/null || echo "error")
+else
+    GOOGLE_TOKEN=$(python3 -c "
 import json, os, sys
 sys.path.insert(0, '$BOT_DIR')
 os.chdir('$BOT_DIR')
@@ -89,8 +109,6 @@ try:
     if creds.valid:
         print('valid')
     elif creds.expired and creds.refresh_token:
-        # Try a refresh so the check reflects whether the bot CAN recover on its
-        # own (it does this per-call). Persist so downstream calls reuse it.
         try:
             creds.refresh(Request())
             open(tok, 'w').write(creds.to_json())
@@ -102,6 +120,7 @@ try:
 except Exception:
     print('error')
 " 2>/dev/null || echo "error")
+fi
 
 # ── Build report ──────────────────────────────────────────────────────────────
 
@@ -155,8 +174,10 @@ REPORT=$(cat << ENDREPORT
 • Last digest: $LAST_DIGEST
 
 $([ "$ERROR_COUNT" -gt 0 ] && echo "⚠️ $ERROR_COUNT errors in last 4 hours — check journalctl -u bot.service")
-$([ "$GOOGLE_TOKEN" = "expired" ] && echo "⚠️ Google token expired — run google_auth_setup.py")
-$([ "$GOOGLE_TOKEN" = "missing" ] && echo "🚨 No token.json found!")
+$([ "$GOOGLE_TOKEN" = "expired" ] && echo "⚠️ Token expired — run google_auth_setup.py or agy auth")
+$([ "$GOOGLE_TOKEN" = "missing" ] && echo "🚨 No token found (Composio or native)!")
+$([ "$GOOGLE_TOKEN" = "error" ] && echo "⚠️ Error checking token")
+$([ "$GOOGLE_TOKEN" = "composio" ] && echo "✅ Composio auth active")
 $(is_bad_state "$OLLAMA_ACTIVE" && echo "⚠️ Ollama is not running — nightly pipeline will fail")
 $(is_bad_state "$BOT_ACTIVE" && echo "🚨 Bot is DOWN — check systemctl status bot.service")
 ENDREPORT

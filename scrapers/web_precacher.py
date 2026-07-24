@@ -22,49 +22,34 @@ async def pre_cache_web():
         logger.info("No curated brain found. Skipping web pre-caching.")
         return
        
-    with open(brain_file, "r") as f:
-        brain = f.read()
+        def _read_brain():
+            with open(brain_file, "r") as f:
+                return f.read()
+        brain = await asyncio.to_thread(_read_brain)
        
-    # 1. Ask local model what topics we should research
-    logger.info("Asking local model to identify research topics...")
-    prompt = (
-        "Based on the following curated brain of a student, identify ONE specific academic topic they are currently learning that would benefit from extra web research (e.g., 'Quadratic Formula', 'Cellular Respiration').\n"
-        "Reply with ONLY the topic name. If there are no academic topics, reply with 'NONE'.\n\n"
-        f"BRAIN:\n{brain}"
-    )
-    
-    try:
-        from dotenv import load_dotenv
-        load_dotenv()
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        if not api_key:
-            logger.warning("No OPENROUTER_API_KEY found, aborting web precache.")
+        # 1. Ask local model what topics we should research
+        logger.info("Asking local model to identify research topics...")
+        prompt = (
+            "Based on the following curated brain of a student, identify ONE specific academic topic they are currently learning that would benefit from extra web research (e.g., 'Quadratic Formula', 'Cellular Respiration').\n"
+            "Reply with ONLY the topic name. If there are no academic topics, reply with 'NONE'.\n\n"
+            f"BRAIN:\n{brain}"
+        )
+        
+        from llm_router import call_local_rpc
+        
+        # Try local RPC first (PRIVATE data)
+        topic = await asyncio.to_thread(
+            call_local_rpc, 
+            prompt=prompt, 
+            max_tokens=50, 
+            timeout=120, 
+            classification="PRIVATE"
+        )
+        
+        if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai", "none", "⚠️"]):
+            logger.info("No valid topics found or local inference failed.")
             return
 
-        from llm_router import call_local_rpc, call_openrouter
-        
-        def _call_or(m_name, prompt_text):
-            try:
-                return call_openrouter(model=m_name, prompt=prompt_text, task="web-precache", timeout=120)
-            except Exception:
-                return None
-        
-        # Try local RPC first (no rate limits)
-        topic = call_local_rpc(prompt=prompt, max_tokens=50, timeout=120)
-        if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai", "none"]):
-            logger.info("Web precacher: local RPC failed, trying OpenRouter free tier...")
-                      
-            topic = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", prompt)
-            if not topic or any(p in topic.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-                logger.warning(f"Nemotron failed in precacher, falling back to {OR_FALLBACK_MODEL}...")
-                fallback = _call_or(OR_FALLBACK_MODEL, prompt)
-                if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-                    topic = fallback
-                else:
-                    logger.warning("Fallback failed, falling back to local G1 Flash...")
-                    from ai_processor import call_agy
-                    topic = call_agy(prompt, timeout=120, model="flash")
-           
         if not topic: topic = ""
         topic = re.sub(r'[^a-zA-Z0-9\s]', '', topic)
        
@@ -111,22 +96,17 @@ async def pre_cache_web():
                 page_soup = BeautifulSoup(page_res.text, "html.parser")
                 text = " ".join([p.text for p in page_soup.find_all('p')])
                
-                # Summarize — try local RPC first
+                # Summarize — PUBLIC classification since it's web text
                 sum_prompt = f"Summarize the following educational text about {topic}. Extract key formulas, facts, and examples.\n\nTEXT:\n{text[:10000]}"
-                summary = call_local_rpc(prompt=sum_prompt, max_tokens=500, timeout=120)
-                if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-                    logger.info("Web precacher summarization: local RPC failed, trying OpenRouter...")
-                    summary = _call_or("nvidia/nemotron-3-ultra-550b-a55b:free", sum_prompt)
-                if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-                    logger.warning(f"Nemotron failed summarization, falling back to {OR_FALLBACK_MODEL}...")
-                    fallback = _call_or(OR_FALLBACK_MODEL, sum_prompt)
-                    if fallback and not any(p in fallback.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai"]):
-                        summary = fallback
-                    else:
-                        logger.warning("Fallback failed summarization, falling back to local G1 Flash...")
-                        from ai_processor import call_agy
-                        summary = call_agy(sum_prompt, timeout=120, model="flash")
-                if not summary: summary = "Summary unavailable."
+                summary = await asyncio.to_thread(
+                    call_local_rpc, 
+                    prompt=sum_prompt, 
+                    max_tokens=500, 
+                    timeout=120, 
+                    classification="PUBLIC"
+                )
+                if not summary or any(p in summary.lower()[:50] for p in ["i cannot", "i'm sorry", "i don't know", "as an ai", "⚠️"]):
+                    summary = "Summary unavailable."
                
                 combined_research += f"\n### Source: {url}\n{summary}\n"
             except Exception as e:
@@ -134,15 +114,19 @@ async def pre_cache_web():
                
         # 4. Save to study database
         db_dir = os.path.join(base_dir, "study_database")
-        os.makedirs(db_dir, exist_ok=True)
-        filename = f"{topic.replace(' ', '_').lower()}.md"
-        with open(os.path.join(db_dir, filename), "w") as f:
-            f.write(f"# Pre-Cached Research: {topic}\n{combined_research}")
+        
+        def _save_research():
+            os.makedirs(db_dir, exist_ok=True)
+            filename = f"{topic.replace(' ', '_').lower()}.md"
+            with open(os.path.join(db_dir, filename), "w") as f:
+                f.write(f"# Pre-Cached Research: {topic}\n{combined_research}")
+                
+        await asyncio.to_thread(_save_research)
+
            
         logger.info(f"Successfully cached research for {topic}")
        
-    except Exception as e:
-        logger.error(f"Web pre-cacher failed: {e}")
+    pass
 
 if __name__ == "__main__":
     asyncio.run(pre_cache_web())

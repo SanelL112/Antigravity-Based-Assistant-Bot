@@ -11,4 +11,38 @@ _TEST_ENV = {
 }
 
 for _name, _value in _TEST_ENV.items():
-    os.environ.setdefault(_name, _value)
+    os.environ[_name] = _value  # OVERRIDE any real credentials from environment
+
+import pytest
+import socket
+
+@pytest.fixture(autouse=True)
+def disable_network_calls(monkeypatch):
+    """
+    Block all network requests in tests by default.
+    Tests that need network should explicitly mock the required modules.
+    """
+    def block_network(*args, **kwargs):
+        raise RuntimeError("Network calls are disabled in tests!")
+    
+    # Block socket level
+    monkeypatch.setattr(socket, "socket", block_network)
+    
+    # Block requests/httpx if they try to bypass or are already imported
+    try:
+        import requests
+        monkeypatch.setattr(requests, "get", block_network)
+        monkeypatch.setattr(requests, "post", block_network)
+        monkeypatch.setattr(requests.Session, "request", block_network)
+    except ImportError:
+        pass
+        
+    try:
+        import httpx
+        monkeypatch.setattr(httpx, "get", block_network)
+        monkeypatch.setattr(httpx, "post", block_network)
+        monkeypatch.setattr(httpx.Client, "request", block_network)
+        monkeypatch.setattr(httpx.AsyncClient, "request", block_network)
+    except ImportError:
+        pass
+

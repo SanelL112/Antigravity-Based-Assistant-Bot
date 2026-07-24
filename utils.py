@@ -233,6 +233,49 @@ def _is_command_allowed(cmd: str) -> tuple[bool, str]:
     if not matched_template:
         return False, f"Command not in allowlist: {base_cmd} {args}"
 
+    # Path validation for <path> arguments
+    import config
+    safe_roots = [Path(r).resolve() for r in config.SAFE_BASH_ROOTS]
+    
+    # We need to find the template that matched to know which args are <path>
+    for template_cmd, template_args in ALLOWED_COMMAND_TEMPLATES:
+        if base_cmd != template_cmd:
+            continue
+        if _match_args(args, template_args):
+            # Check paths
+            arg_idx = 0
+            for tmpl_arg in template_args:
+                if tmpl_arg == "<path>":
+                    path_str = args[arg_idx]
+                    try:
+                        resolved_path = Path(path_str).resolve()
+                        
+                        # Prevent reading .env, credentials, tokens
+                        filename = resolved_path.name
+                        if filename in ('.env', 'credentials.json', 'token.json'):
+                            return False, f"Access to sensitive file denied: {filename}"
+                        
+                        # Prevent traversal /sys, /proc, /dev
+                        if str(resolved_path).startswith(('/sys', '/proc', '/dev')):
+                            return False, f"Access to system device/proc denied: {resolved_path}"
+                            
+                        # Must be inside safe roots
+                        is_safe = any(
+                            resolved_path == root or root in resolved_path.parents
+                            for root in safe_roots
+                        )
+                        if not is_safe:
+                            return False, f"Path outside safe roots: {resolved_path}"
+                            
+                    except Exception as e:
+                        return False, f"Path resolution error: {e}"
+                    arg_idx += 1
+                elif tmpl_arg.startswith('<') and tmpl_arg.endswith('>'):
+                    arg_idx += 1
+                else:
+                    arg_idx += 1
+            break
+
     return True, "OK"
 
 

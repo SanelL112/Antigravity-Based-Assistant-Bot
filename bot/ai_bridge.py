@@ -186,7 +186,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         retrieval_result = get_context_for_prompt(user_message, top_k=5)
         if retrieval_result and "SEMANTIC RETRIEVAL" in retrieval_result:
             retrieval_context = f"\n\n=== SEMANTIC RETRIEVAL FROM KNOWLEDGE BASE ===\n{retrieval_result}\n=== END RETRIEVAL ===\n"
-            logger.info(f"Semantic retrieval added to prompt for: {user_message[:50]}")
+            logger.info(f"Semantic retrieval added to prompt for topic: {topic}")
     except Exception as e:
         logger.warning(f"Semantic retrieval failed: {e}")
 
@@ -244,7 +244,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
     actual_model_used = model
     if model.startswith("openrouter:"):
         or_model_name = model.split("openrouter:", 1)[1]
-        logger.info(f"OpenRouter model={or_model_name}: {user_message[:60]}")
+        logger.info(f"OpenRouter model={or_model_name} processing request...")
         log_llm_call(or_model_name, "chat", 0, is_local=False)
         
         async def _call_or(m_name):
@@ -409,7 +409,7 @@ async def send_to_antigravity_and_wait(user_message: str, chat_id: int = 0, cont
         if status_msg and context:
             try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using local {model}...")
             except Exception: pass
-        logger.info(f"agy --print model={model}: {user_message[:60]}")
+        logger.info(f"agy --print model={model} processing request...")
         log_llm_call(f"agy/{model}", "chat", 0, is_local=True)
         try:
             result = await asyncio.wait_for(

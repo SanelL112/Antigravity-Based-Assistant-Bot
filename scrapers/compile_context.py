@@ -50,6 +50,7 @@ async def compile_bot_context():
             max_tokens=1024,
             temperature=0.1,
             timeout=300,
+            classification="PRIVATE",
         )
         if context_str and context_str.strip():
             out_file = os.path.join(base_dir, "bot_context.txt")

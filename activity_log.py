@@ -58,6 +58,20 @@ _NOTIFY_CATEGORIES = {
     "verification", "digest", "alert",
 }
 
+# Whitelist of detail keys allowed in the activity log.
+# Any key not in this list will have its value [REDACTED].
+_SAFE_DETAIL_KEYS = {
+    "model", "task", "duration_s", "cost_usd", "tokens_in", "tokens_out", "local",
+    "source", "count", "note",
+    "subsystem", "action",
+    "message",
+    "phase", "status",
+    "sources",
+    "preview", "routed_to",
+    "has_question", "ocr_chars",
+    "chunks"
+}
+
 # Short label map for Telegram
 _CATEGORY_ICONS = {
     "message": "\U0001f4ac",
@@ -131,12 +145,24 @@ def log_event(category: str, details: dict = None, notify: bool = None):
         details: Optional dict with event-specific data
         notify: Force notify (True) or suppress (False). Default: auto based on category.
     """
+    # Enforce whitelist and redact PII for all logged details
+    safe_details = {}
+    if details:
+        from utils import scrub_pii
+        for k, v in details.items():
+            if k in _SAFE_DETAIL_KEYS:
+                # Scrub PII but keep the data for allowed fields
+                safe_details[k] = scrub_pii(str(v), aggressive=False)
+            else:
+                # Field not in whitelist - redact it entirely to prevent arbitrary data leaks
+                safe_details[k] = "[REDACTED_UNSAFE_FIELD]"
+
     entry = {
         "ts": time.time(),
         "time": datetime.now().strftime("%H:%M:%S"),
         "date": datetime.now().strftime("%Y-%m-%d"),
         "cat": category,
-        "details": details or {},
+        "details": safe_details,
     }
 
     with _write_lock:
@@ -162,9 +188,9 @@ def _format_event_short(icon: str, entry: dict) -> str:
     cat = entry.get("cat", "?")
     t = entry.get("time", "?")
 
-    # SCRUB ALL VALUES before formatting - PII protection
+    # Extra aggressive scrubbing for Telegram (cloud API)
     from utils import scrub_pii
-    safe_details = {k: scrub_pii(str(v), aggressive=True) for k, v in d.items()}
+    safe_details = {k: scrub_pii(str(v), aggressive=True) if v != "[REDACTED_UNSAFE_FIELD]" else v for k, v in d.items()}
 
     # Category-specific formatting (use safe_details only)
     if cat == "llm_call":

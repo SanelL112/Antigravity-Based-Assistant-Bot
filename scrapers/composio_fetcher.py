@@ -85,20 +85,28 @@ def _call_mcp(tool_slug: str, arguments: dict, entity_id: str = ENTITY_GOOGLE) -
         conn.close()
 
         # Parse SSE-style response (data: {...} lines)
+        last_error = "No result in MCP response"
         for line in text.split("\n"):
             line = line.strip()
             if line.startswith("data: "):
-                rpc_response = json.loads(line[6:])
+                try:
+                    rpc_response = json.loads(line[6:])
+                except json.JSONDecodeError:
+                    continue
+                if "error" in rpc_response:
+                    last_error = str(rpc_response["error"])
                 if "result" in rpc_response:
                     for content_item in rpc_response["result"].get("content", []):
                         if content_item.get("type") == "text":
-                            inner = json.loads(content_item["text"])
-                            results = inner.get("data", {}).get("results", [])
-                            if results:
-                                return results[0].get("response", {})
-                return {"successful": False, "data": {"message": "No result in MCP response"}}
+                            try:
+                                inner = json.loads(content_item["text"])
+                                results = inner.get("data", {}).get("results", [])
+                                if results:
+                                    return results[0].get("response", {})
+                            except json.JSONDecodeError:
+                                pass
 
-        return {"successful": False, "data": {"message": "Unparseable MCP response"}}
+        return {"successful": False, "data": {"message": last_error}}
     except Exception as e:
         logger.error(f"Composio MCP call failed ({tool_slug}): {e}")
         return {"successful": False, "data": {"message": f"MCP error: {e}"}}
@@ -363,8 +371,11 @@ def get_all_canvas_data() -> str:
     if r and r.get("successful"):
         user_data = r.get("data", {}).get("response_data", {})
         user_id = user_data.get("id")
-    if not user_id:
-        return "Canvas data unavailable — could not determine user ID."
+    else:
+        err_msg = r.get("data", {}).get("message", "") if r else "No response"
+        if "re-authenticate" in err_msg.lower() or "token" in err_msg.lower() or "401" in err_msg:
+            return "❌ Canvas token expired. Please re-authenticate Canvas via Composio (Run: `agy auth canvas`)."
+        return f"Canvas data unavailable — could not determine user ID: {err_msg}"
 
     courses = _get_active_courses()
     if not courses:

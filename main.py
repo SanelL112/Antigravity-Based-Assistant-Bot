@@ -36,7 +36,6 @@ user_models = {}
 POLL_INTERVAL       = 2    # seconds between transcript polls
 
 # ── Data source toggle – switch between native scrapers and Composio ──
-USE_COMPOSIO = True  # True = use composio_fetcher (6mo OAuth), False = use existing scrapers (7-day tokens)
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -130,7 +129,7 @@ async def _watchdog_impl(context: ContextTypes.DEFAULT_TYPE):
     if is_sleep_window(): return
     chat_id = context.job.chat_id
     # sys.path already set at module level
-    if USE_COMPOSIO:
+    if config.USE_COMPOSIO:
         from scrapers.composio_fetcher import (
             get_all_canvas_data, get_unread_emails,
             get_classroom_assignments, get_classroom_announcements
@@ -314,7 +313,7 @@ async def _check_updates_impl(context: ContextTypes.DEFAULT_TYPE):
     chat_id = context.job.chat_id
     state = load_state()
 
-    if USE_COMPOSIO:
+    if config.USE_COMPOSIO:
         from scrapers.composio_fetcher import (
             get_all_canvas_data, get_unread_emails,
             get_classroom_assignments, get_classroom_announcements,
@@ -541,7 +540,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         async with user_lock:
             reply = await send_to_antigravity_and_wait(user_text, chat_id, context, thinking_msg)
 
-        log_event("message", {"preview": user_text[:50], "routed_to": "unknown"}, notify=False)
+        log_event("message", {"routed_to": "unknown"}, notify=False)
 
         # Delete the thinking message
         try:
@@ -884,7 +883,11 @@ async def nightly_wrapper(context: ContextTypes.DEFAULT_TYPE):
             with open(pdf_exports_file, "r") as f:
                 recent_text = f.read().strip()[-5000:]
             if recent_text:
-                dynamic_topic = call_agy(f"Based on these study notes, extract the single most specific 1-4 word subject or topic being studied. Respond ONLY with the topic name. Notes: {recent_text}", model="flash")
+                dynamic_topic = await asyncio.to_thread(
+                    call_agy, 
+                    f"Based on these study notes, extract the single most specific 1-4 word subject or topic being studied. Respond ONLY with the topic name. Notes: {recent_text}", 
+                    model="flash"
+                )
                 if not dynamic_topic or len(dynamic_topic) > 50:
                     dynamic_topic = "General Academic Concepts"
 

@@ -56,6 +56,7 @@ ERROR_PATTERNS = [
     # Discord / General
     (r"ERROR.*discord|discord.*error", "DISCORD_ERR"),
     (r"Watchdog.*error|watchdog.*fail", "WATCHDOG_ERR"),
+    (r"Nightly sleep cycle error|nightly_fail|Nightly.*skipped|Nightly.*failed", "NIGHTLY_FAIL"),
 ]
 
 def color(s: str, code: int) -> str:
@@ -93,6 +94,7 @@ SEVERITY_COLORS = {
     "NETWORK_ERR": CYAN,
     "DISCORD_ERR": CYAN,
     "WATCHDOG_ERR": YELLOW,
+    "NIGHTLY_FAIL": RED,
 }
 
 SEVERITY_EMOJI = {
@@ -118,6 +120,7 @@ SEVERITY_EMOJI = {
     "NETWORK_ERR": "🌍",
     "DISCORD_ERR": "💬",
     "WATCHDOG_ERR": "👀",
+    "NIGHTLY_FAIL": "🌙",
 }
 
 
@@ -241,15 +244,27 @@ def scan_chat_history(hours: int = 24) -> list[dict]:
 
 
 def scan_log_files(hours: int = 24) -> list[dict]:
-    """Scan loose .log files in the project directory."""
+    """Scan loose .log files in configured directories."""
     matches = []
     cutoff = datetime.now() - timedelta(hours=hours)
-    for glob_pat in ["*.log", "*.log.*"]:
-        for fpath in BASE_DIR.glob(glob_pat):
-            mtime = datetime.fromtimestamp(fpath.stat().st_mtime)
-            if mtime < cutoff:
-                continue
-            text = fpath.read_text(errors="replace")
+    
+    try:
+        from config import SAFE_BASH_ROOTS
+        search_dirs = [Path(d) for d in SAFE_BASH_ROOTS]
+    except ImportError:
+        search_dirs = [BASE_DIR]
+
+    for search_dir in search_dirs:
+        if not search_dir.exists(): continue
+        for glob_pat in ["*.log", "*.log.*"]:
+            for fpath in search_dir.glob(glob_pat):
+                try:
+                    mtime = datetime.fromtimestamp(fpath.stat().st_mtime)
+                    if mtime < cutoff:
+                        continue
+                    text = fpath.read_text(errors="replace")
+                except Exception:
+                    continue
             for line in text.splitlines():
                 for pattern, category in ERROR_PATTERNS:
                     if re.search(pattern, line, re.IGNORECASE):

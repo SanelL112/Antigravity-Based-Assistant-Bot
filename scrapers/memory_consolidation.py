@@ -40,7 +40,7 @@ async def consolidate_memory():
 
     # 1. Read combined_summaries.txt
     summaries_file = os.path.join(CACHE_DIR, "combined_summaries.txt")
-    legacy_summaries = os.path.join(base_dir, "scrapers", "source_cache", "combined_summaries.txt")
+    legacy_summaries = os.path.join(base_dir, "cache", "combined_summaries.txt")
 
     target_file = summaries_file if os.path.exists(summaries_file) else legacy_summaries
     if os.path.exists(target_file):

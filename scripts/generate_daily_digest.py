@@ -362,6 +362,7 @@ async def assemble_digest_with_llm(prompt: str) -> str:
             max_tokens=2000,
             temperature=0.3,
             timeout=300,
+            classification="PRIVATE",
         )
         if response and response.strip():
             response = response.strip()
