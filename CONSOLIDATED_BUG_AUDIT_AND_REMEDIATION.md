@@ -39,6 +39,7 @@ private-data call path or the GitHub Actions workflow.
 | SEC-04 | **Operational action required** | Code reduces future HTTP client noise, but the historical Telegram token exposure still requires rotation, secret-store update, service restart, and journal-retention review. |
 | SEC-05 | **Open** | `bot/ai_bridge.py` logs raw user-message excerpts; `main.py` writes raw OCR into chat histories and `important_extracts.txt`; `activity_log.py` persists arbitrary details before notification scrubbing. Replace prompt excerpts with metadata and define retention/permissions. |
 | LLM-05 | **Partial / operationally unverified** | The router has safer local fallback behavior, but worker participation and the Surface RPC lifecycle still need a controlled deployment/restart test. |
+| RUNTIME-01 | **Open — deployment mismatch** | Pi alerts on 2026-07-23 show `call_local_rpc()` rejecting `allow_cloud`, although the current `main` implementation accepts it. The Pi is running an incompatible or partially deployed code/configuration set; this blocks memory consolidation and offline indexing. Deploy and restart the full compatible unit before further runtime conclusions. |
 | MCP-01 | **Operationally open** | Canvas still needs Composio re-authentication. |
 | MCP-02, MCP-03 | **Open** | Composio remains hardcoded on in `main.py`; its wrapper has limited SSE/error recovery and native/Composio credential health is not modeled as configuration. |
 | LOG-02 | **Partial** | `telegram_logger.py` is queue-backed, but `activity_log.log_event()` still makes a synchronous Telegram HTTP request and can block a caller. |
@@ -1105,6 +1106,53 @@ Minimum required suites:
 - The application endpoint configuration still conflates Pi and general Ollama roles. The 2026-07-22 follow-up found Pi Ollama healthy but Dell-local Ollama failed/start-limit-hit; the original 2026-07-21 snapshot had the opposite reachability state.
 - Surface health and inference pass, but the running process is solo and has no `--rpc` argument despite both worker services being active.
 - Canvas's Composio connected account is expired; Gmail, Classroom, and Drive were healthy in read-only probes.
+
+### Pi alert batch — 2026-07-22/23
+
+The following supplied Pi alerts are current runtime evidence. Repeated messages
+are grouped only where their cause and outcome are identical.
+
+- **2026-07-23 01:20–01:22 — RUNTIME-01 (open):** memory consolidation and
+  brain merging both failed with `TypeError: call_local_rpc() got an unexpected
+  keyword argument 'allow_cloud'`. Offline indexing then failed the same way on
+  both retries, indexed **0/176** chunks, preserved its delta file, and skipped
+  the remaining chunks. This is a deployed-version mismatch: current `main`
+  accepts the argument, but the Pi runtime did not.
+- **2026-07-23 01:22 — MCP-01 / DATA-05 (operational):** a Google Doc read
+  timed out, and historical export stopped after Composio returned `Expired
+  access token` (expired 2026-07-18). The preserved queue/delta behavior avoided
+  data loss, but Canvas/Composio re-authentication and bounded retry handling are
+  still required.
+- **2026-07-23 01:22 — DATA-01 (partial):** memory consolidation read the stale
+  legacy `scrapers/source_cache` path. This reproduces the legacy-cache fallback
+  described above.
+- **2026-07-23 01:46 — LLM-05 (deferred):** RPC was skipped because Surface
+  memory was unavailable (`Surface: n/a`; Dell worker 3024 MB; Pi worker 2962
+  MB). The subsequent deep-research completion at 01:47 demonstrates fallback
+  progress, not distributed Surface-worker participation.
+- **2026-07-23 01:49–01:57 — DATA-06 (open):** five decode-replacement warnings
+  occurred while processing text, and YouTube search failed with `can only
+  concatenate str (not "NoneType") to str`. Preserve source bytes with an
+  explicit encoding/error policy and guard nullable search fields before string
+  construction.
+- **2026-07-22 23:24–23:28 — test-originated alerts, not production incidents:**
+  unauthorized chat IDs (`9999`, `1234`, `999`, and a `MagicMock`), `test task`
+  Notion failures, mocked model/API failures, and the fake `Model model` invalid
+  response are expected test-fixture evidence. Their arrival through the Pi
+  alert channel shows that the test run was using production-style logging; unit
+  tests must disable external Telegram delivery.
+- **2026-07-22 23:25–23:28 — LLM-08 (open):** the Opencode Zen fallback returned
+  HTTP 401 because model `hy3-free` is unsupported. Add provider-specific model
+  capability validation and prevent an unsupported fallback from being selected.
+- **2026-07-22 23:25–23:26 — test isolation defect:** `Failed to save state:
+  'str' object has no attribute 'parent'` occurred during test activity. The
+  state helper received a string test path where it requires a `Path`; isolate
+  state paths with a `tmp_path` fixture and avoid sending test failures to the
+  runtime alert channel.
+- **2026-07-22 23:28 — OpenRouter fallback failure:** `Streaming error:
+  OpenRouter failed` was reported. Treat this as a provider failure to surface
+  in a structured health metric; do not include private prompt content in its
+  diagnostics.
 
 ## Historical issues already resolved in current `main`
 
