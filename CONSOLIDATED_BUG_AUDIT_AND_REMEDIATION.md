@@ -47,6 +47,7 @@ private-data call path or the GitHub Actions workflow.
 | DATA-01 | **Partial** | The canonical cache is `cache/`, but memory consolidation and embedding collection still fall back to `scrapers/source_cache`, which can reintroduce stale inputs. |
 | TEST-01 | **Partial** | The tracked `comprehensive_test.py` and `audit_script.py` remain import-side-effect scripts, even though the dedicated `tests/` suite is safe to collect. |
 | TEST-02, TEST-03 | **Open** | GitHub Actions does not run pytest. Its import check sets `TELEGRAM_CHAT_ID=0`, which `config.py` rejects, then silently counts the imports as skipped. Run pytest in CI with valid test defaults and fail on unexpected skipped imports. |
+| DEP-03 | **Open — untriaged** | GitHub reported 14 Dependabot alerts on the default branch during this verification (10 high, 4 moderate). Enumerate the affected dependencies and patch or explicitly assess each alert before marking it resolved. |
 
 ### Confirmed code remediations
 
