@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 _ROOT = Path(__file__).resolve().parents[1]
 ONENOTE_PAGES_DIR = _ROOT / "onenote_pages"
 ACADEMIC_NOTES_DIR = _ROOT / "academic_notes"
+# Harvester retention dir: the embedding indexer scans source_cache/onenote_pages
+# so notebook pages become searchable memory (Phase 1 RAG).
+HARVEST_PAGES_DIR = _ROOT / "source_cache" / "onenote_pages"
 
 
 def extract_onenote_html_to_markdown(html_content: str, title: str = "Untitled Note") -> str:
@@ -65,4 +68,45 @@ def save_extracted_page(notebook_name: str, section_name: str, page_title: str, 
     file_path = target_dir / f"{safe_title}.md"
     file_path.write_text(content, encoding="utf-8")
     logger.info("Saved OneNote page: %s", file_path)
+    return file_path
+
+
+def save_harvested_page(
+    notebook_name: str,
+    section_name: str,
+    page_title: str,
+    content: str,
+    pages_dir: Path | None = None,
+) -> Path | None:
+    """Retain a harvested page's reading-order text for the embedding indexer.
+
+    Writes ``source_cache/onenote_pages/<notebook>/<section>/<page>.md`` with a
+    small YAML frontmatter block (source, notebook, section, title, date).
+    Returns the written path, or ``None`` when *content* is too thin to index
+    (blank/ink-only pages — ink transcription is Phase 3).
+    """
+    from datetime import date
+
+    body = (content or "").strip()
+    if len(body) < 12:
+        return None
+    safe_nb = re.sub(r"[^\w\-_]", "_", notebook_name)
+    safe_sec = re.sub(r"[^\w\-_]", "_", section_name)
+    safe_title = re.sub(r"[^\w\-_]", "_", page_title)[:80]
+
+    target_dir = (pages_dir or HARVEST_PAGES_DIR) / safe_nb / safe_sec
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    file_path = target_dir / f"{safe_title}.md"
+    frontmatter = (
+        "---\n"
+        f"source: onenote\n"
+        f"notebook: {notebook_name}\n"
+        f"section: {section_name}\n"
+        f"title: {page_title}\n"
+        f"date: {date.today().isoformat()}\n"
+        "---\n\n"
+    )
+    file_path.write_text(frontmatter + body + "\n", encoding="utf-8")
+    logger.info("Retained harvested OneNote page: %s", file_path)
     return file_path

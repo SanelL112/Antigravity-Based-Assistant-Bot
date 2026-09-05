@@ -768,6 +768,24 @@ def assemble_digest(summaries: dict) -> dict:
     except Exception as e:
         logger.error(f"Failed to persist seen bullets: {e}")
 
+    # ── "From your notebooks" — deterministic third section (Phase 1) ────
+    # New pages this week + upcoming OneNote items, sourced from the daemon's
+    # harvest cache.  Appended AFTER bullet dedup so the standing section is
+    # never mistaken for digest noise, and never claims "nothing new" while
+    # notebook content is on offer.
+    try:
+        from scrapers.onenote_alerts import notebooks_section
+
+        nb_section = notebooks_section()
+    except Exception as exc:
+        logger.debug("Notebooks digest section unavailable: %s", exc)
+        nb_section = ""
+    if nb_section:
+        if digest.strip().startswith(("✅ All caught up", "✅ Nothing new")):
+            digest = nb_section
+        else:
+            digest = f"{digest}\n\n{nb_section}"
+
     # Save deduped digest to latest_digest.txt for display
     try:
         with open(previous_digest_path, "w") as f:

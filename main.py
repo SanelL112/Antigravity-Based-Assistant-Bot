@@ -577,7 +577,22 @@ async def _check_updates_impl(context: ContextTypes.DEFAULT_TYPE):
         except Exception:
             await context.bot.send_message(chat_id=chat_id, text=msg)
 
-    # 4. Track correlations across sources
+    # 4. New OneNote tasks (harvest-cache diff, Once-per-task Telegram alert)
+    try:
+        from scrapers.onenote_alerts import check_new_onenote_alerts
+
+        onenote_alert = await asyncio.to_thread(check_new_onenote_alerts)
+        if onenote_alert:
+            try:
+                await context.bot.send_message(
+                    chat_id=chat_id, text=onenote_alert, parse_mode="Markdown"
+                )
+            except Exception:
+                await context.bot.send_message(chat_id=chat_id, text=onenote_alert)
+    except Exception as exc:
+        logger.warning("OneNote task alerts failed: %s", type(exc).__name__)
+
+    # 5. Track correlations across sources
     try:
         correlate_items([
             {"source": "canvas", "title": t, "type": "assignment"}

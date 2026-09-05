@@ -61,6 +61,19 @@ class VirtualDisplay:
         if not binary:
             raise RuntimeError("DISPLAY is not set and Xvfb is not installed.")
         display = get_setting("CANVAS_VIRTUAL_DISPLAY", ":99")
+        disp_num = display.lstrip(":")
+        lock_file = Path(f"/tmp/.X{disp_num}-lock")
+        if lock_file.exists():
+            try:
+                pid = int(lock_file.read_text().strip())
+                os.kill(pid, 0)
+            except OSError:
+                try:
+                    lock_file.unlink()
+                except OSError:
+                    pass
+            except ValueError:
+                pass
         self.process = subprocess.Popen(
             [binary, display, "-screen", "0", "1440x900x24", "-nolisten", "tcp"],
             stdout=subprocess.DEVNULL,
@@ -882,11 +895,27 @@ class BrowserDaemon:
                 return {"status": "error", "message": "no notebooks detected", "path": trace}
             note(f"notebooks: {notebooks}")
 
+            cache_path = config.CACHE_DIR / "onenote_page_extractions.json"
+            previous_cache = None
+            if cache_path.exists():
+                try:
+                    previous_cache = json.loads(cache_path.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    previous_cache = None
+            good_before = isinstance(previous_cache, dict) and bool(previous_cache)
+
             cache_data: dict[str, list[dict]] = {}
             # The class notebooks repeat the same pages across period
             # sections; skip any page title already harvested (this run or
             # a previous one) so the budget reaches the other notebooks.
             seen_titles = {k.rsplit("/", 1)[-1] for k in cache_data}
+            # Cross-run resume: a walk killed by a dead session already
+            # recorded its pages in the cache.  Skipping those titles lets
+            # a fresh run continue where the last one died instead of
+            # re-walking (and re-dying at) the same page.
+            for k in (previous_cache or {}):
+                if k.count("/") == 2 and any(k.startswith(f"{n}/") for n in notebooks):
+                    seen_titles.add(k.rsplit("/", 1)[-1])
             pages_scanned = 0
             tasks_total = 0
 
@@ -910,49 +939,118 @@ class BrowserDaemon:
                         # Pages harvested before the failure are already in
                         # cache_data — keep them instead of losing the walk.
                         gained = sum(len(v) for v in cache_data.values()) - cached_before
-                        if gained > 0:
-                            logger.warning("notebook %s partially harvested: %d tasks kept (%s)",
-                                           nb_name, gained, exc)
-                            errors.append(f"{nb_name}: partial, kept {gained} tasks ({exc})")
-                            tasks_total += gained
-                            break
-                    except Exception as exc:
                         msg = str(exc).lower()
                         transient = (
                             "discarded" in msg
                             or "nosuchwindow" in msg
                             or "no such window" in msg
+                            or "invalid session id" in msg
+                            or "no browsable context" in msg
                             or "already closed" in msg
                         )
-                        logger.exception("notebook %s failed (attempt %d)", nb_name, attempt + 1)
-                        errors.append(f"{nb_name} (attempt {attempt + 1}): {exc}")
-                        # Recover the grid, then retry — Firefox discards
-                        # tabs nondeterministically under session churn.
-                        try:
-                            self._ensure_notebooks_view(driver)
-                        except Exception:
-                            pass
-                        if transient and not self._session_alive():
-                            self.restart_browser()
-                        if not transient or attempt == 2:
+                        if gained > 0:
+                            logger.warning("notebook %s partially harvested: %d tasks kept (%s)",
+                                           nb_name, gained, exc)
+                            errors.append(f"{nb_name}: partial, kept {gained} tasks ({exc})")
+                            tasks_total += gained
+                        else:
+                            logger.exception("notebook %s failed (attempt %d)", nb_name, attempt + 1)
+                            errors.append(f"{nb_name} (attempt {attempt + 1}): {exc}")
+                        # Recover the session, then retry — Firefox discards
+                        # tabs nondeterministically under session churn, and
+                        # seen_titles makes the retry resume where it died.
+                        recovery = self._recover_harvest_session(driver)
+                        if recovery == "relaunched":
+                            # self.client was swapped; the stale local driver
+                            # reference must not be reused.
+                            driver = self.client.driver
+                            # A fresh browser needs its SSO chain to finish
+                            # before the walk can resume; retrying immediately
+                            # burns attempts on 120s grid timeouts.
+                            if self._wait_for_grid(driver):
+                                note("browser relaunched and re-authenticated; retrying notebook")
+                            else:
+                                note("browser relaunched but grid never re-authenticated; stopping")
+                                errors.append("post-relaunch re-auth timeout")
+                                break
+                        if gained > 0 or recovery == "dead" or not transient or attempt == 2:
                             break
 
-            cache_path = config.CACHE_DIR / "onenote_page_extractions.json"
             try:
                 config.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-                cache_path.write_text(json.dumps(cache_data, indent=1), encoding="utf-8")
+                if cache_data:
+                    # Merge instead of replace: a session that dies mid-walk
+                    # (or a page budget that stops before every notebook)
+                    # must not silently drop last-known-good entries this run
+                    # never reached.  Keys are notebook/section/page, so a
+                    # re-extracted page overwrites its own stale entry.  A
+                    # wholly empty harvest (cache_data falsy) still never
+                    # overwrites a good cache with "{}".
+                    merged = dict(previous_cache) if good_before else {}
+                    merged.update(cache_data)
+                    cache_path.write_text(json.dumps(merged, indent=1), encoding="utf-8")
+                    if pages_scanned == 0 and good_before:
+                        note(f"session died mid-harvest; merged {len(cache_data)} "
+                             f"partial entries into the cache")
+                elif good_before:
+                    note("harvest produced 0 pages; keeping the previous cache intact")
+                    errors.append("harvest produced 0 pages; kept last-known-good cache")
+                # else: nothing harvested and nothing to preserve — no write.
             except OSError as exc:
                 errors.append(f"cache write failed: {exc}")
 
-            return {
-                "status": "ok" if tasks_total or pages_scanned else "empty",
-                "pages_scanned": pages_scanned,
-                "tasks_extracted": tasks_total,
-                "notebooks": notebooks,
-                "cache": str(cache_path),
-                "errors": errors,
-                "path": trace,
-            }
+        partial = bool(pages_scanned == 0 and cache_data)
+        result = {
+            "status": "ok" if tasks_total or pages_scanned or cache_data else "empty",
+            "pages_scanned": pages_scanned,
+            "tasks_extracted": tasks_total,
+            "notebooks": notebooks,
+            "cache": str(cache_path),
+            "errors": errors,
+            "path": trace,
+        }
+        if partial:
+            result["partial"] = True
+        return result
+
+    def _recover_harvest_session(self, driver) -> str:
+        """Best-effort recovery after a notebook harvest failure.
+
+        Must be called while holding self.lock (harvest_onenote's `with`).
+        Returns "alive" when the existing session is usable again,
+        "relaunched" when the browser was swapped (caller must re-read
+        self.client.driver), and "dead" when recovery failed.
+        """
+        if self._session_alive():
+            try:
+                self._ensure_notebooks_view(driver)
+                return "alive"
+            except Exception:
+                pass
+        logger.warning("harvest session dead — relaunching Firefox")
+        try:
+            self.restart_browser()
+            return "relaunched"
+        except Exception:
+            logger.exception("browser relaunch during harvest failed")
+            return "dead"
+
+    def _wait_for_grid(self, driver, budget: float = 420.0) -> bool:
+        """Wait for a freshly relaunched browser to re-authenticate.
+
+        A relaunch drops the session; the ClassLink → ADFS → OneNote SSO
+        chain takes tens of seconds to minutes.  Poll the notebooks grid
+        until it is authenticated or the time budget is exhausted.
+        """
+        deadline = time.monotonic() + budget
+        while time.monotonic() < deadline:
+            try:
+                if self._ensure_notebooks_view(driver):
+                    return True
+            except Exception:
+                pass
+            time.sleep(20)
+        return False
 
     def _detect_notebooks(self, driver) -> list[str]:
         """Notebook names from ONENOTE_NOTEBOOKS, else auto-detect tiles."""
@@ -1000,6 +1098,58 @@ class BrowserDaemon:
             return any(n in body for n in names)
         return ("all notebooks" in body or "recent" in body) and "see plans & pricing" not in body
 
+    # ------------------------------------------------------------------
+    # Editor-frame resilience.  OneNote's web app RECREATES the
+    # WebApplicationFrame iframe after section/page clicks; any Selenium
+    # call parked on the old context then throws "Browsing context has been
+    # discarded" even though every tab is alive.  Re-anchor instead of
+    # declaring the session dead.
+
+    @staticmethod
+    def _focus_live_tab(driver) -> bool:
+        """Switch onto any readable tab after the parked context is orphaned."""
+        try:
+            handles = list(driver.window_handles)
+        except Exception:
+            return False
+        for handle in handles:
+            try:
+                driver.switch_to.window(handle)
+                _ = driver.current_url
+                return True
+            except Exception:
+                continue
+        return False
+
+    @staticmethod
+    def _reanchor_editor(driver) -> bool:
+        """Re-enter the editor iframe after OneNote rebuilds it."""
+        try:
+            driver.switch_to.default_content()
+            frame_el = driver.find_element("id", "WebApplicationFrame")
+            driver.switch_to.frame(frame_el)
+            return True
+        except Exception:
+            return False
+
+    def _editor_js(self, driver, script: str, *args, tries: int = 4):
+        """execute_script inside the editor, tolerating iframe rebuilds."""
+        last: Exception | None = None
+        for _ in range(tries):
+            try:
+                return driver.execute_script(script, *args)
+            except Exception as exc:
+                last = exc
+                msg = str(exc).lower()
+                if ("discarded" in msg or "no browsable context" in msg
+                        or "NoSuchWindowException" in type(exc).__name__):
+                    if not self._reanchor_editor(driver):
+                        time.sleep(3)
+                    continue
+                raise
+        assert last is not None
+        raise last
+
     def _ensure_notebooks_view(self, driver) -> bool:
         """Guarantee the active tab sits on an AUTHENTICATED /notebooks grid.
 
@@ -1010,7 +1160,14 @@ class BrowserDaemon:
         needed.  Also closes stale SharePoint editor tabs, which self-close
         or get discarded and poison later handle switches.
         """
-        driver.switch_to.default_content()
+        try:
+            driver.switch_to.default_content()
+        except Exception:
+            # The parked context may be an iframe OneNote has since rebuilt;
+            # re-anchor onto any live tab before scanning handles.
+            if not self._focus_live_tab(driver):
+                raise
+            driver.switch_to.default_content()
         keep: list[tuple[str, str]] = []
         for handle in list(driver.window_handles):
             try:
@@ -1041,6 +1198,7 @@ class BrowserDaemon:
                 return True
 
         deadline = time.monotonic() + 120
+        form_attempts = 0
         while time.monotonic() < deadline:
             try:
                 url = driver.current_url.lower()
@@ -1060,7 +1218,20 @@ class BrowserDaemon:
                     else:
                         driver.get("https://onenote.cloud.microsoft/notebooks")
                         time.sleep(6)
-                # mid-auth (login.*): just wait for the redirect chain
+                elif self._onenote_midauth(url) and form_attempts < 2:
+                    # Stuck on the login picker/form: the silent SSO through
+                    # the org cookie never lands once the M365 session has
+                    # expired — the redirect this loop used to wait for will
+                    # not come.  Complete the stored-credential form flow
+                    # (picker tile → UPN → ADFS password → stay signed in).
+                    form_attempts += 1
+                    try:
+                        if self._microsoft_sign_in()[0]:
+                            time.sleep(6)
+                    except Exception:
+                        logger.exception("credential sign-in during notebooks recovery failed")
+                    time.sleep(4)
+                # else: mid-auth after exhausting form attempts — keep waiting
             except Exception:
                 time.sleep(3)
         return False
@@ -1075,6 +1246,11 @@ class BrowserDaemon:
         """Open one notebook and harvest every section's pages."""
         import hashlib
 
+        def note(msg: str) -> None:
+            # Mirror into the journal: the HTTP response dies whenever the
+            # triggering client times out, and the trace must survive that.
+            trace.append(msg)
+            logger.info("OneNote harvest: %s", msg)
 
         driver.switch_to.default_content()
         if not self._ensure_notebooks_view(driver):
@@ -1139,32 +1315,134 @@ class BrowserDaemon:
         # renders; give it a full minute before declaring the notebook empty.
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
-            if driver.execute_script("return document.querySelectorAll('.sectionListItem').length;"):
+            if self._editor_js(driver,
+                               "return document.querySelectorAll('.sectionListItem, [role=\"treeitem\"], [aria-label*=\"Section Group\" i]').length;"):
                 break
             time.sleep(3)
 
-        sections = driver.execute_script(
-            "return Array.from(document.querySelectorAll('.sectionListItem'))"
-            ".map(e => (e.innerText||'').trim()).filter(t => t.length > 1);"
+        # Class Notebooks nest sections inside collapsed section groups
+        # ("_Content Library", per-student spaces, unit resources, etc.).
+        # Handle section groups (role="treeitem" with child containers / aria-expanded):
+        # clicking each group toggles aria-expanded="true" and recurses into nested child sections.
+        total_expanded = 0
+        for _pass in range(6):
+            expanded = self._editor_js(
+                driver,
+                """
+                const isGroup = (el) => {
+                    if (!el) return false;
+                    if (el.hasAttribute('aria-expanded') || el.getAttribute('aria-expanded') !== null) return true;
+                    const label = (el.getAttribute('aria-label') || '').toLowerCase();
+                    if (label.includes('section group')) return true;
+                    const cls = (el.className || '').toString().toLowerCase();
+                    if (cls.includes('sectiongroup') || cls.includes('groupitemwrap')) return true;
+                    if (el.getAttribute('role') === 'treeitem') {
+                        if (el.querySelector('[role="group"], [class*="childContainer" i], [class*="groupItems" i], [class*="chevron" i], [class*="expander" i]')) return true;
+                        const next = el.nextElementSibling;
+                        if (next && next.getAttribute('role') === 'group') return true;
+                    }
+                    return false;
+                };
+                const candidates = Array.from(document.querySelectorAll(
+                    '[role="treeitem"], .sectionListItem, [aria-label*="Section Group" i], [class*="sectionGroup"]'
+                ));
+                let count = 0;
+                const seen = new Set();
+                for (const el of candidates) {
+                    if (!isGroup(el)) continue;
+                    if (seen.has(el)) continue;
+                    seen.add(el);
+                    if (el.getAttribute('aria-expanded') === 'false') {
+                        const target = el.querySelector('[class*="chevron" i], [class*="expander" i], [data-icon-name*="Chevron" i], [aria-expanded]') || el;
+                        target.click();
+                        count++;
+                    }
+                }
+                return count;
+                """
+            ) or 0
+            if not expanded:
+                break
+            total_expanded += expanded
+            time.sleep(3)
+        if total_expanded:
+            trace.append(f"{nb_name}: expanded {total_expanded} section group(s)")
+            note(f"{nb_name}: expanded {total_expanded} section group(s)")
+
+        # Query only leaf sections — never section group headers.
+        sections = self._editor_js(
+            driver,
+            """
+            const isGroup = (el) => {
+                if (!el) return false;
+                if (el.hasAttribute('aria-expanded') || el.getAttribute('aria-expanded') !== null) return true;
+                const label = (el.getAttribute('aria-label') || '').toLowerCase();
+                if (label.includes('section group')) return true;
+                const cls = (el.className || '').toString().toLowerCase();
+                if (cls.includes('sectiongroup') || cls.includes('groupitemwrap')) return true;
+                if (el.getAttribute('role') === 'treeitem') {
+                    if (el.querySelector('[role="group"], [class*="childContainer" i], [class*="groupItems" i], [class*="chevron" i], [class*="expander" i]')) return true;
+                    const next = el.nextElementSibling;
+                    if (next && next.getAttribute('role') === 'group') return true;
+                }
+                return false;
+            };
+            const els = Array.from(document.querySelectorAll('.sectionListItem, [role="treeitem"]'));
+            const leaves = [];
+            const seen = new Set();
+            for (const el of els) {
+                if (isGroup(el)) continue;  // Never treat section group headers as leaf sections
+                const name = ((el.querySelector('content') || {}).textContent || el.innerText || '').trim();
+                if (!name || name.length < 2 || seen.has(name)) continue;
+                seen.add(name);
+                leaves.push(name);
+            }
+            return leaves;
+            """
         ) or []
         trace.append(f"{nb_name}: sections {sections}")
+        note(f"{nb_name}: sections {sections}")
 
         pages_done = 0
         tasks_done = 0
 
         def _snapshot(_page, _html):
-            panel = driver.find_element("css selector", "#WACViewPanel")
-            return panel.screenshot_as_png
+            last: Exception | None = None
+            for _ in range(3):
+                try:
+                    panel = driver.find_element("css selector", "#WACViewPanel")
+                    return panel.screenshot_as_png
+                except Exception as exc:  # iframe rebuilt under us
+                    last = exc
+                    if not self._reanchor_editor(driver):
+                        time.sleep(3)
+            assert last is not None
+            raise last
 
         for sec in sections:
             if pages_done >= remaining:
                 break
             try:
-                sec_el = driver.execute_script(
+                sec_el = self._editor_js(
+                    driver,
                     """
                     const want = arguments[0];
-                    const els = Array.from(document.querySelectorAll('.sectionListItem'));
-                    const hit = els.find(e => (e.innerText||'').trim() === want);
+                    const isGroup = (el) => {
+                        if (!el) return false;
+                        if (el.hasAttribute('aria-expanded') || el.getAttribute('aria-expanded') !== null) return true;
+                        const label = (el.getAttribute('aria-label') || '').toLowerCase();
+                        if (label.includes('section group')) return true;
+                        const cls = (el.className || '').toString().toLowerCase();
+                        if (cls.includes('sectiongroup') || cls.includes('groupitemwrap')) return true;
+                        if (el.getAttribute('role') === 'treeitem') {
+                            if (el.querySelector('[role="group"], [class*="childContainer" i], [class*="groupItems" i], [class*="chevron" i], [class*="expander" i]')) return true;
+                            const next = el.nextElementSibling;
+                            if (next && next.getAttribute('role') === 'group') return true;
+                        }
+                        return false;
+                    };
+                    const els = Array.from(document.querySelectorAll('.sectionListItem, [role="treeitem"]'));
+                    const hit = els.find(e => !isGroup(e) && (((e.querySelector('content') || {}).textContent || e.innerText || '').trim() === want));
                     if (hit) { hit.click(); return true; }
                     return false;
                     """,
@@ -1173,14 +1451,16 @@ class BrowserDaemon:
                 if not sec_el:
                     errors.append(f"{nb_name}/{sec}: section click failed")
                     continue
-                time.sleep(3)
-                deadline = time.monotonic() + 40
+                time.sleep(2)
+                deadline = time.monotonic() + 10  # 10s maximum timeout on page list queries
                 while time.monotonic() < deadline:
-                    if driver.execute_script("return document.querySelectorAll('.pageListItem').length;"):
+                    if self._editor_js(driver,
+                                       "return document.querySelectorAll('.pageListItem').length;"):
                         break
-                    time.sleep(3)
+                    time.sleep(2)
 
-                pages = driver.execute_script(
+                pages = self._editor_js(
+                    driver,
                     "return Array.from(document.querySelectorAll('.pageListItem'))"
                     ".map(e => (e.innerText||'').trim()).filter(t => t.length > 0);"
                 ) or []
@@ -1191,7 +1471,8 @@ class BrowserDaemon:
                     if seen_titles and pg in seen_titles:
                         continue  # same shared notebook page in another section
                     try:
-                        hit = driver.execute_script(
+                        hit = self._editor_js(
+                            driver,
                             """
                             const want = arguments[0];
                             const els = Array.from(document.querySelectorAll('.pageListItem'));
@@ -1204,7 +1485,8 @@ class BrowserDaemon:
                         if not hit:
                             continue
                         time.sleep(3)  # let the page canvas render
-                        html = driver.execute_script(
+                        html = self._editor_js(
+                            driver,
                             "const p = document.querySelector('#WACViewPanel');"
                             "return p ? p.outerHTML : '';"
                         )
@@ -1213,6 +1495,19 @@ class BrowserDaemon:
                         page_id = hashlib.md5(f"{nb_name}|{sec}|{pg}".encode()).hexdigest()[:12]
                         page_meta = {"id": page_id, "title": pg, "links": {}}
                         tasks = extract_fn(page_meta, html, render_snapshot=_snapshot)
+                        # Retain the reading-order text as markdown so the
+                        # embedding indexer can make the notebook searchable
+                        # (Phase 1 RAG).  Ink-only pages yield no text here;
+                        # ink transcription is the Phase 3 pipeline.
+                        try:
+                            from scrapers.onenote_page_extractor import parse_spatial_layout
+                            from scrapers.onenote_web_scraper import save_harvested_page
+
+                            text = parse_spatial_layout(html)
+                            if text:
+                                save_harvested_page(nb_name, sec, pg, text)
+                        except Exception as exc:
+                            errors.append(f"{nb_name}/{sec}/{pg}: retention failed ({exc})")
                         for t in tasks:
                             t["course"] = nb_name
                         cache_data[f"{nb_name}/{sec}/{pg}"] = tasks
@@ -1221,16 +1516,39 @@ class BrowserDaemon:
                         pages_done += 1
                         tasks_done += len(tasks)
                         trace.append(f"  {nb_name}/{sec}/{pg}: {len(tasks)} tasks")
+                        note(f"{nb_name}/{sec}/{pg}: {len(tasks)} tasks")
                     except Exception as exc:
                         errors.append(f"{nb_name}/{sec}/{pg}: {exc}")
             except Exception as exc:
                 errors.append(f"{nb_name}/{sec}: {exc}")
 
         # Close the editor tab and go back to the list for the next notebook.
-        driver.switch_to.default_content()
-        driver.close()
+        # The parked context may be an orphaned iframe; find the editor tab by
+        # URL instead of trusting the current switch, then re-anchor on the
+        # notebooks grid.
+        try:
+            driver.switch_to.default_content()
+        except Exception:
+            pass
+        editor_closed = False
+        for handle in list(driver.window_handles):
+            try:
+                driver.switch_to.window(handle)
+                url = driver.current_url.lower()
+            except Exception:
+                continue  # discarded handle — skip it
+            if "sharepoint.com" in url and "doc.aspx" in url:
+                try:
+                    driver.close()
+                    editor_closed = True
+                except Exception:
+                    pass
+                break
+        if not editor_closed:
+            self._focus_live_tab(driver)
         self._ensure_notebooks_view(driver)
         trace.append(f"{nb_name}: {pages_done} pages, {tasks_done} tasks")
+        note(f"{nb_name}: {pages_done} pages, {tasks_done} tasks")
         return {"pages": pages_done, "tasks": tasks_done}
 
     def run_js(self, expr: str, tab: str = "", frame: str = ""):

@@ -174,6 +174,14 @@ def collect_sources() -> list[dict]:
                 if f.endswith((".txt", ".md", ".json")):
                     _add_file(f)
 
+    # Harvested OneNote pages retained by the browser daemon
+    # (source_cache/onenote_pages/<notebook>/<section>/<page>.md) — the harvest
+    # pipeline writes fresh reading-order markdown here on every crawl.
+    onenote_harvest_dir = os.path.join(BASE_DIR, "source_cache", "onenote_pages")
+    if os.path.isdir(onenote_harvest_dir):
+        for f in sorted(glob.glob(os.path.join(onenote_harvest_dir, "**", "*.md"), recursive=True)):
+            _add_file(f)
+
     # Dedicated Academic Notes directory (OneNote exports, PDFs, Markdown, Word docs)
     academic_dir = os.path.join(BASE_DIR, "academic_notes")
     if os.path.isdir(academic_dir):

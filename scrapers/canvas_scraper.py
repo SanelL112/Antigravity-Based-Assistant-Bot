@@ -621,6 +621,12 @@ class CanvasBrowserClient:
         options = Options()
         options.add_argument("-profile")
         options.add_argument(str(self.profile_dir))
+        # This box runs tight on RAM; Firefox unloads background tabs under
+        # memory pressure ("Browsing context has been discarded"), which
+        # poisons the Selenium session mid-harvest.  Disable low-memory tab
+        # unloading and keep tabs alive longer once inactive.
+        options.set_preference("browser.tabs.unloadOnLowMemory", False)
+        options.set_preference("browser.tabs.min_inactive_duration_before_unload", 30 * 60 * 1000)
         if self.headless:
             options.add_argument("-headless")
 
