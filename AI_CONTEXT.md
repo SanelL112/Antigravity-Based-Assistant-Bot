@@ -40,6 +40,11 @@ The project is split into three decoupled repositories:
 - **`pab-ops` (Public)**: Holds host-level systemd service files, timers, health-check scripts, and distributed RPC cluster management.
 - **`pab-study-content` (Private)**: Holds the generated study guides, SAT master guides, and knowledge base notes.
 
+### Sibling clones on this host
+- `~/pab-dev` — a **frozen dev clone** of pab-core (last code sync ~2026-08-17, HEAD `fc1b4da`). Its working-tree `README.md`/`AI_CONTEXT.md` are kept as copies of pab-core's; do not treat it as the live repo.
+- `~/pab-ops-staging` / `~/pab-study-content-staging` — staging clones of the sibling repos.
+- `~/personal-assistant-bot-release` — a **git worktree** sharing pab-core's `.git` object store. Never run history-rewriting commands (`filter-repo`) in pab-core's `.git`; it would desync the worktree. Reachability-preserving `git gc --prune=now` is safe.
+
 ---
 
 ## 3. Codebase Architecture & File Map
@@ -54,7 +59,7 @@ The project is split into three decoupled repositories:
 ├── activity_log.py             # Privacy-scrubbed structured activity logging
 ├── nightly_processor.py        # Overnight lossless document processor & study guide updater
 ├── practice_grader.py          # Automated SAT/ACT practice test grading logic
-├── voice_handler.py            # Local voice note transcription (faster-whisper)
+├── voice_handler.py            # Local-only voice note transcription (local Whisper engine)
 ├── inline_keyboards.py         # Telegram UI interactive inline keyboards
 │
 ├── bot/                        # Telegram-Facing Subsystem
@@ -65,11 +70,16 @@ The project is split into three decoupled repositories:
 │   ├── storage.py              # Atomic JSON read/write primitives with file-locking
 │   ├── security.py             # Access control (strict owner ID verification)
 │   ├── runtime.py              # Background task lifecycle tracking
+│   ├── smart_router.py         # Heuristic query classifier (PII→local, mode & engine selection)
 │   └── dashboard_state.py      # Route state provider for HTTP dashboard
 │
 ├── scrapers/                   # Data Ingestion & Transformation Tier
 │   ├── canvas_scraper.py       # Canvas scraper via authenticated Firefox daemon
 │   ├── canvas_page_extractor.py# Parses raw Canvas HTML pages into structured tasks
+│   ├── onenote_scraper.py      # OneNote Graph API client (OAuth2, page/asset fetch)
+│   ├── onenote_web_scraper.py  # Browser-backed OneNote Online scraper (ClassLink profile)
+│   ├── onenote_page_extractor.py # OneNote page/ink extraction with vision fallback
+│   ├── lfm_vision_harness.py   # LFM2-VL local vision harness for image/ink pages
 │   ├── google_scraper.py       # Google Classroom, Docs, Drive, and Gmail ingest
 │   ├── composio_fetcher.py     # Composio-based Google data integration
 │   ├── groupme_scraper.py      # GroupMe class chat scraper and announcement parser
@@ -77,17 +87,26 @@ The project is split into three decoupled repositories:
 │   ├── assignment_calendar.py  # CalDAV (Radicale) & Google Calendar synchronization
 │   ├── google_docs_calendar.py # Extracts deadlines from Google Docs with approval gates
 │   ├── morning_digest.py       # Periodic digest builder (runs every 4 hours)
+│   ├── topic_discovery.py      # Per-class study-topic discovery (grounded, deterministic-first)
+│   ├── study_providers.py      # Free online provider chain (scrub-then-refuse) for study builds
 │   ├── mega_study_builder.py   # Multi-stage textbook & study guide compiler
+│   ├── nightly_processor.py    # Lossless leased-queue processor for queued study docs
+│   ├── memory_consolidation.py # Curated-brain consolidation with deterministic fallback
 │   ├── embedding_indexer.py    # Incremental vector indexing (nomic-embed-text via Ollama)
 │   ├── semantic_retrieval.py   # Cosine similarity vector search over embedding index
+│   ├── web_precacher.py        # Opt-in, bounded public-web enrichment (private prompts stay local)
 │   └── batch_results.py        # Typed validation and status tracking for batch jobs
 │
-├── scripts/                    # Daemons & CLI Tooling Executed by Services
+├── surface/                    # Cluster control plane (deployed on the Surface orchestrator)
+│   └── cluster_manager.py      # HTTP control surface for node management & model switching
+│
+├── scripts/                    # Daemons & CLI Tooling Executed by Services (~35 scripts)
 │   ├── canvas_browser_daemon.py# Persistent Firefox daemon for ClassLink SSO (port 8976)
 │   ├── dashboard_agent.py      # Status dashboard web agent (port 8765)
+│   ├── crawl_onenote_pages.py  # OneNote notebook/section/page harvest via browser session
 │   └── generate_daily_digest.py# Standalone trigger for digest creation
 │
-├── tests/                      # pytest test suite (160+ unit & integration tests)
+├── tests/                      # pytest test suite (243 unit & integration tests, all passing)
 └── docs/                       # Architecture diagrams, runbooks, and historical audits
 ```
 
@@ -105,13 +124,13 @@ flowchart TD
     Sensitivity -- "LOCAL_FIRST\n(Summaries, Chat)" --> LocalFirst[Local Fabric First]
     Sensitivity -- "NON_SENSITIVE_CLOUD\n(General Knowledge)" --> CloudAllowed[Cloud Tiers Allowed]
 
-    LocalOnly --> OllamaHost["Local Ollama (x86)\n127.0.0.1:11434"]
-    OllamaHost -- fail --> OllamaPi["Orange Pi 5 Ollama\n10.10.10.2:11434"]
-    OllamaPi -- fail --> RPCCluster["llama.cpp RPC Cluster\n(Distributed Pi + Dell)"]
-    RPCCluster -- fail --> DeadLetter["Fail / Dead Letter Queue\n(Never fall back to Cloud)"]
+    LocalOnly --> Surface["Surface llama-server (ORCHESTRATOR)\n10.0.0.47:8080 - loads the model\nRPC workers: Dell 10.10.10.1:50052\n+ Orange Pi 5 10.42.0.139:50052"]
+    Surface -- fail --> OllamaPi["Orange Pi 5 Ollama\nLFM2.5-350M (10.10.10.2:11434)"]
+    OllamaPi -- fail --> OllamaDell["Dell Ollama\nLFM2.5-1.2B (127.0.0.1:11434)"]
+    OllamaDell -- fail --> DeadLetter["Fail / Dead Letter Queue\n(Never fall back to Cloud)"]
 
-    LocalFirst --> OllamaHost
-    LocalFirst -- all local fail --> OpenRouterDefault["OpenRouter Primary\n(with PII Scrubbing)"]
+    LocalFirst --> Surface
+    LocalFirst -- all local fail --> OpenRouterDefault["OpenRouter Primary\n(with PII Scrubbing + explicit consent)"]
 
     CloudAllowed --> OpenRouterDefault
     OpenRouterDefault -- fail --> OpenRouterFallback["OpenRouter Fallback Tier"]
@@ -120,8 +139,8 @@ flowchart TD
 
 ### Key AI Routing Rules
 - **Never bypass `llm_router`**: Do not call `requests.post` to OpenAI/OpenRouter directly from scrapers or commands.
-- **PII Scrubbing**: `utils.scrub_pii()` strips student names, school identifiers, specific URLs, emails, and phone numbers before any outbound cloud dispatch.
-- **RPC Cluster Budget**: The RPC cluster uses distributed tensor splitting across local devices. Fallback timeouts must be budgeted to prevent hanging Telegram long-polling loops.
+- **PII Scrubbing**: `utils.scrub_pii()` strips student names, school identifiers, specific URLs, emails, and phone numbers before any outbound cloud dispatch. Scrubbing is defense-in-depth, **not consent** — private data fails closed unless the caller passes `sensitivity=PUBLIC` **and** `cloud_consent=True`.
+- **Surface-first chain & timeout budget**: The Surface orchestrator's attempt is capped by `RPC_SURFACE_TIMEOUT` (hard-clamped in `config.py` to stay ≥60 s under `RPC_INFERENCE_TIMEOUT`), so a Surface stall can never consume the shared monotonic deadline needed by the Pi/Dell Ollama fallbacks. The Orange Pi empty-response result is transparently retried once against local Ollama.
 
 ---
 
@@ -151,17 +170,27 @@ flowchart TD
 
 ## 6. Nightly Processing & State Durability
 
-### Nightly Batch Cycle (2:00 AM)
-1. Ingests raw queued items from `.nightly_queue.json`.
-2. Runs OCR on new PDF/image classroom attachments.
+### Scheduled Jobs (America/New_York)
+| Job | Schedule | Module |
+| :--- | :--- | :--- |
+| Watchdog scrape cycle | every 30 minutes | `main.py` (`run_watchdog`) |
+| Digest build & delivery | every 4 hours | `main.py` (`check_updates`) |
+| Nightly batch cycle | **1:00 AM** | `main.py` (`nightly_wrapper`) |
+| Morning digest | 7:00 AM | `main.py` |
+| Backups | 3:00 AM daily | `main.py` (`create_backup`) |
+| File rotations | every 6 hours | `utils.enforce_all_rotations` |
+
+### Nightly Batch Cycle (1:00 AM ET)
+1. Ingests raw queued items from `.nightly_queue.json` (leased before processing, acked only after durable append — crash-safe with 30-minute leases and 5 retries).
+2. Runs OCR on new PDF/image classroom attachments (bounded: 25 MB/file, 100 PDF pages).
 3. Performs **Delta Updates** to study guides (appends new extracted notes to existing guides in `study_guides/` rather than re-generating 400KB+ files from scratch).
 4. Unprocessed or failed items are moved to `.nightly_dead_letter.json` for operator review without dropping data.
 5. Rebuilds the semantic embedding index incrementally.
 
 ### State & Storage Management
 - File: `state.json` tracks `seen_tasks`, `last_digest_time`, `active_topics`, and user preferences.
-- Reads/writes MUST go through `bot/storage.py` (`load_json_atomic`, `save_json_atomic`) or `bot/state.py`.
-- `seen_tasks` uses a bounded FIFO list (max 500 items) to prevent unbounded memory growth while ensuring zero duplicate alerts.
+- Reads/writes MUST go through `bot/storage.py` (`AtomicJSONStore`) or `bot/state.py`.
+- `seen_tasks` is a bounded FIFO list capped at **300** entries (`bot/state.py:MAX_SEEN_TASKS`), with legacy hex digests pruned on load. Note: `config.MAX_SEEN_TASKS` (200) is a separate legacy value consumed by `utils.enforce_all_rotations`'s rotation cap — the two are intentionally distinct until that legacy path is retired.
 
 ---
 
@@ -181,6 +210,14 @@ All messages sent to Telegram via `bot/ui.py` MUST have dynamic content escaped 
 ### Logging Standards
 Use `utils.logger` or `activity_log.log_activity()`. Never log raw authorization tokens, student passwords, or unscrubbed PII.
 
+### CI & Git Hooks
+- `.github/workflows/lint` mirrors `.githooks/pre-commit` (pyflakes + DeprecationWarning-as-error + static-grep deprecation patterns) and runs on push/PR to `main`.
+- `tests/test_script_imports.py` hard-codes the module list — **deleting a script requires updating that test or the suite fails**.
+- Validate a fresh-clone import after adding runtime dependencies: `python -c "import main"` must succeed (8 files were once missing from git and only tests-mocked around the gap).
+
+### Commit Hygiene
+- **Never `git add -A`** — the working tree carries ~100 legitimately-dirty `academic_notes/` files from live scraping. Stage explicit paths only.
+
 ---
 
 ## 8. Common Pitfalls & Traps to Avoid
@@ -193,3 +230,6 @@ Use `utils.logger` or `activity_log.log_activity()`. Never log raw authorization
 | **Raw Google Drive queries** | Shared school files omitted from query results | Always specify `supportsAllDrives=True, corpora="allDrives"`. |
 | **Unbounded Fallback Waits** | Telegram message timeouts (>60s) | Respect `RPC_INFERENCE_TIMEOUT` and handle fallbacks gracefully. |
 | **Unescaped HTML in Telegram** | Telegram API `BadRequest: Can't parse entities` | Always wrap dynamic strings in `bot.ui.escape_html()`. |
+| **`git add -A` on this tree** | Commits ~100 dirty scraped `academic_notes/` files | Stage explicit paths only; the dirtiness is expected. |
+| **Deleting a script** | `test_script_imports.py` fails on the hard-coded module list | Update the test's module list when removing scripts. |
+| **History rewrite in this `.git`** | Desyncs the `personal-assistant-bot-release` worktree sharing the object store | Only `filter-repo` on an isolated clone; reachability-preserving `gc` is safe. |

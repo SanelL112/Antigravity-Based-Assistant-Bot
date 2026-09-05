@@ -1,7 +1,7 @@
 # pab-core — Personal Assistant Bot
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-160%2B%20passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-243%20passing-brightgreen.svg)]()
 [![Privacy](https://img.shields.io/badge/privacy-local--first-success.svg)]()
 
 A self-hosted, privacy-preserving Telegram assistant designed for a student to stay on top of schoolwork, exams, and daily tasks. It automatically scrapes coursework and announcements from Canvas (via persistent ClassLink SSO session), Google Classroom/Docs, and GroupMe, turns them into periodic actionable digests, builds structured study guides, indexes notes for vector retrieval, and maintains an assignment calendar synced to CalDAV and Google Calendar.
@@ -27,8 +27,9 @@ The Personal Assistant Bot ecosystem is architected into three decoupled reposit
   - **Notion**: Syncs tasks and project deadlines to/from Notion workspace.
 - **Periodic Smart Digests**: Dispatches a structured summary every 4 hours with new deadlines, unread announcements, and interactive Telegram inline buttons.
 - **AI Routing & Privacy Protection**:
-  - PII scrubbing (`utils.scrub_pii`) on all outgoing content.
-  - Local-first routing hierarchy: Local x86 Ollama → Orange Pi 5 (RK3588) → Distributed `llama.cpp` RPC cluster → Fallback Cloud (OpenRouter / Hack Club AI).
+  - PII scrubbing (`utils.scrub_pii`) on all outgoing content — scrubbing is defense-in-depth, never consent; private data fails closed unless explicitly classified public and consented.
+  - Local-first routing hierarchy: Surface `llama-server` RPC orchestrator (10.0.0.47:8080, workers: Dell + Orange Pi 5) → Orange Pi 5 Ollama → Dell Ollama → Fallback Cloud (OpenRouter / Opencode Zen / Hack Club AI, explicit consent only).
+- **Scheduled Automation** (America/New_York): watchdog scrape every 30 min · smart digest every 4 h · nightly document batch 1 AM · morning digest 7 AM · backups 3 AM · file rotations every 6 h.
 - **Study Guide & Textbook Generation**: Nightly automated document processing (`nightly_processor.py`) that uses OCR, delta appends, and semantic vector indexing (`nomic-embed-text`) for instant retrieval.
 - **Calendar & CalDAV Synchronization**: Normalizes assignments into a local Radicale CalDAV server (`0.0.0.0:5232`) and submits approval-gated proposals to Google Calendar.
 
@@ -93,13 +94,13 @@ Configuration is managed centrally in `config.py` using `.env`:
 | `TELEGRAM_CHAT_ID` | Default chat ID for notifications & digests | `123456789` |
 | `OLLAMA_LOCAL_URL` | Local Ollama inference URL | `http://127.0.0.1:11434` |
 | `OLLAMA_ORANGEPI_URL` | Orange Pi 5 Ollama endpoint | `http://10.10.10.2:11434` |
-| `PI_CLASSIFIER_URL` | Orange Pi concurrent classifier endpoint | `http://10.10.10.2:8080` |
+| `PI_CLASSIFIER_URL` | Orange Pi concurrent classifier endpoint (config default; the deployed unit sets the Pi address) | `http://127.0.0.1:8080` |
 | `OPENROUTER_API_KEY` | OpenRouter API Key for cloud fallback | `sk-or-v1-...` |
 | `OR_DEFAULT_MODEL` | Primary OpenRouter model | `nvidia/nemotron-3-ultra-550b-a55b:free` |
 | `DIGEST_INTERVAL_SECONDS` | Interval between scheduled digest checks | `14400` (4 hours) |
 | `NOTION_API_KEY` | Notion Integration Token | `secret_...` |
 | `NOTION_DATABASE_ID` | Target Notion Task Database ID | `32-char hex string` |
-| `GROUPME_TOKEN` | GroupMe API access token | `...` |
+| `GROUPME_TOKEN` | GroupMe API access token (`GROUPME_ACCESS_TOKEN` accepted as alias) | `...` |
 
 ---
 
@@ -136,30 +137,47 @@ pab-core/
 ├── bot/                        # Bot Telegram Presentation Layer
 │   ├── commands.py             # Slash command dispatchers
 │   ├── ai_bridge.py            # Chat-to-model bridge with context enrichment
+│   ├── smart_router.py         # Heuristic query classifier (PII→local, mode & engine)
 │   ├── ui.py                   # Telegram HTML escaping & formatting
 │   ├── state.py                # Transactional state manager
 │   ├── storage.py              # Atomic JSON read/write with locking
 │   ├── security.py             # Strict owner authorization perimeter
+│   ├── dashboard_state.py      # Routing-state feed for the dashboard
 │   └── runtime.py              # Background job lifecycle management
 │
 ├── scrapers/                   # Data Ingest & Scraper Tier
 │   ├── canvas_scraper.py       # Canvas scraper via browser daemon
 │   ├── canvas_page_extractor.py# HTML extractor for assignments
+│   ├── onenote_scraper.py      # OneNote Graph API client (OAuth2)
+│   ├── onenote_web_scraper.py  # Browser-backed OneNote Online scraper
+│   ├── onenote_page_extractor.py # OneNote page/ink extraction + vision fallback
+│   ├── lfm_vision_harness.py   # LFM2-VL local vision harness
 │   ├── google_scraper.py       # Google Classroom / Drive API client
 │   ├── groupme_scraper.py      # GroupMe class chat reader
 │   ├── notion_client.py        # Notion workspace integration
 │   ├── assignment_calendar.py  # Radicale CalDAV + Google Calendar syncer
 │   ├── google_docs_calendar.py # Approval-gated Google Docs deadline extractor
+│   ├── topic_discovery.py      # Per-class study-topic discovery
+│   ├── study_providers.py      # Free online provider chain (scrub-then-refuse)
 │   ├── morning_digest.py       # 4-hour digest compiler
 │   ├── mega_study_builder.py   # Multi-stage textbook compiler
+│   ├── nightly_processor.py    # Lossless leased-queue document processor
+│   ├── memory_consolidation.py # Curated-brain consolidation
 │   ├── embedding_indexer.py    # Incremental vector index builder
-│   └── semantic_retrieval.py   # Vector similarity chunk retrieval
+│   ├── semantic_retrieval.py   # Vector similarity chunk retrieval
+│   ├── web_precacher.py        # Opt-in bounded public-web enrichment
+│   └── batch_results.py        # Typed batch outcome validation
 │
-├── scripts/                    # Daemons & CLI Utilities
+├── surface/                    # Cluster control plane
+│   └── cluster_manager.py      # HTTP control surface for the llama.cpp cluster
+│
+├── scripts/                    # Daemons & CLI Utilities (~35 scripts)
 │   ├── canvas_browser_daemon.py# Headless Firefox ClassLink SSO session daemon
-│   └── dashboard_agent.py      # Web status dashboard service
+│   ├── dashboard_agent.py      # Web status dashboard service
+│   ├── crawl_onenote_pages.py  # OneNote notebook harvest via browser session
+│   └── generate_daily_digest.py# Standalone digest trigger
 │
-└── tests/                      # Automated test suite (pytest)
+└── tests/                      # Automated test suite (243 tests, pytest)
 ```
 
 ---
