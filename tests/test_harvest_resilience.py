@@ -15,6 +15,7 @@ Regression coverage for the harvest loop in
 from __future__ import annotations
 
 import json
+import os
 import threading
 from pathlib import Path
 from types import SimpleNamespace
@@ -274,38 +275,205 @@ class TestSessionRecovery:
 
 class TestVirtualDisplayLockCleanup:
     def test_stale_lock_file_cleaned_up(self, monkeypatch, tmp_path):
-        """If Xvfb lock file exists but PID is dead, it should be unlinked."""
-        display = cbd.VirtualDisplay()
-        lock_file = Path("/tmp/.X99-lock")
-        # Ensure we don't clobber a real running Xvfb if one is on 99
-        # Test using a mock / temporary lock check
+        """If Xvfb lock file exists but PID is dead, both lock and socket should be unlinked."""
         fake_lock = tmp_path / ".X99-lock"
+        fake_sock = tmp_path / "X99"
         fake_lock.write_text("999999999\n", encoding="utf-8")
+        fake_sock.touch()
         assert fake_lock.exists()
+        assert fake_sock.exists()
 
         monkeypatch.setattr(cbd, "get_setting", lambda k, d: ":99")
-        # Patch Path so /tmp/.X99-lock points to fake_lock
-        orig_path = cbd.Path
-        def fake_path(p):
-            if str(p) == "/tmp/.X99-lock":
-                return fake_lock
-            return orig_path(p)
-
-        monkeypatch.setattr(cbd, "Path", fake_path)
         monkeypatch.setattr(cbd.shutil, "which", lambda b: "/usr/bin/Xvfb")
 
-        # Mock subprocess.Popen so we don't actually spawn Xvfb in unit test
         class FakeProc:
             def poll(self):
                 return None
+            def terminate(self):
+                pass
+            def wait(self, timeout=None):
+                pass
+            def kill(self):
+                pass
+
         monkeypatch.setattr(cbd.subprocess, "Popen", lambda *a, **k: FakeProc())
-        monkeypatch.setenv("DISPLAY", "")
-        # Remove DISPLAY from environ if set so start() runs
         monkeypatch.delenv("DISPLAY", raising=False)
+
+        display = cbd.VirtualDisplay()
+        display._lock_file = fake_lock
+        display._sock_file = fake_sock
 
         display.start()
         assert not fake_lock.exists(), "Stale lock file should have been unlinked"
+        assert not fake_sock.exists(), "Stale socket file should have been unlinked"
         assert display.process is not None
+        display.close()
+
+    def test_stale_socket_without_lock_cleaned_up(self, monkeypatch, tmp_path):
+        """If X11 UNIX socket exists without lock file, it should be unlinked."""
+        fake_lock = tmp_path / ".X99-lock"
+        fake_sock = tmp_path / "X99"
+        fake_sock.touch()
+        assert fake_sock.exists()
+        assert not fake_lock.exists()
+
+        display = cbd.VirtualDisplay()
+        display._lock_file = fake_lock
+        display._sock_file = fake_sock
+
+        display._cleanup_stale_files()
+        assert not fake_sock.exists(), "Stale socket should have been unlinked"
+
+    def test_stale_recycled_pid_cleaned_up(self, monkeypatch, tmp_path):
+        """If PID in lock file is alive but NOT an Xvfb process, clean it up."""
+        fake_lock = tmp_path / ".X99-lock"
+        fake_sock = tmp_path / "X99"
+        fake_lock.write_text(f"{os.getpid()}\n", encoding="utf-8")
+        fake_sock.touch()
+
+        display = cbd.VirtualDisplay()
+        display._lock_file = fake_lock
+        display._sock_file = fake_sock
+
+        display._cleanup_stale_files()
+        assert not fake_lock.exists(), "Lock with non-Xvfb PID should be unlinked"
+        assert not fake_sock.exists(), "Socket with non-Xvfb PID should be unlinked"
+
+    def test_orphaned_xvfb_terminated_and_cleaned_up(self, monkeypatch, tmp_path):
+        """If orphaned Xvfb is running on display, terminate it and unlink files."""
+        fake_lock = tmp_path / ".X99-lock"
+        fake_sock = tmp_path / "X99"
+        fake_lock.write_text("12345\n", encoding="utf-8")
+        fake_sock.touch()
+
+        display = cbd.VirtualDisplay()
+        display._lock_file = fake_lock
+        display._sock_file = fake_sock
+
+        signals_sent = []
+        def fake_kill(pid, sig):
+            if sig == 0:
+                if signals_sent:
+                    raise OSError("Process dead")
+                return None
+            signals_sent.append((pid, sig))
+
+        monkeypatch.setattr(cbd.os, "kill", fake_kill)
+        orig_path = cbd.Path
+        def fake_path(p):
+            p_str = str(p)
+            if p_str == "/proc/12345/cmdline":
+                class MockCmdline:
+                    def read_bytes(self):
+                        return b"/usr/bin/Xvfb\x00:99"
+                return MockCmdline()
+            return orig_path(p)
+
+        monkeypatch.setattr(cbd, "Path", fake_path)
+
+        display._cleanup_stale_files(kill_existing_xvfb=True)
+        assert signals_sent == [(12345, cbd.signal.SIGTERM)]
+        assert not fake_lock.exists()
+        assert not fake_sock.exists()
+
+
+class TestMicrosoftSignInResilience:
+    def test_sign_in_affordance_polls_until_found(self, monkeypatch, tmp_path):
+        """_microsoft_sign_in should poll for the sign-in affordance across multiple attempts."""
+        daemon = make_daemon(monkeypatch, tmp_path)
+        monkeypatch.setattr(cbd, "get_setting", lambda k, d=None: "user@test.org" if "UPN" in k else "password123")
+
+        call_count = {"count": 0}
+        class FakeDriver:
+            current_url = "https://onenote.cloud.microsoft/en-us/"
+            title = "OneNote"
+            def execute_script(self, script, *args):
+                if "location.host.includes" in script:
+                    return False
+                if "candidates" in script:
+                    call_count["count"] += 1
+                    if call_count["count"] < 2:
+                        return False
+                    self.current_url = "https://onenote.cloud.microsoft/notebooks"
+                    return True
+                if "return !!document.querySelector" in script:
+                    return True
+                return None
+
+            def find_elements(self, *a, **k):
+                return []
+
+            class SwitchTo:
+                def default_content(self): pass
+                def frame(self, f): pass
+            switch_to = SwitchTo()
+
+        driver = FakeDriver()
+        daemon.client.driver = driver
+        monkeypatch.setattr(cbd.time, "sleep", lambda s: None)
+
+        ok, msg = daemon._microsoft_sign_in()
+        assert call_count["count"] == 2
+        assert ok is True
+        assert "no password needed" in msg
+
+    def test_password_submitted_in_iframe_before_switching(self, monkeypatch, tmp_path):
+        """Password submission should execute inside the active frame context before switching."""
+        daemon = make_daemon(monkeypatch, tmp_path)
+        monkeypatch.setattr(cbd, "get_setting", lambda k, d=None: "user@test.org" if "UPN" in k else "password123")
+
+        switched_to_default = []
+        submitted_contexts = []
+
+        class FakeElement:
+            def clear(self): pass
+            def send_keys(self, *a): pass
+
+        fake_pass_elem = FakeElement()
+
+        class FakeDriver:
+            current_url = "https://login.microsoftonline.com/login"
+            title = "Sign In"
+            def execute_script(self, script, *args):
+                if "location.host.includes" in script:
+                    return True
+                if "input[type=submit]" in script and "password" not in script:
+                    submitted_contexts.append("in_frame" if not switched_to_default else "default_content")
+                    return True
+                if "kmsi" in script:
+                    self.current_url = "https://onenote.cloud.microsoft/notebooks"
+                    return True
+                if "return !!document.querySelector" in script:
+                    return True
+                return None
+
+            class SwitchTo:
+                def default_content(self):
+                    switched_to_default.append(True)
+                def frame(self, f): pass
+            switch_to = SwitchTo()
+
+            def find_elements(self, *a, **k):
+                return []
+
+        driver = FakeDriver()
+        daemon.client.driver = driver
+        monkeypatch.setattr(cbd.time, "sleep", lambda s: None)
+
+        class FakeWait:
+            def __init__(self, driver, timeout): pass
+            def until(self, poll_fn):
+                if getattr(poll_fn, "__name__", "") == "poll":
+                    return fake_pass_elem
+                return None
+
+        import selenium.webdriver.support.ui as ui
+        monkeypatch.setattr(ui, "WebDriverWait", FakeWait)
+
+        ok, msg = daemon._microsoft_sign_in()
+        assert "in_frame" in submitted_contexts
+        assert switched_to_default, "Must restore default_content after submitting"
+        assert ok is True
 
 
 class TestSectionGroupClassification:

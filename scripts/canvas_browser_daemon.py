@@ -9,11 +9,13 @@ storage never leave Firefox.
 
 from __future__ import annotations
 
+import atexit
 import base64
 import json
 import logging
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import threading
@@ -51,38 +53,85 @@ CLASSLINK_NON_APP_LABELS = {
 class VirtualDisplay:
     """Provide a regular Firefox display for unattended system-service use."""
 
-    def __init__(self) -> None:
+    def __init__(self, display: str | None = None) -> None:
         self.process: subprocess.Popen[bytes] | None = None
+        self.display = display or get_setting("CANVAS_VIRTUAL_DISPLAY", ":99")
+        self._disp_num = self.display.lstrip(":")
+        self._lock_file = Path(f"/tmp/.X{self._disp_num}-lock")
+        self._sock_file = Path(f"/tmp/.X11-unix/X{self._disp_num}")
+        self._owned = False
+
+    def _cleanup_stale_files(self, kill_existing_xvfb: bool = True) -> None:
+        """Remove orphaned lock and socket files, and stale Xvfb processes on this display."""
+        if self._lock_file.exists():
+            try:
+                pid = int(self._lock_file.read_text().strip())
+                os.kill(pid, 0)
+                # PID is alive: verify cmdline
+                is_xvfb = False
+                try:
+                    cmdline = Path(f"/proc/{pid}/cmdline").read_bytes().decode("utf-8", "replace")
+                    is_xvfb = "Xvfb" in cmdline
+                except OSError:
+                    pass
+                if is_xvfb and kill_existing_xvfb and pid != os.getpid():
+                    # Terminate orphaned Xvfb from an earlier crashed run or killed probe
+                    try:
+                        os.kill(pid, signal.SIGTERM)
+                        for _ in range(20):
+                            time.sleep(0.1)
+                            try:
+                                os.kill(pid, 0)
+                            except OSError:
+                                break
+                        else:
+                            os.kill(pid, signal.SIGKILL)
+                    except OSError:
+                        pass
+                elif not is_xvfb:
+                    # PID was recycled by an unrelated non-Xvfb process
+                    pass
+                else:
+                    return
+                self._lock_file.unlink(missing_ok=True)
+                self._sock_file.unlink(missing_ok=True)
+            except (OSError, ValueError):
+                # Process is dead or lock content is invalid
+                self._lock_file.unlink(missing_ok=True)
+                self._sock_file.unlink(missing_ok=True)
+        elif self._sock_file.exists():
+            # Socket exists without a lock file
+            self._sock_file.unlink(missing_ok=True)
 
     def start(self) -> None:
-        if os.environ.get("DISPLAY"):
+        if os.environ.get("DISPLAY") and os.environ.get("DISPLAY") != self.display:
             return
         binary = shutil.which("Xvfb")
         if not binary:
             raise RuntimeError("DISPLAY is not set and Xvfb is not installed.")
-        display = get_setting("CANVAS_VIRTUAL_DISPLAY", ":99")
-        disp_num = display.lstrip(":")
-        lock_file = Path(f"/tmp/.X{disp_num}-lock")
-        if lock_file.exists():
-            try:
-                pid = int(lock_file.read_text().strip())
-                os.kill(pid, 0)
-            except OSError:
-                try:
-                    lock_file.unlink()
-                except OSError:
-                    pass
-            except ValueError:
-                pass
+
+        self._cleanup_stale_files(kill_existing_xvfb=True)
+
         self.process = subprocess.Popen(
-            [binary, display, "-screen", "0", "1440x900x24", "-nolisten", "tcp"],
+            [binary, self.display, "-screen", "0", "1440x900x24", "-nolisten", "tcp"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
         time.sleep(0.4)
         if self.process.poll() is not None:
-            raise RuntimeError("Could not start the Canvas virtual display.")
-        os.environ["DISPLAY"] = display
+            # Re-attempt cleanup once if immediate failure (e.g. stale lock race)
+            self._cleanup_stale_files()
+            self.process = subprocess.Popen(
+                [binary, self.display, "-screen", "0", "1440x900x24", "-nolisten", "tcp"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            time.sleep(0.5)
+            if self.process.poll() is not None:
+                raise RuntimeError(f"Could not start the Canvas virtual display on {self.display}.")
+        self._owned = True
+        os.environ["DISPLAY"] = self.display
+        atexit.register(self.close)
 
     def close(self) -> None:
         if self.process and self.process.poll() is None:
@@ -91,6 +140,19 @@ class VirtualDisplay:
                 self.process.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 self.process.kill()
+        if self._owned:
+            self._lock_file.unlink(missing_ok=True)
+            self._sock_file.unlink(missing_ok=True)
+            if os.environ.get("DISPLAY") == self.display:
+                del os.environ["DISPLAY"]
+            self._owned = False
+
+    def __enter__(self) -> VirtualDisplay:
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
 
 
 class BrowserDaemon:
@@ -105,6 +167,13 @@ class BrowserDaemon:
         self.client._start_browser()
         assert self.client.driver is not None
         self.client.driver.get(CLASSLINK_URL)
+
+    def __enter__(self) -> BrowserDaemon:
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
 
     def _session_alive(self) -> bool:
         """Cheap probe: is the CURRENT browsing context still usable?
@@ -461,27 +530,45 @@ class BrowserDaemon:
 
         # 1. Click the "Sign in" affordance on the anonymous shell. When the
         # crawl already landed mid-auth (pick-account / form), skip straight
-        # to the credential steps.
-        on_login_page = driver.execute_script(
-            "return location.host.includes('login.microsoftonline')"
-            " || location.host.includes('login.live');"
-        )
-        clicked = on_login_page
-        if not clicked:
-            clicked = driver.execute_script(
-                """
-                const candidates = Array.from(
-                    document.querySelectorAll('a, button, [role="button"]')
-                );
-                const norm = (el) => (el.innerText || el.getAttribute('aria-label') || '')
-                    .trim().toLowerCase();
-                const btn = candidates.find((el) => norm(el) === 'sign in')
-                    || candidates.find((el) => norm(el).includes('sign in'))
-                    || document.querySelector('a[href*="signin"], a[href*="login"]');
-                if (btn) { btn.click(); return true; }
-                return false;
-                """
-            )
+        # to the credential steps. Bounded wait loop up to 20s handles slow-loading shells.
+        deadline = time.monotonic() + 20
+        clicked = False
+        while time.monotonic() < deadline:
+            try:
+                on_login_page = driver.execute_script(
+                    "return location.host.includes('login.microsoftonline')"
+                    " || location.host.includes('login.live')"
+                    " || location.host.includes('adfs.');"
+                )
+                if on_login_page:
+                    clicked = True
+                    break
+                clicked = driver.execute_script(
+                    """
+                    const candidates = Array.from(
+                        document.querySelectorAll('a, button, [role="button"], input[type="submit"]')
+                    );
+                    const norm = (el) => (el.innerText || el.getAttribute('aria-label') || el.value || '')
+                        .trim().toLowerCase();
+                    const btn = candidates.find((el) => norm(el) === 'sign in')
+                        || candidates.find((el) => norm(el).includes('sign in'))
+                        || document.querySelector('a[href*="signin" i], a[href*="login" i], #idSIButton9');
+                    if (btn) {
+                        const opts = {bubbles: true, cancelable: true, view: window};
+                        btn.dispatchEvent(new MouseEvent('mousedown', opts));
+                        btn.dispatchEvent(new MouseEvent('mouseup', opts));
+                        btn.dispatchEvent(new MouseEvent('click', opts));
+                        btn.click();
+                        return true;
+                    }
+                    return false;
+                    """
+                )
+                if clicked:
+                    break
+            except Exception:
+                pass
+            time.sleep(2)
         if not clicked:
             return False, "no Sign in button found"
 
@@ -519,7 +606,7 @@ class BrowserDaemon:
         # 2b. UPN step (login.microsoftonline.com / login.live.com), when the
         # picker did not short-circuit it.
         email_input = _wait_css("input[type='email'], input[name='loginfmt']", 12)
-        if email_input:
+        if email_input and hasattr(email_input, "clear"):
             email_input.clear()
             email_input.send_keys(upn)
             driver.execute_script(
@@ -570,7 +657,7 @@ class BrowserDaemon:
                 host = urlsplit(driver.current_url).netloc.lower()
             except Exception:
                 return True
-            return "login.microsoftonline" in host or "login.live" in host
+            return "login.microsoftonline" in host or "login.live" in host or "adfs." in host
 
         deadline = time.monotonic() + 45
         password_input = None
@@ -589,38 +676,86 @@ class BrowserDaemon:
             return False, f"password step did not appear (picker: {picker_detail})"
         password_input.clear()
         password_input.send_keys(password)
-        in_frame = False
+
+        # Attempt submit inside the current frame first (e.g. ADFS inside an iframe).
+        submitted = False
         try:
-            password_input.parent.switch_to.default_content()
+            submitted = bool(driver.execute_script(
+                """
+                const go = document.querySelector(
+                    'input[type=submit], #idSIButton9, #submitButton, span#submitButton'
+                ) || Array.from(document.querySelectorAll('button')).find(
+                    (b) => ['sign in', 'next', 'submit', 'log in'].includes((b.innerText || '').trim().toLowerCase())
+                );
+                if (go) {
+                    const opts = {bubbles: true, cancelable: true, view: window};
+                    go.dispatchEvent(new MouseEvent('mousedown', opts));
+                    go.dispatchEvent(new MouseEvent('mouseup', opts));
+                    go.dispatchEvent(new MouseEvent('click', opts));
+                    go.click();
+                    return true;
+                }
+                return false;
+                """
+            ))
         except Exception:
-            pass
+            submitted = False
+
+        if not submitted:
+            try:
+                from selenium.webdriver.common.keys import Keys
+                password_input.send_keys(Keys.ENTER)
+                submitted = True
+            except Exception:
+                pass
+
         driver.switch_to.default_content()
-        driver.execute_script(
-            """
-            const go = document.querySelector(
-                'input[type=submit], #idSIButton9, #submitButton, span#submitButton'
-            ) || Array.from(document.querySelectorAll('button')).find(
-                (b) => ['sign in', 'next'].includes((b.innerText || '').trim().toLowerCase())
-            );
-            if (go) go.click();
-            """
-        )
+        if not submitted:
+            try:
+                driver.execute_script(
+                    """
+                    const go = document.querySelector(
+                        'input[type=submit], #idSIButton9, #submitButton, span#submitButton'
+                    ) || Array.from(document.querySelectorAll('button')).find(
+                        (b) => ['sign in', 'next', 'submit', 'log in'].includes((b.innerText || '').trim().toLowerCase())
+                    );
+                    if (go) {
+                        const opts = {bubbles: true, cancelable: true, view: window};
+                        go.dispatchEvent(new MouseEvent('mousedown', opts));
+                        go.dispatchEvent(new MouseEvent('mouseup', opts));
+                        go.dispatchEvent(new MouseEvent('click', opts));
+                        go.click();
+                    }
+                    """
+                )
+            except Exception:
+                pass
+
         # 4. "Stay signed in?" prompt — accept so the session persists.
         deadline = time.monotonic() + 30
         while time.monotonic() < deadline:
             time.sleep(2)
-            url = driver.current_url
-            if "login.microsoftonline" not in url and "login.live" not in url:
+            url = driver.current_url.lower()
+            if "login.microsoftonline" not in url and "login.live" not in url and "adfs." not in url:
                 return True, "signed in"
-            driver.execute_script(
-                """
-                const kmsi = document.querySelector('#idSIButton9, #acceptButton')
-                    || Array.from(document.querySelectorAll('button')).find(
-                        (b) => (b.innerText || '').trim().toLowerCase() === 'yes'
-                    );
-                if (kmsi) kmsi.click();
-                """
-            )
+            try:
+                driver.execute_script(
+                    """
+                    const kmsi = document.querySelector('#idSIButton9, #acceptButton')
+                        || Array.from(document.querySelectorAll('button')).find(
+                            (b) => (b.innerText || '').trim().toLowerCase() === 'yes'
+                        );
+                    if (kmsi) {
+                        const opts = {bubbles: true, cancelable: true, view: window};
+                        kmsi.dispatchEvent(new MouseEvent('mousedown', opts));
+                        kmsi.dispatchEvent(new MouseEvent('mouseup', opts));
+                        kmsi.dispatchEvent(new MouseEvent('click', opts));
+                        kmsi.click();
+                    }
+                    """
+                )
+            except Exception:
+                pass
         return False, "sign-in did not settle (MFA prompt?)"
 
     def open_tabs(self) -> list[dict[str, str]]:

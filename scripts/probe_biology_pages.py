@@ -73,11 +73,7 @@ def js(driver, script, *args, tries: int = 4):
     raise last
 
 
-def main() -> int:
-    display = VirtualDisplay()
-    display.start()
-    d = BrowserDaemon()
-    d.start()
+def _run_probe(d: BrowserDaemon) -> int:
     time.sleep(2)
     driver = d.client.driver
 
@@ -270,6 +266,12 @@ def main() -> int:
 
     print("\nRESULT: probe complete", flush=True)
     return 0
+
+
+def main() -> int:
+    with VirtualDisplay():
+        with BrowserDaemon() as d:
+            return _run_probe(d)
 
 
 if __name__ == "__main__":
