@@ -905,17 +905,18 @@ class BrowserDaemon:
             good_before = isinstance(previous_cache, dict) and bool(previous_cache)
 
             cache_data: dict[str, list[dict]] = {}
-            # The class notebooks repeat the same pages across period
-            # sections; skip any page title already harvested (this run or
-            # a previous one) so the budget reaches the other notebooks.
-            seen_titles = {k.rsplit("/", 1)[-1] for k in cache_data}
-            # Cross-run resume: a walk killed by a dead session already
-            # recorded its pages in the cache.  Skipping those titles lets
-            # a fresh run continue where the last one died instead of
-            # re-walking (and re-dying at) the same page.
-            for k in (previous_cache or {}):
-                if k.count("/") == 2 and any(k.startswith(f"{n}/") for n in notebooks):
-                    seen_titles.add(k.rsplit("/", 1)[-1])
+            # Scope seen titles per-notebook: within the same notebook (especially
+            # Class Notebooks where teacher content is duplicated across student sections),
+            # skip duplicate page titles. Scoping per-notebook prevents common titles
+            # (e.g. "Unit 1", "Syllabus") in one notebook from colliding with another.
+            seen_titles_by_nb: dict[str, set[str]] = {}
+            for nb in notebooks:
+                nb_seen = {k.rsplit("/", 1)[-1] for k in cache_data if k.startswith(f"{nb}/")}
+                if previous_cache:
+                    for k in previous_cache:
+                        if k.startswith(f"{nb}/") and k.count("/") == 2:
+                            nb_seen.add(k.rsplit("/", 1)[-1])
+                seen_titles_by_nb[nb] = nb_seen
             pages_scanned = 0
             tasks_total = 0
 
@@ -923,8 +924,10 @@ class BrowserDaemon:
                 if pages_scanned >= max_pages:
                     note("page budget reached; stopping")
                     break
+                seen_titles = seen_titles_by_nb.setdefault(nb_name, set())
                 for attempt in range(3):
-                    cached_before = sum(len(v) for v in cache_data.values())
+                    pages_before = len(cache_data)
+                    tasks_before = sum(len(v) for v in cache_data.values())
                     try:
                         stats = self._harvest_notebook(
                             driver, nb_name, cache_data, trace, errors,
@@ -938,7 +941,8 @@ class BrowserDaemon:
                     except Exception as exc:
                         # Pages harvested before the failure are already in
                         # cache_data — keep them instead of losing the walk.
-                        gained = sum(len(v) for v in cache_data.values()) - cached_before
+                        pages_gained = len(cache_data) - pages_before
+                        tasks_gained = sum(len(v) for v in cache_data.values()) - tasks_before
                         msg = str(exc).lower()
                         transient = (
                             "discarded" in msg
@@ -948,11 +952,16 @@ class BrowserDaemon:
                             or "no browsable context" in msg
                             or "already closed" in msg
                         )
-                        if gained > 0:
-                            logger.warning("notebook %s partially harvested: %d tasks kept (%s)",
-                                           nb_name, gained, exc)
-                            errors.append(f"{nb_name}: partial, kept {gained} tasks ({exc})")
-                            tasks_total += gained
+                        if pages_gained > 0 or tasks_gained > 0:
+                            logger.warning(
+                                "notebook %s partially harvested: %d pages, %d tasks kept (%s)",
+                                nb_name, pages_gained, tasks_gained, exc,
+                            )
+                            errors.append(
+                                f"{nb_name}: partial, kept {pages_gained} pages, {tasks_gained} tasks ({exc})"
+                            )
+                            pages_scanned += pages_gained
+                            tasks_total += tasks_gained
                         else:
                             logger.exception("notebook %s failed (attempt %d)", nb_name, attempt + 1)
                             errors.append(f"{nb_name} (attempt {attempt + 1}): {exc}")
@@ -973,7 +982,7 @@ class BrowserDaemon:
                                 note("browser relaunched but grid never re-authenticated; stopping")
                                 errors.append("post-relaunch re-auth timeout")
                                 break
-                        if gained > 0 or recovery == "dead" or not transient or attempt == 2:
+                        if (pages_gained > 0 or tasks_gained > 0) or recovery == "dead" or not transient or attempt == 2:
                             break
 
             try:
@@ -989,7 +998,7 @@ class BrowserDaemon:
                     merged = dict(previous_cache) if good_before else {}
                     merged.update(cache_data)
                     cache_path.write_text(json.dumps(merged, indent=1), encoding="utf-8")
-                    if pages_scanned == 0 and good_before:
+                    if good_before and (pages_scanned == 0 or any("partial" in str(e) for e in errors)):
                         note(f"session died mid-harvest; merged {len(cache_data)} "
                              f"partial entries into the cache")
                 elif good_before:
@@ -999,7 +1008,7 @@ class BrowserDaemon:
             except OSError as exc:
                 errors.append(f"cache write failed: {exc}")
 
-        partial = bool(pages_scanned == 0 and cache_data)
+        partial = bool(cache_data and (any("partial" in str(e) for e in errors) or pages_scanned == 0))
         result = {
             "status": "ok" if tasks_total or pages_scanned or cache_data else "empty",
             "pages_scanned": pages_scanned,
@@ -1107,11 +1116,24 @@ class BrowserDaemon:
 
     @staticmethod
     def _focus_live_tab(driver) -> bool:
-        """Switch onto any readable tab after the parked context is orphaned."""
+        """Switch onto any readable tab after the parked context is orphaned.
+
+        Prioritizes SharePoint/editor tabs if still open.
+        """
         try:
             handles = list(driver.window_handles)
         except Exception:
             return False
+        # Prioritize SharePoint/editor tabs
+        for handle in handles:
+            try:
+                driver.switch_to.window(handle)
+                url = (driver.current_url or "").lower()
+                if "sharepoint.com" in url and "doc" in url:
+                    return True
+            except Exception:
+                continue
+        # Fall back to any readable tab
         for handle in handles:
             try:
                 driver.switch_to.window(handle)
@@ -1126,6 +1148,14 @@ class BrowserDaemon:
         """Re-enter the editor iframe after OneNote rebuilds it."""
         try:
             driver.switch_to.default_content()
+        except Exception:
+            if not BrowserDaemon._focus_live_tab(driver):
+                return False
+            try:
+                driver.switch_to.default_content()
+            except Exception:
+                return False
+        try:
             frame_el = driver.find_element("id", "WebApplicationFrame")
             driver.switch_to.frame(frame_el)
             return True
@@ -1354,7 +1384,13 @@ class BrowserDaemon:
                     seen.add(el);
                     if (el.getAttribute('aria-expanded') === 'false') {
                         const target = el.querySelector('[class*="chevron" i], [class*="expander" i], [data-icon-name*="Chevron" i], [aria-expanded]') || el;
-                        target.click();
+                        const targets = [target, ...Array.from(target.querySelectorAll('*'))];
+                        const opts = {bubbles: true, cancelable: true, view: window};
+                        for (const t of targets) {
+                            t.dispatchEvent(new MouseEvent('mousedown', opts));
+                            t.dispatchEvent(new MouseEvent('mouseup', opts));
+                            t.dispatchEvent(new MouseEvent('click', opts));
+                        }
                         count++;
                     }
                 }
@@ -1473,8 +1509,8 @@ class BrowserDaemon:
                         driver,
                         """
                         const want = arguments[0];
-                        const els = Array.from(document.querySelectorAll('.sectionListItem'));
-                        const s = els.find(e => (e.innerText||'').trim() === want);
+                        const els = Array.from(document.querySelectorAll('.sectionListItem, [role="treeitem"]'));
+                        const s = els.find(e => (((e.querySelector('content') || {}).textContent || e.innerText || '').trim() === want));
                         if (!s) return 'not-found';
                         s.focus();
                         s.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', code: 'Enter', bubbles: true, cancelable: true}));

@@ -361,3 +361,86 @@ class TestSectionGroupClassification:
         assert "U2 Cells and Transport Extra Resources" not in leaves
 
 
+class TestScopingAndAccountingRefactors:
+    """Regression tests for per-notebook title scoping, partial accounting, and re-anchoring."""
+
+    def test_cross_notebook_titles_do_not_collide(self, monkeypatch, tmp_path):
+        """Pages with identical titles in different notebooks must not collide or skip."""
+        daemon = make_daemon(monkeypatch, tmp_path)
+        stub_crawl(monkeypatch, daemon)
+        write_cache(tmp_path, {
+            "NB1/S1/Unit 1": [{"t": 1}],
+        })
+
+        captured_seen: dict[str, set[str]] = {}
+
+        def fake_harvest_notebook(driver, nb_name, cache_data, trace, errors,
+                                  extract_fn, remaining, seen_titles=None):
+            captured_seen[nb_name] = set(seen_titles or set())
+            if seen_titles is not None:
+                seen_titles.add("Lesson 1")
+            return {"pages": 1, "tasks": 1}
+
+        monkeypatch.setattr(daemon, "_harvest_notebook", fake_harvest_notebook)
+
+        daemon.harvest_onenote(notebooks=["NB1", "NB2"])
+
+        assert "Unit 1" in captured_seen["NB1"]
+        assert "Unit 1" not in captured_seen["NB2"]
+        assert "Lesson 1" not in captured_seen["NB2"]
+
+    def test_partial_gain_with_zero_tasks_updates_pages_scanned(self, monkeypatch, tmp_path):
+        """When pages with 0 tasks are harvested before an error, pages_scanned must update."""
+        daemon = make_daemon(monkeypatch, tmp_path)
+        log = stub_crawl(monkeypatch, daemon)
+
+        def fake_harvest_notebook(driver, nb_name, cache_data, *a, **k):
+            cache_data["NB1/S1/InfoPage1"] = []
+            cache_data["NB1/S1/InfoPage2"] = []
+            raise RuntimeError("browsing context has been discarded")
+
+        monkeypatch.setattr(daemon, "_harvest_notebook", fake_harvest_notebook)
+        monkeypatch.setattr(daemon, "_session_alive", lambda: True)
+
+        res = daemon.harvest_onenote(notebooks=["NB1"])
+
+        assert res["pages_scanned"] == 2
+        assert res["tasks_extracted"] == 0
+        assert any("partial" in e for e in res["errors"])
+        assert log.exceptions == [], "partial gain must not log full traceback"
+        assert res.get("partial") is True
+
+    def test_reanchor_editor_recovers_via_focus_live_tab(self, monkeypatch):
+        """_reanchor_editor should attempt _focus_live_tab if switch_to.default_content fails initially."""
+        state = {"switched_window": False, "switched_frame": False, "default_content_calls": 0}
+
+        class FakeSwitchTo:
+            def default_content(self):
+                state["default_content_calls"] += 1
+                if state["default_content_calls"] == 1:
+                    raise RuntimeError("Browsing context has been discarded")
+
+            def window(self, handle):
+                state["switched_window"] = True
+
+            def frame(self, el):
+                state["switched_frame"] = True
+
+        class FakeDriver:
+            switch_to = FakeSwitchTo()
+            window_handles = ["handle-1"]
+            current_url = "https://tenant.sharepoint.com/teams/doc.aspx"
+
+            def find_element(self, by, val):
+                return "frame_element"
+
+        driver = FakeDriver()
+        reanchored = cbd.BrowserDaemon._reanchor_editor(driver)
+
+        assert reanchored is True
+        assert state["switched_window"] is True
+        assert state["switched_frame"] is True
+        assert state["default_content_calls"] == 2
+
+
+

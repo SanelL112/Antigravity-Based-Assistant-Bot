@@ -94,8 +94,32 @@ def _page_header_dates(html_body: str) -> set[str]:
     return out
 
 
+_HEADER_LABEL_RE = re.compile(r"^\s*page\s+contents\s*$", re.IGNORECASE)
+_TIME_ONLY_RE = re.compile(r"^\s*\d{1,2}:\d{2}(?::\d{2})?\s*(?:am|pm)?\s*$", re.IGNORECASE)
 
-# ── Coordinate parsing ────────────────────────────────────────────────────────
+
+def strip_page_header_lines(text: str, page_title: str = "") -> str:
+    """Strip OneNote header boilerplate: Page Contents, creation dates, timestamps, title."""
+    if not text:
+        return ""
+    lines = text.splitlines()
+    clean: list[str] = []
+    title_norm = page_title.strip().lower() if page_title else ""
+    for line in lines:
+        s = line.strip()
+        if not s:
+            continue
+        if _HEADER_LABEL_RE.match(s):
+            continue
+        if title_norm and s.lower() == title_norm:
+            continue
+        if _HEADER_DATE_RE.search(s):
+            continue
+        if _TIME_ONLY_RE.match(s):
+            continue
+        clean.append(s)
+    return "\n".join(clean).strip()
+
 _POS_RE = re.compile(r"position\s*:\s*absolute", re.IGNORECASE)
 _LEFT_RE = re.compile(r"left\s*:\s*(-?\d+(?:\.\d+)?)\s*px", re.IGNORECASE)
 _TOP_RE = re.compile(r"top\s*:\s*(-?\d+(?:\.\d+)?)\s*px", re.IGNORECASE)
@@ -125,22 +149,34 @@ def parse_spatial_layout(html_body: str) -> str:
     Blocks are sorted top-to-bottom, then left-to-right within a row band, so
     scrambled source order (or deliberately shuffled CSS coordinates) still reads
     correctly. Blocks without positioning fall back to document order and are
-    appended after the positioned content.
+    appended after the positioned content. Hidden elements and duplicate blocks
+    at identical coordinates are removed.
     """
     if not html_body or not isinstance(html_body, str):
         return ""
 
     soup = BeautifulSoup(html_body, "html.parser")
 
+    # Remove non-visible tags
+    for tag in soup(["script", "style", "noscript"]):
+        tag.decompose()
+
     positioned: list[_Block] = []
     unpositioned: list[str] = []
+
+    def is_hidden(tag) -> bool:
+        if tag.get("aria-hidden") == "true":
+            return True
+        style = str(tag.get("style") or "").lower()
+        clean_style = style.replace(" ", "")
+        return "display:none" in clean_style or "visibility:hidden" in clean_style
 
     # Only consider leaf-ish text containers to avoid counting a parent and its
     # child twice. OneNote emits text in <div>/<p>/<span> with inline styles.
     for node in soup.find_all(["div", "p", "span"]):
+        if is_hidden(node):
+            continue
         style = str(node.get("style") or "")
-        # Skip a positioned ancestor whose text is fully owned by positioned
-        # descendants (prevents double-counting the same words).
         has_positioned_child = any(
             _POS_RE.search(str(child.get("style") or ""))
             for child in node.find_all(["div", "p", "span"])
@@ -153,20 +189,37 @@ def parse_spatial_layout(html_body: str) -> str:
                 continue
             top = _coord(style, _TOP_RE)
             left = _coord(style, _LEFT_RE)
-            positioned.append(_Block(top if top is not None else 0.0,
-                                     left if left is not None else 0.0, text))
+            b_top = top if top is not None else 0.0
+            b_left = left if left is not None else 0.0
+            # Deduplicate exact blocks at the same coordinate
+            if any(p.text == text and abs(p.top - b_top) < 2.0 and abs(p.left - b_left) < 2.0 for p in positioned):
+                continue
+            positioned.append(_Block(b_top, b_left, text))
         elif not has_positioned_child and node.name in {"p", "div"}:
             # Plain (non-OneNote-canvas) content, e.g. a pasted table or list.
-            unpositioned.append(text)
+            # Skip if any ancestor was already positioned (avoids double-counting parent content).
+            has_positioned_parent = any(
+                _POS_RE.search(str(parent.get("style") or ""))
+                for parent in node.parents
+                if hasattr(parent, "get")
+            )
+            if not has_positioned_parent:
+                unpositioned.append(text)
 
     ordered = _sort_blocks(positioned)
-    lines = [b.text for b in ordered]
+    raw_lines = [b.text for b in ordered]
 
     # De-duplicate unpositioned text that already appeared in positioned blocks.
-    positioned_join = " ".join(lines)
+    positioned_join = " ".join(raw_lines)
     for extra in unpositioned:
-        if extra and extra not in positioned_join:
-            lines.append(extra)
+        if extra and extra not in positioned_join and extra not in raw_lines:
+            raw_lines.append(extra)
+
+    # Collapse consecutive duplicate lines
+    lines: list[str] = []
+    for line in raw_lines:
+        if not lines or line != lines[-1]:
+            lines.append(line)
 
     return "\n".join(lines).strip()
 
@@ -196,15 +249,15 @@ _INK_MARKERS = (
 )
 
 
-def detect_visual_content(html_body: str) -> dict[str, bool]:
+def detect_visual_content(html_body: str, page_title: str = "") -> dict[str, bool]:
     """Classify a OneNote page's visual composition.
 
     Returns flags:
       * ``has_ink``       — digital-ink / handwritten stylus strokes present.
       * ``has_images``    — one or more embedded images (incl. flattened PDF
                             printouts, which OneNote stores as page-sized images).
-      * ``has_text``      — extractable positioned/plain DOM text present.
-      * ``image_only``    — images/ink present but effectively no DOM text, so the
+      * ``has_text``      — extractable positioned/plain DOM body text present.
+      * ``image_only``    — images/ink present but effectively no DOM body text, so the
                             page must be routed to the vision model.
     """
     if not html_body or not isinstance(html_body, str):
@@ -219,7 +272,8 @@ def detect_visual_content(html_body: str) -> dict[str, bool]:
     has_images = bool(images) or bool(objects)
 
     text = parse_spatial_layout(html_body)
-    has_text = len(text) >= _MIN_TEXT_CHARS
+    cleaned = strip_page_header_lines(text, page_title)
+    has_text = len(cleaned) >= _MIN_TEXT_CHARS
 
     image_only = (has_images or has_ink) and not has_text
     return {
@@ -401,7 +455,7 @@ def extract_tasks_from_page(
         if isinstance(web, dict):
             web_url = str(web.get("href") or "")
 
-    profile = detect_visual_content(html_body)
+    profile = detect_visual_content(html_body, page_title)
 
     # 1. Text route — positioned/plain DOM text is present.
     visual_page = bool(profile["has_ink"] or profile["has_images"])
@@ -416,10 +470,11 @@ def extract_tasks_from_page(
         return [r for r in rows if str(r.get("due_date") or "")[:10] not in header_dates]
     if profile["has_text"]:
         text = parse_spatial_layout(html_body)
+        cleaned_text = strip_page_header_lines(text, page_title) or text
         remaining = _budget_remaining()
         if remaining > 3.0:
             raw = _call_local_llm(
-                _text_prompt(page_title, text),
+                _text_prompt(page_title, cleaned_text),
                 _TEXT_SYSTEM_PROMPT,
                 min(_PER_CALL_TIMEOUT, remaining),
             )
@@ -429,7 +484,7 @@ def extract_tasks_from_page(
         # Fall back to the shared deterministic heuristic on the sorted text.
         from scrapers.canvas_page_extractor import _heuristic_rule_extraction
 
-        heur = _heuristic_rule_extraction(text)
+        heur = _heuristic_rule_extraction(cleaned_text)
         clean: list[dict] = []
         for row in heur:
             iso = _normalize_date(row.get("due_date"))

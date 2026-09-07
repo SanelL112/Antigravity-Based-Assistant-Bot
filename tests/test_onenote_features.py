@@ -325,6 +325,61 @@ def test_spatial_layout_appends_unpositioned_content():
     assert "pasted paragraph" in ordered
 
 
+def test_spatial_layout_deduplicates_nested_and_consecutive_lines():
+    html = """
+    <style>.hidden { display: none; }</style>
+    <script>console.log('ignore me');</script>
+    <div style="display:none">Hidden secret text</div>
+    <div aria-hidden="true">Screen reader ignore</div>
+    <div style="position:absolute;top:10px;left:10px">Header Line</div>
+    <div style="position:absolute;top:10.5px;left:10px">Header Line</div>
+    <div style="position:absolute;top:50px;left:10px">
+        <p>Inside positioned outline</p>
+    </div>
+    <p>Independent footer note</p>
+    """
+    ordered = onenote_extractor.parse_spatial_layout(html)
+    lines = ordered.splitlines()
+    assert "Hidden secret text" not in ordered
+    assert "Screen reader ignore" not in ordered
+    assert "console.log" not in ordered
+    assert lines.count("Header Line") == 1
+    assert "Inside positioned outline" in lines
+    assert "Independent footer note" in lines
+
+
+def test_strip_page_header_lines():
+    raw_text = """Page Contents
+Lesson 1.1 - Natural selection
+Thursday, June 11, 2020 3:09 PM
+3:09 PM
+Real assignment: Read pages 10-20 by Monday
+Due 2026-09-15
+"""
+    cleaned = onenote_extractor.strip_page_header_lines(raw_text, "Lesson 1.1 - Natural selection")
+    lines = cleaned.splitlines()
+    assert "Page Contents" not in lines
+    assert "Lesson 1.1 - Natural selection" not in lines
+    assert not any("June 11, 2020" in l for l in lines)
+    assert not any("3:09 PM" in l for l in lines)
+    assert "Real assignment: Read pages 10-20 by Monday" in lines
+    assert "Due 2026-09-15" in lines
+
+
+def test_detect_visual_content_ignores_header_for_image_only():
+    html = """
+    <div style="position:absolute;top:10px;left:10px">Page Contents</div>
+    <div style="position:absolute;top:30px;left:10px">Handwritten Lab Worksheet</div>
+    <div style="position:absolute;top:50px;left:10px">Wednesday, August 4, 2021 2:14 PM</div>
+    <img src="https://example.com/scan.png"/>
+    """
+    prof = onenote_extractor.detect_visual_content(html, page_title="Handwritten Lab Worksheet")
+    assert prof["has_images"] is True
+    assert prof["has_text"] is False
+    assert prof["image_only"] is True
+
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Visual content detection & routing
 # ─────────────────────────────────────────────────────────────────────────────
