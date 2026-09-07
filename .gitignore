@@ -21,25 +21,31 @@ learning_rules.txt
 state.json.bak
 classroom_pdfs/
 
-# Generated runtime and personal data
-activity_log.jsonl
-curated_brain.md
-mega_index.md
-embedding_data/
-backups/
-offline_archive/
-output/
-
-# Generated binary artifacts and archives
-*.tar.gz
-*.docx
-*.html
-*.npz
-*.bak
-
-# Runtime logs
-*.jsonl
 
 # Editor swap files
 .*.swp
 *.swp
+
+# Binary backups and archives
+backups/
+*.tar.gz
+*.bak
+*.html
+
+# Data indexes, logs, and sqlite
+embedding_data/
+*.npz
+*.jsonl
+*.sqlite3
+activity_log.jsonl
+
+# --- Generated study/content artifacts (now live in pab-study-content repo) ---
+study_guides/
+knowledge_base/
+offline_archive/
+study_database/
+output/
+*.docx
+mega_index.md
+curated_brain.md
+correlation_graph.json

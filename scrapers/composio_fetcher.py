@@ -17,15 +17,17 @@ import http.client
 import os
 import re
 import time
+import datetime
 from typing import Optional
+
+import config
+from bot.storage import AtomicJSONStore, StorageError
 
 logger = logging.getLogger(__name__)
 
 # ── Config ──────────────────────────────────────────────────────────────────
-COMPOSIO_TOKEN_PATH = os.path.expanduser("~/.hermes/mcp-tokens/composio.json")
 COMPOSIO_HOST = "connect.composio.dev"
 COMPOSIO_PATH = "/mcp"
-CANVAS_CACHE_PATH = os.path.expanduser("~/.hermes/canvas_courses_cache.json")
 CANVAS_CACHE_TTL = 3600 * 24 * 7  # 1 week — course list rarely changes
 
 # Entity IDs used per app
@@ -44,13 +46,19 @@ _CANVAS_AUTH_MARKERS = (
 # ── Internal helpers ────────────────────────────────────────────────────────
 
 def _load_token() -> Optional[str]:
-    """Load Composio access token from the Hermes MCP token store."""
+    """Load a private Composio token without logging its path or contents."""
     try:
-        with open(COMPOSIO_TOKEN_PATH) as f:
+        token_path = config.COMPOSIO_TOKEN_PATH
+        if token_path.is_symlink():
+            raise OSError("token path is a symlink")
+        with token_path.open(encoding="utf-8") as f:
             tokens = json.load(f)
-        return tokens.get("access_token")
-    except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
-        logger.error(f"Failed to load Composio token: {e}")
+        token = tokens.get("access_token") if isinstance(tokens, dict) else None
+        if not isinstance(token, str) or not token.strip():
+            raise ValueError("token missing")
+        return token.strip()
+    except (FileNotFoundError, json.JSONDecodeError, OSError, ValueError, TypeError) as exc:
+        logger.info("Composio token unavailable (%s).", type(exc).__name__)
         return None
 
 
@@ -74,6 +82,11 @@ def _failed_mcp_result(tool_slug: str, message: str, status_code: int | None = N
     }
 
 
+def _failure(tool_slug: str = "", message: str = "Service temporarily unavailable") -> dict:
+    """Public-safe integration result; provider errors are logged separately."""
+    return _failed_mcp_result(tool_slug, message)
+
+
 def _decode_mcp_responses(body: str) -> list[dict]:
     """Decode either JSON-RPC JSON or the MCP server's SSE ``data:`` payloads."""
     responses: list[dict] = []
@@ -81,7 +94,7 @@ def _decode_mcp_responses(body: str) -> list[dict]:
         decoded = json.loads(body)
         if isinstance(decoded, dict):
             responses.append(decoded)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, TypeError):
         pass
 
     for line in body.splitlines():
@@ -90,7 +103,7 @@ def _decode_mcp_responses(body: str) -> list[dict]:
             continue
         try:
             decoded = json.loads(line.removeprefix("data:").strip())
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, TypeError):
             continue
         if isinstance(decoded, dict):
             responses.append(decoded)
@@ -103,24 +116,27 @@ def _extract_mcp_tool_response(rpc_response: dict) -> Optional[dict]:
     if not isinstance(result, dict):
         return None
     for content_item in result.get("content", []):
-        if content_item.get("type") != "text":
+        if not isinstance(content_item, dict) or content_item.get("type") != "text":
             continue
         content = content_item.get("text", "")
         try:
             inner = json.loads(content) if isinstance(content, str) else content
-        except json.JSONDecodeError:
+        except (TypeError, json.JSONDecodeError):
             continue
         if not isinstance(inner, dict):
             continue
         results = inner.get("data", {}).get("results", [])
         if isinstance(results, dict):
             results = [results]
-        if not results:
+        if not isinstance(results, list) or not results:
             continue
-        response = results[0].get("response", {})
+        response = results[0].get("response") if isinstance(results[0], dict) else None
+        if isinstance(response, dict) and response.get("successful"):
+            return response
         if isinstance(response, dict) and "successful" in response:
             return response
-        return {"successful": True, "data": {"response_data": response}}
+        if response is not None:
+            return {"successful": True, "data": {"response_data": response}}
     return None
 
 
@@ -131,7 +147,7 @@ def _call_mcp(tool_slug: str, arguments: dict, entity_id: str = ENTITY_GOOGLE) -
     """
     token = _load_token()
     if not token:
-        return {"successful": False, "data": {"message": "Composio token not available"}}
+        return _failure(tool_slug, "Composio token unavailable")
 
     payload = json.dumps({
         "jsonrpc": "2.0",
@@ -150,8 +166,11 @@ def _call_mcp(tool_slug: str, arguments: dict, entity_id: str = ENTITY_GOOGLE) -
             }
         }
     })
+    if len(payload.encode("utf-8")) > 128_000:
+        logger.warning("Refused oversized Composio request for %s.", tool_slug)
+        return _failure(tool_slug, "Request oversized")
 
-    conn = None
+    conn: http.client.HTTPSConnection | None = None
     try:
         conn = http.client.HTTPSConnection(COMPOSIO_HOST, timeout=15)
         conn.request("POST", COMPOSIO_PATH, body=payload, headers={
@@ -160,21 +179,31 @@ def _call_mcp(tool_slug: str, arguments: dict, entity_id: str = ENTITY_GOOGLE) -
             "Accept": "application/json, text/event-stream"
         })
         resp = conn.getresponse()
-        text = resp.read().decode("utf-8", errors="replace")
-        if resp.status >= 400:
+        if not 200 <= resp.status < 300:
+            logger.warning("Composio MCP returned HTTP %s for %s.", resp.status, tool_slug)
             return _failed_mcp_result(tool_slug, f"Composio HTTP {resp.status}", resp.status)
+        raw = resp.read(config.COMPOSIO_MAX_RESPONSE_BYTES + 1)
+        if len(raw) > config.COMPOSIO_MAX_RESPONSE_BYTES:
+            logger.warning("Composio MCP response exceeded size limit for %s.", tool_slug)
+            return _failure(tool_slug, "Response oversized")
+        text = raw.decode("utf-8", "replace")
 
         last_error = "No result in MCP response"
         for rpc_response in _decode_mcp_responses(text):
             if "error" in rpc_response:
-                last_error = str(rpc_response["error"])
+                error_info = rpc_response["error"]
+                if isinstance(error_info, dict):
+                    last_error = str(error_info.get("message") or error_info)
+                else:
+                    last_error = str(error_info)
             response = _extract_mcp_tool_response(rpc_response)
             if response is not None:
                 return response
 
+        logger.warning("Composio MCP returned no usable result for %s.", tool_slug)
         return _failed_mcp_result(tool_slug, last_error)
     except (OSError, http.client.HTTPException, ValueError) as exc:
-        logger.error("Composio MCP call failed for %s: %s", tool_slug, type(exc).__name__)
+        logger.warning("Composio MCP call failed for %s: %s", tool_slug, type(exc).__name__)
         return _failed_mcp_result(tool_slug, "Composio connection failed")
     finally:
         if conn is not None:
@@ -192,18 +221,37 @@ def _strip_html(text: str) -> str:
     return text.strip()
 
 
+def _classroom_work_is_actionable(work: dict, now: datetime.datetime | None = None) -> bool:
+    """Keep overdue coursework from endlessly re-entering the task pipeline."""
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    overdue_grace = max(0, int(os.getenv("GOOGLE_CLASSROOM_ASSIGNMENT_OVERDUE_GRACE_DAYS", "7")))
+    undated_update_days = max(0, int(os.getenv("GOOGLE_CLASSROOM_NO_DUE_UPDATE_DAYS", "30")))
+    due = work.get("dueDate", {}) or {}
+    try:
+        due_day = datetime.date(int(due["year"]), int(due["month"]), int(due["day"]))
+    except (KeyError, TypeError, ValueError):
+        due_day = None
+    if due_day is not None:
+        return due_day >= now.date() - datetime.timedelta(days=overdue_grace)
+
+    try:
+        updated = datetime.datetime.fromisoformat(work.get("updateTime", "").replace("Z", "+00:00"))
+        return updated >= now - datetime.timedelta(days=undated_update_days)
+    except (AttributeError, ValueError):
+        return False
+
+
 def _get_active_courses() -> list:
     """Fetch active Canvas courses with caching.
     Returns list of {id, name} dicts. Cache lives 7 days.
     """
     now = time.time()
     try:
-        if os.path.exists(CANVAS_CACHE_PATH):
-            with open(CANVAS_CACHE_PATH) as f:
-                cache = json.load(f)
+        cache = AtomicJSONStore(config.COMPOSIO_CANVAS_CACHE_FILE, dict).read()
+        if isinstance(cache, dict):
             if cache.get("timestamp", 0) + CANVAS_CACHE_TTL > now:
                 return cache.get("courses", [])
-    except (json.JSONDecodeError, OSError):
+    except (StorageError, OSError, TypeError):
         pass
 
     r = _call_mcp("CANVAS_LIST_COURSES", {"per_page": 50}, entity_id=ENTITY_CANVAS)
@@ -217,10 +265,8 @@ def _get_active_courses() -> list:
                 courses.append({"id": str(cid), "name": name})
 
     try:
-        os.makedirs(os.path.dirname(CANVAS_CACHE_PATH), exist_ok=True)
-        with open(CANVAS_CACHE_PATH, "w") as f:
-            json.dump({"timestamp": now, "courses": courses}, f)
-    except OSError:
+        AtomicJSONStore(config.COMPOSIO_CANVAS_CACHE_FILE, dict).write({"timestamp": now, "courses": courses})
+    except (StorageError, OSError):
         pass
 
     return courses
@@ -263,9 +309,6 @@ def get_classroom_assignments() -> str:
     if not courses:
         return "No active Google Classroom courses found."
 
-    import datetime
-    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)
-
     result = ["🏫 **Google Classroom Assignments (via Composio):**"]
     for course in courses:
         course_id = str(course.get("id", ""))
@@ -282,21 +325,13 @@ def get_classroom_assignments() -> str:
                 cw_data = r2.get("data", {})
                 works = cw_data.get("response_data", cw_data.get("courseWork", []))
                 for work in works:
+                    if not _classroom_work_is_actionable(work):
+                        continue
                     title = work.get("title", "Untitled")
                     due_date = work.get("dueDate", {}) or {}
                     due_str = "No due date"
                     if due_date.get("year"):
                         due_str = f"{due_date['year']}-{due_date.get('month',0):02d}-{due_date.get('day',0):02d}"
-
-                    # Filter: skip stuff older than 30 days
-                    update_time = work.get("updateTime", "")
-                    if update_time:
-                        try:
-                            updated = datetime.datetime.fromisoformat(update_time.replace("Z", "+00:00"))
-                            if updated < cutoff:
-                                continue
-                        except Exception:
-                            pass
 
                     result.append(f"[{course_name}] {title} — Due: {due_str}")
             else:
@@ -308,6 +343,63 @@ def get_classroom_assignments() -> str:
         return "No recent published coursework found."
 
     return "\n".join(result)
+
+
+def _calendar_task_type(title: str) -> str:
+    normalized = title.lower()
+    if any(word in normalized for word in ("test", "quiz", "exam")):
+        return "Test"
+    if "project" in normalized:
+        return "Project"
+    if any(word in normalized for word in ("reading", "read ")):
+        return "Reading"
+    return "Assignment"
+
+
+def get_calendar_assignments() -> list[dict]:
+    """Return due-dated Classroom coursework without rendering digest text."""
+    response = _call_mcp("GOOGLE_CLASSROOM_COURSES_LIST", {})
+    if not response or not response.get("successful"):
+        logger.warning("Could not list Classroom courses for calendar sync.")
+        return []
+    data = response.get("data", {})
+    courses = data.get("response_data", data.get("courses", []))
+    result: list[dict] = []
+    for course in courses or []:
+        course_id = str(course.get("id") or "")
+        course_name = str(course.get("name") or "Unnamed course")
+        if not course_id:
+            continue
+        response = _call_mcp("GOOGLE_CLASSROOM_COURSE_WORK_LIST", {"courseId": course_id, "pageSize": 100})
+        if not response or not response.get("successful"):
+            logger.info("Could not fetch Classroom calendar work for %s.", course_name)
+            continue
+        data = response.get("data", {})
+        works = data.get("response_data", data.get("courseWork", []))
+        for work in works or []:
+            if not _classroom_work_is_actionable(work) or not work.get("dueDate") or not work.get("id"):
+                continue
+            title = str(work.get("title") or "Untitled")
+            result.append({
+                "id": f"{course_id}:{work['id']}",
+                "title": title,
+                "course": course_name,
+                "due_date": work.get("dueDate"),
+                "url": work.get("alternateLink"),
+                "task_type": _calendar_task_type(title),
+                "status": "Not started",
+                "official": True,
+            })
+    return result
+
+
+# Per-announcement body budget.  Announcements carry the scheduling detail the
+# digest exists to surface (dates, times, room changes), and those often appear
+# late in the text -- "we will be having class on Friday (7/24) instead" sat at
+# offset ~180.  The old 300-char cap severed such clauses, so the information
+# could never reach a Notion task or a calendar event.  Keep the whole body up to
+# a generous ceiling that still bounds a pathological post.
+ANNOUNCEMENT_BODY_CHARS = 1200
 
 
 def get_classroom_announcements(limit: int = 10) -> str:
@@ -341,7 +433,13 @@ def get_classroom_announcements(limit: int = 10) -> str:
                     text = ann.get("text", ann.get("Text", "")).strip()
                     if text:
                         text = _strip_html(text)
-                        result.append(f"[{course_name}]: {text[:300]}")
+                        # Keep enough of the body that dates, times and room
+                        # numbers survive: the 300-char cap used to sever
+                        # "class on Friday (7/24)" mid-sentence, so the item
+                        # could never become a task or calendar event.
+                        if len(text) > ANNOUNCEMENT_BODY_CHARS:
+                            text = text[:ANNOUNCEMENT_BODY_CHARS].rstrip() + "…"
+                        result.append(f"[{course_name}]: {text}")
         except Exception as e:
             logger.warning(f"Error fetching announcements for {course_name}: {e}")
 
@@ -353,45 +451,92 @@ def get_classroom_announcements(limit: int = 10) -> str:
 
 # ── Google Docs ─────────────────────────────────────────────────────────────
 
-def get_recent_google_docs() -> str:
-    """Fetch recently modified Google Docs via Composio."""
-    # Search for recent docs via Drive
+def _doc_plaintext(value: object) -> str:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        for key in ("plain_text", "text", "content", "plaintext"):
+            candidate = value.get(key)
+            if isinstance(candidate, str):
+                return candidate
+    return ""
+
+
+def _doc_records_from_response(response: dict | None) -> list[dict]:
+    data = (response or {}).get("data", {})
+    if not isinstance(data, dict):
+        return []
+    payload = data.get("response_data")
+    if isinstance(payload, list):
+        return [item for item in payload if isinstance(item, dict)]
+    if isinstance(payload, dict):
+        for key in ("files", "documents", "items"):
+            nested = payload.get(key)
+            if isinstance(nested, list):
+                return [item for item in nested if isinstance(item, dict)]
+    for key in ("files", "documents", "items"):
+        nested = data.get(key)
+        if isinstance(nested, list):
+            return [item for item in nested if isinstance(item, dict)]
+    return []
+
+
+def get_recent_google_doc_records(limit: int = 10) -> list[dict]:
+    """Return document metadata and plaintext for calendar deadline extraction."""
     r = _call_mcp("GOOGLEDRIVE_FIND_FILE", {
         "q": "mimeType='application/vnd.google-apps.document' and trashed=false"
     })
     if r and r.get("successful"):
-        files = r.get("data", {}).get("response_data", [])
-        if not files:
-            return "No recently modified Google Docs found."
+        files = _doc_records_from_response(r)
     else:
-        # Fallback: try the Docs-specific search
         r = _call_mcp("GOOGLEDOCS_SEARCH_DOCUMENTS", {"q": "mimeType='application/vnd.google-apps.document'"})
         if r and r.get("successful"):
-            files = r.get("data", {}).get("response_data", [])
-            if not files:
-                return "No recently modified Google Docs found."
+            files = _doc_records_from_response(r)
         else:
-            return f"Error fetching Google Docs via Composio: {r.get('data', {}).get('message', 'unknown') if r else 'no response'}"
+            logger.warning("Could not list Google Docs for calendar extraction.")
+            return []
 
-    output = ["📄 **Recent Google Docs (via Composio):**"]
-    for doc in files[:10]:
+    records: list[dict] = []
+    for doc in files[:max(1, limit)]:
+        if not isinstance(doc, dict):
+            continue
         doc_id = doc.get("id", doc.get("documentId", ""))
         title = doc.get("name", doc.get("title", doc.get("Name", "Untitled")))
         if not doc_id:
             continue
-
-        # Fetch plain text content
         r2 = _call_mcp("GOOGLEDOCS_GET_DOCUMENT_PLAINTEXT", {"document_id": doc_id})
         if r2 and r2.get("successful"):
-            text_content = r2.get("data", {}).get("response_data", "")
-            if isinstance(text_content, str) and text_content.strip():
-                if len(text_content) > 1000:
-                    text_content = text_content[:1000] + "\n...[truncated]"
-                output.append(f"--- Doc: {title} ---\n{text_content}\n")
-            else:
-                output.append(f"--- Doc: {title} ---\n(empty content)\n")
+            response_data = r2.get("data", {})
+            content = _doc_plaintext(
+                response_data.get("response_data", response_data)
+                if isinstance(response_data, dict) else response_data
+            )
+            records.append({
+                "id": str(doc_id),
+                "title": str(title),
+                "url": str(doc.get("webViewLink") or doc.get("url") or f"https://docs.google.com/document/d/{doc_id}/edit"),
+                "content": content[:20_000],
+            })
         else:
-            output.append(f"--- Doc: {title} ---\n(could not fetch content)\n")
+            logger.info("Could not fetch Google Doc plaintext for calendar extraction.")
+    return records
+
+
+def get_recent_google_docs() -> str:
+    """Fetch recently modified Google Docs via Composio."""
+    records = get_recent_google_doc_records()
+    if not records:
+        return "No recently modified Google Docs found."
+
+    output = ["📄 **Recent Google Docs (via Composio):**"]
+    for doc in records:
+        text_content = str(doc.get("content") or "")
+        title = str(doc.get("title") or "Untitled")
+        if text_content:
+            preview = text_content[:1000] + ("\n...[truncated]" if len(text_content) > 1000 else "")
+            output.append(f"--- Doc: {title} ---\n{preview}\n")
+        else:
+            output.append(f"--- Doc: {title} ---\n(empty content)\n")
 
     return "\n".join(output)
 

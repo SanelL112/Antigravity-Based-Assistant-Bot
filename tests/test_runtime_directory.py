@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 
-def test_config_uses_explicit_runtime_directory_for_env_and_data(tmp_path):
+def test_config_uses_explicit_runtime_directory_for_env_and_data(tmp_path, allow_subprocess):
     runtime_dir = tmp_path / "runtime"
     runtime_dir.mkdir()
     (runtime_dir / ".env").write_text(

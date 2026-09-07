@@ -7,26 +7,18 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-@patch("scrapers.mega_study_builder.requests.get")
-@patch("scrapers.mega_study_builder.DDGS")
-def test_ddgs_compatibility(m_ddgs, m_req_get):
-    from scrapers.mega_study_builder import search_web_article, search_images
+def test_study_builder_consumes_only_validated_local_public_cache(tmp_path, monkeypatch):
+    """Private guide builds must not issue search, image, or transcript requests."""
+    import scrapers.mega_study_builder as builder
 
-    m_instance = m_ddgs.return_value
-    m_instance.text.return_value = [{"title": "Test Title", "href": "http://test", "body": "test body"}]
-    m_instance.images.return_value = [{"title": "Test Image", "image": "http://test.jpg"}]
+    monkeypatch.setattr(builder, "STUDY_DATABASE_DIR", tmp_path)
+    (tmp_path / "test_topic.md").write_text("validated public context", encoding="utf-8")
 
-    m_req_instance = MagicMock()
-    m_req_instance.content = b"<html><body><p>test body</p></body></html>"
-    m_req_get.return_value = m_req_instance
-
-    res_sources, res_text = search_web_article("test topic")
-    assert m_instance.text.call_count == 5
-    assert "Test Title" in res_sources[0]["title"]
-    assert "test body" in res_text
-
-    res_img = search_images("test topic")
-    assert res_img == [{"title": "Test Image", "image": "http://test.jpg"}]
+    res_sources, res_text = builder.search_web_article("test topic")
+    assert res_sources == [{"title": "test_topic", "href": "local-public-cache"}]
+    assert res_text == "validated public context"
+    assert builder.search_images("test topic") == []
+    assert builder.search_youtube("test topic") == (None, "")
 
 @patch("study_companion.YouTubeTranscriptApi")
 def test_youtube_transcript_compatibility(m_ytt):
@@ -40,21 +32,3 @@ def test_youtube_transcript_compatibility(m_ytt):
     text = get_transcript("test_id")
     assert text == "hello world"
     m_instance.fetch.assert_called_once_with("test_id")
-
-
-@patch("scrapers.mega_study_builder.YouTubeTranscriptApi")
-@patch("scrapers.mega_study_builder.VideosSearch")
-def test_mega_youtube_search_handles_missing_titles_and_uses_instance_api(m_search, m_ytt):
-    from scrapers.mega_study_builder import search_youtube
-
-    m_search.return_value.result.side_effect = [
-        {"result": [{"id": "video-id", "title": None}]},
-        {"result": []},
-    ]
-    m_ytt.return_value.fetch.return_value.snippets = [MagicMock(text="transcript text")]
-
-    metadata, text = search_youtube("Algebra")
-
-    assert metadata["title"] == "Fetched 1 YouTube Transcripts | Untitled Video"
-    assert "transcript text" in text
-    m_ytt.return_value.fetch.assert_called_once_with("video-id")

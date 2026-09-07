@@ -36,6 +36,7 @@ def test_activity_log_scanner_supports_all_timestamp_formats(tmp_path, monkeypat
     assert matches[1]["timestamp"] == f"{now.date().isoformat()} {now.strftime('%H:%M:%S')}"
 
 
+
 def test_activity_log_scanner_recognizes_structured_nightly_failures(tmp_path, monkeypatch):
     now = datetime.now(timezone.utc)
     entry = {

@@ -1,25 +1,78 @@
 import os
 import json
+import time
 import logging
-import requests
-from bs4 import BeautifulSoup
-from ddgs import DDGS
-from youtubesearchpython import VideosSearch
-from youtube_transcript_api import YouTubeTranscriptApi
-from ai_processor import call_agy
-
+from dataclasses import dataclass
+from pathlib import Path
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from ai_processor import call_agy
 from config import (
+    ARCHIVE_DIR,
     CACHE_DIR,
     MEGA_GUIDE_CLOUD_CLASSIFICATION,
     OPENROUTER_API_KEY,
     OR_FALLBACK_MODEL,
     OR_THIRD_MODEL,
+    STUDY_DATABASE_DIR,
 )
+from scrapers.batch_results import validate_generated_text
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+# One guide is intentionally finite.  The previous 500k budget could occupy
+# the inference cluster for hours and starve interactive requests.
+MAX_NIGHTLY_TOKENS = 120_000
+DEFAULT_OUTLINE = (
+    "Chapter 1: Core Concepts & Vocabulary",
+    "Chapter 2: Essential Formulas & Theorems",
+    "Chapter 3: Deep-Dive Explanations Part 1",
+    "Chapter 4: Deep-Dive Explanations Part 2",
+    "Chapter 5: Advanced Strategies & Tactics",
+    "Chapter 6: Step-by-Step Problem Solving Frameworks",
+    "Chapter 7: Real-World Applications",
+    "Chapter 8: Action Plan & Memorization Checklist",
+    "Chapter 9: Common Mistakes & Pitfalls",
+    "Chapter 10: Master Practice Exam",
+)
+
+
+@dataclass
+class TokenBudget:
+    """Bound all local generation work performed by one guide build."""
+
+    limit: int
+    used: int = 0
+
+    def reserve(self, tokens: int) -> bool:
+        tokens = max(0, int(tokens))
+        if self.used + tokens > self.limit:
+            return False
+        self.used += tokens
+        return True
+
+
+def _valid_outline(value: object) -> list[str] | None:
+    """Accept only a bounded, predictable chapter plan from model output."""
+
+    if not isinstance(value, list) or len(value) != len(DEFAULT_OUTLINE):
+        return None
+    if not all(isinstance(item, str) and 1 <= len(item.strip()) <= 120 for item in value):
+        return None
+    outline = [item.strip() for item in value]
+    if len({item.casefold() for item in outline}) != len(outline):
+        return None
+    if sum("practice" in item.casefold() for item in outline) != 1:
+        return None
+    return outline
+
+
+def _without_thoughts(text: str) -> str:
+    import re
+
+    return re.sub(r"<thought>.*?</thought>", "", text, flags=re.DOTALL).strip()
 
 MEGA_STUDY_PROMPT = """You are an elite academic tutor. I am trying to build a master study guide for the topic: "{topic}".
 I have autonomously pulled in context from multiple sources, including the teacher's handwritten notes, web articles, and YouTube transcripts. Synthesize all of this information into the ultimate, extremely comprehensive, beautifully formatted Markdown study guide.
@@ -48,8 +101,7 @@ You MUST follow this exact strict format:
 
 CRITICAL FORMATTING RULES: 
 - Your final output MUST be a pristine, highly structured, professional study guide.
-- ABSOLUTELY NO INTERNAL MONOLOGUES or "thinking out loud".
-- You MUST wrap ALL of your internal planning or calculations inside <thought>...</thought> tags! Anything outside these tags must be the final, polished study guide text.
+- Do not include internal monologues, hidden reasoning, or <thought> tags.
 """
 
 
@@ -70,52 +122,20 @@ def _response_html(response) -> str:
         return response.content.decode("utf-8", errors="replace")
 
 def search_web_article(topic: str):
-    logger.info(f"Searching Web for: {topic}...")
-    try:
-        queries = [f"{topic} tutorial", f"{topic} explanation", f"{topic} study guide", f"{topic} practice problems", f"{topic} advanced concepts"]
-        combined_text = ""
-        sources_list = []
-        
-        for q in queries:
-            logger.info(f"Querying DuckDuckGo: {q}...")
-            try:
-                results = DDGS().text(q, max_results=20)
-                if not results: continue
-                
-                for res in results:
-                    if len(sources_list) >= 100: break
-                    if any(s["href"] == res["href"] for s in sources_list): continue
-                    
-                    try:
-                        resp = requests.get(res["href"], timeout=5)
-                        soup = BeautifulSoup(_response_html(resp), "html.parser")
-                        combined_text += f"\n--- SOURCE: {res['title']} ---\n"
-                        combined_text += " ".join([p.text for p in soup.find_all("p")])
-                        sources_list.append({"title": res["title"], "href": res["href"]})
-                    except Exception:
-                        continue
-            except Exception as e:
-                logger.error(f"Web search query failed: {e}")
-                pass
-            if len(sources_list) >= 100: break
-                
-        if sources_list:
-            logger.info(f"Successfully scraped {len(sources_list)} Web Articles.")
-            return sources_list, combined_text
+    """Consume only references already validated by ``web_precacher``."""
+    slug = "".join(char if char.isalnum() else "_" for char in topic.lower()).strip("_")[:60]
+    path = Path(STUDY_DATABASE_DIR) / f"{slug}.md"
+    if not path.is_file() or path.is_symlink():
         return None, ""
-    except Exception as e:
-        logger.error(f"Web scrape failed: {e}")
+    try:
+        return [{"title": path.stem, "href": "local-public-cache"}], path.read_text(
+            encoding="utf-8", errors="replace"
+        )[:40_000]
+    except OSError:
         return None, ""
 
 def search_images(topic: str):
-    """Fetches a massive library of relevant educational diagrams and images for visual concepts."""
-    try:
-        # Pushing the DuckDuckGo image scraper to pull up to 200 images instead of a hard limit of 15
-        results = DDGS().images(topic, max_results=200)
-        if results:
-            return [{"title": res["title"], "image": res["image"]} for res in results]
-    except Exception as e:
-        logger.error(f"Image scrape failed: {e}")
+    """External image URLs are intentionally not injected into private guides."""
     return []
 
 def _transcript_text(transcript) -> str:
@@ -141,65 +161,8 @@ def _youtube_metadata(titles: list[str]) -> dict:
 
 
 def search_youtube(topic: str):
-    """Fetch up to 100 transcripts using the supported instance transcript API."""
-    if not isinstance(topic, str) or not topic.strip():
-        logger.warning("YouTube search skipped because no topic was supplied")
-        return None, ""
-
-    normalized_topic = topic.strip()
-    logger.info("Searching YouTube for: %s educational tutorial", normalized_topic)
-    try:
-        video_search = VideosSearch(f"{normalized_topic} educational tutorial", limit=20)
-        transcript_api = YouTubeTranscriptApi()
-        sections: list[str] = []
-        titles: list[str] = []
-
-        for page in range(5):
-            logger.info("YouTube Page %s/5", page + 1)
-            try:
-                result = video_search.result()
-            except Exception as exc:
-                logger.warning("YouTube search page failed: %s", type(exc).__name__)
-                break
-
-            videos = result.get("result", []) if isinstance(result, dict) else []
-            if not isinstance(videos, list) or not videos:
-                break
-
-            for video in videos:
-                if len(titles) >= 100:
-                    break
-                if not isinstance(video, dict):
-                    continue
-                video_id = video.get("id")
-                if not isinstance(video_id, str) or not video_id:
-                    continue
-                title = video.get("title")
-                title = title.strip() if isinstance(title, str) and title.strip() else "Untitled Video"
-                try:
-                    text = _transcript_text(transcript_api.fetch(video_id))
-                except Exception:
-                    continue
-                if not text:
-                    continue
-                sections.append(f"\n--- VIDEO: {title} ---\n{text}")
-                titles.append(title)
-
-            if len(titles) >= 100:
-                break
-            try:
-                video_search.next()
-            except Exception as exc:
-                logger.warning("YouTube pagination stopped: %s", type(exc).__name__)
-                break
-
-        if not titles:
-            return None, ""
-        logger.info("Successfully fetched %s YouTube Transcripts.", len(titles))
-        return _youtube_metadata(titles), "".join(sections)
-    except Exception as exc:
-        logger.error("YouTube search setup failed: %s", type(exc).__name__)
-        return None, ""
+    """Transcript fetching is not part of the unattended private build path."""
+    return None, ""
 
 
 def call_guide_model(prompt: str, timeout: int = 3600) -> str:
@@ -230,6 +193,9 @@ def call_guide_model(prompt: str, timeout: int = 3600) -> str:
 
 def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     """Generates the ultimate chunked study guide."""
+    topic = " ".join(str(topic).split())
+    if not topic or len(topic) > 120:
+        return ""
     logger.info(f"Generating MEGA guide for: {topic} using Chunking Architecture")
     
     # Strip out generic filler words so the scrapers search for the actual subject matter
@@ -262,17 +228,69 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
         except Exception:
             pass
             
-    delta_export_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "offline_archive", "delta_export.txt")
-    if os.path.exists(delta_export_file):
+    delta_export_file = Path(ARCHIVE_DIR) / "delta_export.txt"
+    if delta_export_file.is_file() and not delta_export_file.is_symlink():
         try:
-            with open(delta_export_file, "r") as f:
-                internal_notes += "\n\n" + f.read().replace('\x00', '').strip()
+            internal_notes += "\n\n" + delta_export_file.read_text(encoding="utf-8", errors="replace").replace('\x00', '').strip()
         except Exception:
             pass
             
     if not internal_notes:
         internal_notes = "None"
 
+    from llm_router import Sensitivity, call_local_rpc_result, estimate_tokens
+
+    # Classroom notes, cached summaries, and uploaded PDFs are private.  This
+    # pipeline deliberately uses the local inference chain only.
+    token_budget = TokenBudget(MAX_NIGHTLY_TOKENS)
+
+    def _call_local(prompt_text, timeout=3600, max_tokens=4_000):
+        """Generate for one guide call: free online providers first, local
+        chain as offline fallback.  Online generation takes seconds-minutes
+        instead of the Surface's hours and cannot brown out the tablet."""
+        from scrapers.study_providers import generate_online
+
+        online, provider = generate_online(
+            prompt_text,
+            system_prompt="You are an elite academic tutor writing a rigorous study guide.",
+            max_tokens=max_tokens,
+            timeout=420,
+        )
+        if online:
+            logger.info("Guide call served by online provider: %s", provider)
+            return online
+        logger.warning("Online providers unavailable; falling back to local inference")
+
+        prompt_tokens = estimate_tokens(prompt_text)
+        if not token_budget.reserve(prompt_tokens):
+            logger.warning(
+                "Token budget exceeded (%s/%s), skipping call",
+                token_budget.used,
+                token_budget.limit,
+            )
+            return ""
+        result = call_local_rpc_result(
+            prompt=prompt_text,
+            max_tokens=max_tokens,
+            timeout=timeout,
+            allow_cloud=False,
+            sensitivity=Sensitivity.PERSONAL,
+        )
+        if not result.ok:
+            logger.warning("Local study-guide inference unavailable: %s", result.detail or result.status.value)
+            return ""
+        text = result.text
+        result_tokens = estimate_tokens(text)
+        if not token_budget.reserve(result_tokens):
+            logger.warning("Study-guide response exceeded the remaining token budget")
+            return ""
+        logger.info(
+            "Local guide token usage: %s/%s (this call: ~%s)",
+            token_budget.used,
+            token_budget.limit,
+            prompt_tokens + result_tokens,
+        )
+        return text
     logger.info("Assembling and cleaning context payload...")
     
     # Strip null bytes
@@ -282,7 +300,9 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
     internal_notes = internal_notes.replace('\x00', '') if internal_notes else ""
     
     def _chunk_and_summarize(text, label):
-        max_chunk_size = 250000
+        # 12KB chunks (~3k prompt tokens): keeps each Surface generation
+        # short so sustained load cannot drain the tablet's battery.
+        max_chunk_size = 12_000
         if len(text) > max_chunk_size:
             logger.info(f"Chunking {label} ({len(text)} chars)...")
             summarized = ""
@@ -290,14 +310,20 @@ def generate_mega_guide(topic: str, pdf_text: str = "") -> str:
                 chunk = text[i:i+max_chunk_size]
                 prompt = f"Extract all facts, concepts, formulas, and notes strictly relevant to '{topic}'. Be comprehensive but concise. Ignore unrelated subjects.\n\nSOURCE TEXT ({label} Chunk {i//max_chunk_size + 1}):\n{chunk}"
                 logger.info(f"Summarizing {label} chunk {i//max_chunk_size + 1} / {(len(text)//max_chunk_size)+1}...")
-                summary = call_guide_model(prompt)
+                # 800 tokens ≈ 4 min at the Surface's ~3.5 tok/s CPU rate —
+                # fits the 540s window; the synthesis pass re-cleans anyway.
+                summary = _call_local(prompt, max_tokens=800)
+                # Duty-cycle: a 20s breather between generations keeps the
+                # Surface's average power draw under what its charger
+                # supplies — sustained peak load browned the tablet out.
+                time.sleep(20)
                 if summary:
                     summarized += summary + "\n\n"
                     
             # The Final Reduce (Coherence) Pass
             logger.info(f"Synthesizing all {label} chunks into a coherent master document...")
             synthesis_prompt = f"You are an expert synthesizer. I have provided multiple summaries of '{topic}' below. Please rewrite them into one single, highly coherent, deduplicated master reference document. Do not leave any facts out.\n\nSUMMARIES:\n{summarized}"
-            final_coherent_doc = call_guide_model(synthesis_prompt)
+            final_coherent_doc = _call_local(synthesis_prompt)
             
             return final_coherent_doc if final_coherent_doc else summarized
             
@@ -346,37 +372,25 @@ CRITICAL LIMITATION: You may ONLY include exactly ONE chapter for "Practice Prob
 Respond ONLY with a raw JSON array of strings representing the chapter titles. Do not include markdown blocks or any other text.
 Example: ["Chapter 1: Introduction to Formulas", "Chapter 2: Advanced Mechanics"]"""
     
-    outline_json_str = call_guide_model(outline_prompt)
-    import json
-    outline = []
+    outline_json_str = _call_local(outline_prompt)
+    outline = None
     if outline_json_str:
         try:
             # Try to strip markdown JSON blocks if the AI disobeyed
             clean_json = outline_json_str.replace("```json", "").replace("```", "").strip()
-            outline = json.loads(clean_json)
+            outline = _valid_outline(json.loads(clean_json))
         except Exception as e:
             logger.error(f"Failed to parse outline JSON: {e}")
             
-    if not outline or not isinstance(outline, list):
-        logger.warning("Falling back to default outline.")
-        outline = [
-            "Chapter 1: Core Concepts & Vocabulary",
-            "Chapter 2: Essential Formulas & Theorems",
-            "Chapter 3: Deep-Dive Explanations Part 1",
-            "Chapter 4: Deep-Dive Explanations Part 2",
-            "Chapter 5: Advanced Strategies & Tactics",
-            "Chapter 6: Step-by-Step Problem Solving Frameworks",
-            "Chapter 7: Real-World Applications",
-            "Chapter 8: Action Plan & Memorization Checklist",
-            "Chapter 9: Common Mistakes & Pitfalls",
-            "Chapter 10: Master Practice Exam"
-        ]
+    if outline is None:
+        logger.warning("Invalid outline; using the fixed 10-chapter outline.")
+        outline = list(DEFAULT_OUTLINE)
 
     # PHASE 1.5: Condense source_context once to avoid repeating it per-chapter
     condensed_context = source_context
     if len(source_context) > 10000:
         logger.info(f"Condensing source_context ({len(source_context)} chars) for per-chapter use...")
-        condensed_context = call_guide_model(
+        condensed_context = _call_local(
             f"Condense the following educational source material into a dense, structured reference "
             f"document (max 3000 chars) preserving all key facts, formulas, and concepts for "
             f"the topic '{topic}'. Be comprehensive but concise.\n\nSOURCE MATERIAL:\n{source_context}",
@@ -413,17 +427,22 @@ INSTRUCTIONS:
 3. STRICT PROHIBITION: Unless this specific chapter is explicitly titled "Practice Exam", DO NOT write any practice problems. Spend 100% of your tokens on strategy, theory, formulas, and deep-dive explanations.
 4. VISUAL INJECTION: When explaining a visual concept (like geometry, graphs, etc.), explicitly embed an image from the Visual Asset Library using Markdown: `![Alt Text](URL)`. 
 5. ABSOLUTELY NO INTERNAL MONOLOGUES or "thinking out loud".
-6. Wrap ALL of your internal planning or calculations inside <thought>...</thought> tags! Anything outside these tags must be the final, polished text for the chapter.
+6. Do not include internal planning, hidden reasoning, or <thought> tags.
 7. Start your output directly with a Markdown Header for the chapter (e.g. # {chapter}).
 """
-        chunk_result = call_guide_model(chunk_prompt)
-            
-        if chunk_result:
-            import re
-            chunk_result = re.sub(r'<thought>.*?</thought>', '', chunk_result, flags=re.DOTALL).strip()
+        chunk_result = _without_thoughts(_call_local(chunk_prompt))
+        chunk_validation = validate_generated_text(chunk_result, min_chars=80)
+
+        if chunk_validation.ok:
+            chunk_result = chunk_validation.text
             raw_chunks[chapter] = chunk_result
             full_guide_content += f"\n\n{chunk_result}\n\n---\n"
         else:
+            logger.warning(
+                "Failed to generate a valid local chunk for %s: %s",
+                chapter,
+                chunk_validation.detail,
+            )
             err_msg = f"\n\n# {chapter}\n\n*(Failed to generate this section)*\n\n---\n"
             raw_chunks[chapter] = err_msg
             full_guide_content += err_msg
@@ -449,17 +468,17 @@ INSTRUCTIONS:
 3. CRITICAL: Format ALL math using standard `$ x $` for inline math and `$$ x $$` for block math. Do NOT use \\\\( or \\\\[.
 4. RUTHLESS PRUNING: Unless this specific chapter is explicitly titled "Practice Exam", you MUST delete all practice questions, multiple-choice problems. Replace them with deep-dive strategy and theory instead.
 5. PRESERVE IMAGES: Ensure any markdown images like `![alt](URL)` are perfectly preserved and not broken or removed.
-6. Wrap any internal scratchpad inside <thought>...</thought> tags.
+6. Do not include internal scratchpad, hidden reasoning, or <thought> tags.
 7. Output ONLY the perfectly polished, final version of {chapter}. Do NOT output other chapters.
 """
-        editor_result = call_guide_model(editor_prompt)
-        
-        if editor_result:
-            import re
-            editor_result = re.sub(r'<thought>.*?</thought>', '', editor_result, flags=re.DOTALL).strip()
+        editor_result = _without_thoughts(_call_local(editor_prompt))
+        editor_validation = validate_generated_text(editor_result, min_chars=80)
+
+        if editor_validation.ok:
+            editor_result = editor_validation.text
             polished_guide_content += f"\n\n{editor_result}\n\n---\n"
         else:
-            logger.warning(f"Editor failed on {chapter}, falling back to unpolished raw chunk.")
+            logger.warning("Editor failed on %s, falling back to unpolished local chunk.", chapter)
             polished_guide_content += f"\n\n{raw_chunks[chapter]}\n\n---\n"
 
     # PHASE 3: Assembly
@@ -483,14 +502,15 @@ def build_guide_for_drive_file(file_id: str, topic: str):
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         path = tmp.name
     
-    success = download_drive_file(file_id, path)
-    if not success:
-        return "❌ Failed to download the PDF from Google Drive. Ensure I have access."
-        
-    transcript = transcribe_handwritten_pdf(path)
-    os.remove(path)
-    
-    if "Error:" in transcript:
-        return f"❌ {transcript}"
-        
-    return generate_mega_guide(topic, pdf_text=transcript)
+    try:
+        if not download_drive_file(file_id, path):
+            return "❌ Failed to download the PDF from Google Drive. Ensure I have access."
+        transcript = transcribe_handwritten_pdf(path)
+        if "Error:" in transcript:
+            return "❌ I could not extract readable text from that PDF."
+        return generate_mega_guide(topic, pdf_text=transcript)
+    finally:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass

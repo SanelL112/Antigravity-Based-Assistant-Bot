@@ -9,6 +9,8 @@ set -euo pipefail
 BOT_DIR="/home/sanel/personal-assistant-bot"
 TELEGRAM_TOKEN=$(grep TELEGRAM_BOT_TOKEN "$BOT_DIR/.env" 2>/dev/null | cut -d= -f2 | tr -d '"')
 CHAT_ID="8534649457"
+PYTHON_BIN="$BOT_DIR/venv/bin/python"
+[ -x "$PYTHON_BIN" ] || PYTHON_BIN="python3"
 
 # ── Gather health data ────────────────────────────────────────────────────────
 
@@ -78,7 +80,7 @@ USE_COMPOSIO=$(grep USE_COMPOSIO "$BOT_DIR/.env" 2>/dev/null | cut -d= -f2 | tr 
 [ -z "$USE_COMPOSIO" ] && USE_COMPOSIO="true"
 
 if [ "$USE_COMPOSIO" = "true" ] || [ "$USE_COMPOSIO" = "1" ] || [ "$USE_COMPOSIO" = "yes" ]; then
-    GOOGLE_TOKEN=$(python3 -c "
+    GOOGLE_TOKEN=$("$PYTHON_BIN" -c "
 import json, os
 tok = os.path.expanduser('~/.hermes/mcp-tokens/composio.json')
 if not os.path.exists(tok):
@@ -94,7 +96,7 @@ else:
         print('error')
 " 2>/dev/null || echo "error")
 else
-    GOOGLE_TOKEN=$(python3 -c "
+    GOOGLE_TOKEN=$("$PYTHON_BIN" -c "
 import json, os, sys
 sys.path.insert(0, '$BOT_DIR')
 os.chdir('$BOT_DIR')

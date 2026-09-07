@@ -60,7 +60,8 @@ Notes:
         prompt=scrubbed_prompt,
         max_tokens=500,
         timeout=180,
-        classification="PRIVATE",
+        allow_cloud=False,
+        sensitivity="PRIVATE",
     )
     if not result or result.startswith("⚠️"):
         print("Topic extraction: local RPC failed or unavailable.")
@@ -121,7 +122,8 @@ DO NOT rewrite the entire study guide, ONLY output the new section to be appende
                 prompt=scrubbed_prompt,
                 max_tokens=4000,
                 timeout=300,
-                classification="PRIVATE",
+                allow_cloud=False,
+                sensitivity="PRIVATE",
             )
         except Exception as e:
             print(f"Local RPC error: {e}")

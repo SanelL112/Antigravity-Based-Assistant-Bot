@@ -1,76 +1,419 @@
-import os
+"""Privacy-preserving bridge between Telegram chat and inference providers.
+
+Telegram messages, conversation history, digests, and retrieved notes are
+personal data. They therefore use owner-controlled Ollama/llama.cpp nodes by
+default. Cloud inference is possible only when data is verified non-PII and
+explicitly approved (e.g. via smart auto-routing or command prefixes), and
+never receives private files or unscrubbed local history.
+"""
+
+from __future__ import annotations
+
 import asyncio
-import subprocess
+import json
 import logging
-import httpx
+import os
+import re
+import tempfile
 import time
-from utils import scrub_pii, run_bash_safely
-from activity_log import log_llm_call, log_event
-from config import AGENTAPI_BIN, RESPONSE_TIMEOUT, LATEST_DIGEST_FILE, BOT_CONTEXT_FILE, BASE_DIR
-from bot.state import load_state
-from bot.runtime import _track_task
+from pathlib import Path
+
+from activity_log import log_llm_call
+from bot.state import load_state, update_state
+from config import BOT_CONTEXT_FILE, CHAT_HISTORY_DIR, LATEST_DIGEST_FILE, RESPONSE_TIMEOUT
+from llm_router import (
+    InferenceResult,
+    InferenceStatus,
+    Sensitivity,
+    call_agy_result,
+    call_local_rpc_result,
+    call_ollama_result,
+    call_openrouter_result,
+    is_valid_response,
+)
+from bot.smart_router import classify_query
+from utils import check_pii
 
 logger = logging.getLogger(__name__)
 
+_TOPIC_RE = re.compile(r"^[a-z0-9_]{1,30}$")
+_BASH_BLOCK_RE = re.compile(
+    r"(?:<BASH>|\[BASH\])(.*?)(?:</BASH>|\[/BASH\])",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+_LOCAL_UNAVAILABLE_MESSAGE = (
+    "⚠️ Local inference is currently unavailable. Your request was not sent "
+    "to a cloud provider. Please try again in a moment."
+)
 
-def _agy_model(alias: str) -> str:
-    """Resolve an internal agy alias (flash/pro) to the current valid model ID."""
+MODE_PROMPTS = {
+    "default": (
+        "You are Sanel's private personal assistant. Be concise, clear, helpful, and well-structured.\n"
+        "TELEGRAM FORMATTING RULES:\n"
+        "• Telegram does NOT support LaTeX. Never use LaTeX syntax or dollar signs ($ or $$).\n"
+        "• Write all formulas and equations using clean plain text and Unicode characters (e.g. KE = ½mv², x = 4, x² + y² = r², √(x), ∫ f(x) dx, Δt → 0, ≤, ≥, ≠, ±, ·, ×).\n"
+        "• Use bold for headings/emphasis, and <pre> code blocks for scripts/data tables."
+    ),
+    "tutor": (
+        "You are Sanel's Socratic study coach and tutor. Never give the final answer or solution "
+        "immediately. Instead, guide the user step-by-step, ask intuitive leading questions, "
+        "break complex concepts into digestible pieces, and praise active learning.\n"
+        "TELEGRAM FORMATTING: Never use raw LaTeX or dollar signs ($ or $$). Write all math using clean Unicode symbols."
+    ),
+    "quick": (
+        "You are a rapid-reference assistant. Deliver direct, minimal answers with zero "
+        "conversational filler. Use concise bullet points, exact formulas, or code snippets only. "
+        "Keep responses brief.\n"
+        "TELEGRAM FORMATTING: Never use raw LaTeX or dollar signs ($ or $$). Write all math using clean Unicode symbols."
+    ),
+    "drill": (
+        "You are an SAT and AP Exam drill coach. Generate challenging practice questions, "
+        "point out common test traps, provide timed problem-solving strategies, and explain "
+        "the fastest path to the correct solution.\n"
+        "TELEGRAM FORMATTING: Never use raw LaTeX or dollar signs ($ or $$). Write all math using clean Unicode symbols."
+    ),
+}
+
+
+async def _edit_status(context, chat_id: int, status_msg, text: str) -> None:
+    if not context or not status_msg:
+        return
     try:
-        from llm_router import _resolve_agy_model
-        return _resolve_agy_model(alias)
+        await context.bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=status_msg.message_id,
+            text=text,
+        )
     except Exception:
-        # Fallback to a known-good display name if the resolver is unavailable.
-        return "Gemini 3.5 Flash (Medium)"
+        logger.debug("Unable to update inference progress", exc_info=True)
+
+
+def _read_private_context(path: str | os.PathLike, fallback: str, limit: int = 12_000) -> str:
+    """Read a bounded tail of local context; never return filesystem errors."""
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return fallback
+    if len(text) > limit:
+        return "[older local context trimmed]\n" + text[-limit:]
+    return text
+
+
+def _history_path(chat_id: int, topic: str) -> Path:
+    try:
+        safe_chat_id = str(int(chat_id))
+    except (TypeError, ValueError):
+        safe_chat_id = "0"
+    safe_topic = topic if _TOPIC_RE.fullmatch(topic) else "general"
+    return Path(CHAT_HISTORY_DIR) / f"chat_history_{safe_chat_id}_{safe_topic}.txt"
+
+
+def _session_history_path(chat_id: int) -> Path:
+    try:
+        safe_chat_id = str(int(chat_id))
+    except (TypeError, ValueError):
+        safe_chat_id = "0"
+    return Path(CHAT_HISTORY_DIR) / f"chat_history_{safe_chat_id}_session.json"
+
+
+def clear_session(chat_id: int) -> bool:
+    """Clear active conversation session memory."""
+    path = _session_history_path(chat_id)
+    try:
+        if path.exists():
+            path.unlink()
+        return True
+    except Exception as exc:
+        logger.warning("Failed to clear session: %s", exc)
+        return False
+
+
+def get_session_turns(chat_id: int, max_turns: int = 8) -> list[dict]:
+    """Retrieve recent conversation session turns."""
+    path = _session_history_path(chat_id)
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, list):
+            return data[-max_turns:]
+    except Exception:
+        pass
+    return []
+
+
+def append_session_turn(chat_id: int, user_msg: str, bot_resp: str) -> None:
+    """Append turn to active session window."""
+    path = _session_history_path(chat_id)
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    turns = get_session_turns(chat_id, max_turns=20)
+    clean_bot_resp = re.sub(r"\n\n_\(Generated by:.*?\)_", "", bot_resp).strip()
+    turns.append({
+        "user": user_msg[:2000],
+        "assistant": clean_bot_resp[:3000],
+        "ts": time.time(),
+    })
+    turns = turns[-12:]
+    try:
+        path.write_text(json.dumps(turns, indent=2), encoding="utf-8")
+    except Exception as exc:
+        logger.warning("Failed to write session turn: %s", exc)
+
 
 async def detect_topic(message: str, chat_id: int) -> str:
-    """Detect conversation topic using local Ollama model. Returns an existing topic or invents a new one."""
-    import glob
-    import re
-    # Use BASE_DIR from config (consistent with other modules) instead of __file__
-    history_dir = BASE_DIR
-    existing_files = glob.glob(os.path.join(history_dir, f"chat_history_{chat_id}_*.txt"))
-    
-    existing_topics = []
-    for f in existing_files:
-        basename = os.path.basename(f)
-        m = re.search(f"chat_history_{chat_id}_(.+)\\.txt", basename)
-        if m:
-            existing_topics.append(m.group(1))
-            
-    topics_list_str = ", ".join(existing_topics) if existing_topics else "None"
+    """Classify a chat topic using only a local Ollama endpoint."""
+    try:
+        safe_chat_id = str(int(chat_id))
+    except (TypeError, ValueError):
+        safe_chat_id = "0"
+    existing_topics: list[str] = []
+    prefix = f"chat_history_{safe_chat_id}_"
+    for path in Path(CHAT_HISTORY_DIR).glob(f"{prefix}*.txt"):
+        topic = path.stem[len(prefix):]
+        if _TOPIC_RE.fullmatch(topic):
+            existing_topics.append(topic)
 
     prompt = (
-        "You are a topic classifier and router. Your job is to organize a user's messages into distinct conversation files.\n"
-        f"The existing topics are: [{topics_list_str}].\n"
-        "If the following message perfectly matches one of the existing topics, reply with that exact topic name.\n"
-        "If it is a completely new subject, invent a short, 1-2 word topic name for it (e.g., 'math_homework', 'python_bot', 'fitness').\n"
-        "Reply with ONLY the topic name in lowercase, using underscores instead of spaces. Do not write anything else.\n\n"
-        f"Message: {message}"
+        "Classify the message into a short topic slug. Reuse one of these exact "
+        f"slugs when appropriate: {', '.join(sorted(existing_topics)) or 'none'}. "
+        "Otherwise create one or two lowercase words joined by underscores. "
+        "Reply with the slug only.\n\nMessage: "
+        f"{message}"
     )
-    
     try:
         result = await asyncio.wait_for(
-            asyncio.get_running_loop().run_in_executor(
-                None,
-                lambda: subprocess.run(
-                    [AGENTAPI_BIN, "--model", "Gemini 3.5 Flash (Low)", "--dangerously-skip-permissions", "--print", prompt],
-                    capture_output=True, text=True, timeout=30
-                )
+            asyncio.to_thread(
+                call_ollama_result,
+                prompt,
+                model="hf.co/Qwen/Qwen2-0.5B-Instruct-GGUF:latest",
+                timeout=25,
             ),
-            timeout=35
+            timeout=30,
         )
-        topic = result.stdout.strip().lower()
-        topic = re.sub(r'[^a-z0-9_]', '', topic.replace(' ', '_'))
-        if len(topic) > 30:
-            logger.warning(f"Topic name too long from flash_lite model, falling back to 'general': {topic}")
-            return "general"
-        return topic if topic else "general"
-    except Exception as e:
-        logger.error(f"Topic detection failed: {e}")
+    except (TimeoutError, asyncio.TimeoutError):
+        logger.warning("Local topic classification timed out")
+        return "general"
+    except Exception as exc:
+        logger.warning("Local topic classification failed: %s", type(exc).__name__)
         return "general"
 
+    if not result.ok:
+        return "general"
+    topic = re.sub(r"[^a-z0-9_]", "", result.text.strip().lower().replace(" ", "_"))
+    return topic if _TOPIC_RE.fullmatch(topic) else "general"
 
-# ── Bridge logic ───────────────────────────────────────────────────────────────
+
+def _selected_model(chat_id: int) -> str:
+    try:
+        state = load_state()
+        models = state.get("user_models", {}) if isinstance(state, dict) else {}
+        value = models.get(str(chat_id), "auto") if isinstance(models, dict) else "auto"
+        return value if isinstance(value, str) and value else "auto"
+    except Exception:
+        return "auto"
+
+
+def _selected_mode(chat_id: int) -> str:
+    try:
+        state = load_state()
+        modes = state.get("user_modes", {}) if isinstance(state, dict) else {}
+        value = modes.get(str(chat_id), "default") if isinstance(modes, dict) else "default"
+        return value if isinstance(value, str) and value in MODE_PROMPTS else "default"
+    except Exception:
+        return "default"
+
+
+def _is_code_request(text: str) -> bool:
+    """Detect if prompt is primarily a coding/scripting task."""
+    lowered = text.lower()
+    code_keywords = (
+        "def ", "class ", "function ", "import ", "const ", "let ", "var ",
+        "python", "javascript", "bash", "shell", "sql", "regex", "script",
+        "bug", "traceback", "syntax error", "refactor", "algorithm", "git",
+    )
+    return "```" in text or any(k in lowered for k in code_keywords)
+
+
+def _is_heavy_reasoning(text: str) -> bool:
+    """Detect if prompt benefits from a larger 70B+ model."""
+    lowered = text.lower()
+    reasoning_keywords = (
+        "explain", "derive", "proof", "prove", "integral", "derivative",
+        "calculus", "physics", "sat", "ap ", "essay", "thesis", "step-by-step",
+        "solve", "compare and contrast", "why does", "how does",
+    )
+    return any(k in lowered for k in reasoning_keywords)
+
+
+def _is_basic_or_local_query(text: str) -> bool:
+    """Detect if a message is a simple greeting, quick conversion, or local inquiry."""
+    clean = text.strip().lower()
+    if len(clean.split()) <= 4:
+        greetings = {"hi", "hello", "hey", "yo", "sup", "howdy", "good morning", "good evening", "thanks", "thank you"}
+        if clean in greetings:
+            return True
+    basic_patterns = [
+        r"^(?:what time|what date|what day|who are you|what can you do)",
+        r"^(?:convert \d+|calculate \d+\s*[\+\-\*\/]\s*\d+)",
+        r"^(?:my tasks|what do i have|schedule|digest|status|server)",
+    ]
+    return any(re.search(p, clean) for p in basic_patterns)
+
+
+def _build_local_prompt(
+    user_message: str,
+    chat_id: int,
+    topic: str,
+    *,
+    mode: str = "default",
+    reply_context: str = "",
+) -> tuple[str, Path]:
+    history_file = _history_path(chat_id, topic)
+    history = _read_private_context(history_file, "", limit=3_000)
+    brain = _read_private_context(BOT_CONTEXT_FILE, "No offline memory is available.")
+    digest = _read_private_context(LATEST_DIGEST_FILE, "No recent digest is available.")
+
+    # Format active session dialogue for multi-turn continuity
+    session_turns = get_session_turns(chat_id, max_turns=6)
+    session_dialogue = ""
+    if session_turns:
+        dialogue_lines = [
+            f"User: {turn['user']}\nAssistant: {turn['assistant']}"
+            for turn in session_turns
+        ]
+        session_dialogue = "\n\n".join(dialogue_lines)
+
+    retrieval_context = ""
+    try:
+        from scrapers.semantic_retrieval import get_context_for_prompt
+
+        retrieved = get_context_for_prompt(user_message, top_k=5)
+        if isinstance(retrieved, str) and "SEMANTIC RETRIEVAL" in retrieved:
+            retrieval_context = retrieved[-12_000:]
+    except Exception as exc:
+        logger.warning("Local semantic retrieval failed: %s", type(exc).__name__)
+
+    notion_tasks_context = ""
+    try:
+        from scrapers.notion_client import get_notion_tasks_summary
+        notion_tasks_context = get_notion_tasks_summary(max_tasks=12)
+    except Exception as exc:
+        logger.debug("Local Notion tasks context unavailable: %s", type(exc).__name__)
+
+    mode_instruction = MODE_PROMPTS.get(mode, MODE_PROMPTS["default"])
+    system = (
+        f"{mode_instruction}\n\n"
+        "UNIFIED KNOWLEDGE BASE & RETRIEVAL:\n"
+        "• You have direct semantic access to Sanel's unified notes across OneNote, Google Drive, Canvas, and classroom study guides in 'Retrieved local notes'.\n"
+        "• When answering questions based on these notes, cite the source clearly (e.g. 'According to your OneNote notes...', 'From your Canvas Physics syllabus...').\n\n"
+        "EXECUTION BOUNDARY:\n"
+        "• You cannot execute commands directly from chat. For server actions, direct the user to a vetted bot command such as /server. Never emit BASH tool tags.\n\n"
+        f"Conversation topic: {topic}\n\n"
+        f"Local memory:\n{brain}\n\n"
+        f"Active Notion tasks:\n{notion_tasks_context or 'None'}\n\n"
+        f"Latest local digest:\n{digest}\n"
+    )
+
+    prompt_parts = [system]
+    if session_dialogue:
+        prompt_parts.append(f"Recent session dialogue:\n{session_dialogue}")
+    elif history:
+        prompt_parts.append(f"Conversation history:\n{history}")
+
+    if retrieval_context:
+        prompt_parts.append(f"Retrieved local notes:\n{retrieval_context}")
+
+    if reply_context:
+        prompt_parts.append(f"[In direct reply to message: \"{reply_context}\"]")
+
+    prompt_parts.append(f"User: {user_message}")
+    prompt = "\n\n".join(prompt_parts)
+    return prompt, history_file
+
+
+def _render_command_suggestions(text: str) -> str:
+    """Display model-proposed commands as inert text; never execute them."""
+    def replace(match: re.Match) -> str:
+        proposed = match.group(1).strip()[:2_000]
+        if not proposed:
+            return ""
+        return (
+            "\n\nNo command was run automatically. Proposed command (review manually):\n"
+            f"```sh\n{proposed}\n```"
+        )
+
+    return _BASH_BLOCK_RE.sub(replace, text)
+
+
+def _append_history(history_file: Path, user_message: str, response: str) -> None:
+    """Append private history with restrictive permissions and bounded growth."""
+    history_file.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if history_file.is_symlink():
+        logger.warning("Refusing to write chat history through a symlink")
+        return
+
+    flags = os.O_APPEND | os.O_CREAT | os.O_WRONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(history_file, flags, 0o600)
+    try:
+        os.fchmod(fd, 0o600)
+        with os.fdopen(fd, "a", encoding="utf-8") as handle:
+            fd = -1
+            handle.write(f"User: {user_message}\nModel: {response}\n\n")
+    finally:
+        if fd >= 0:
+            os.close(fd)
+
+    try:
+        if history_file.stat().st_size <= 50_000:
+            return
+        content = history_file.read_text(encoding="utf-8")
+        temp_fd, temp_name = tempfile.mkstemp(dir=history_file.parent, suffix=".tmp")
+        try:
+            os.fchmod(temp_fd, 0o600)
+            with os.fdopen(temp_fd, "w", encoding="utf-8") as handle:
+                temp_fd = -1
+                handle.write("[earlier messages trimmed]\n" + content[-40_000:])
+            os.replace(temp_name, history_file)
+        finally:
+            if temp_fd >= 0:
+                os.close(temp_fd)
+            try:
+                os.unlink(temp_name)
+            except FileNotFoundError:
+                pass
+    except (OSError, UnicodeError):
+        logger.warning("Unable to rotate chat history", exc_info=True)
+
+
+async def _run_local(prompt: str) -> InferenceResult:
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(
+                call_local_rpc_result,
+                prompt=prompt,
+                max_tokens=4_000,
+                timeout=RESPONSE_TIMEOUT,
+                allow_cloud=False,
+                sensitivity=Sensitivity.PERSONAL,
+            ),
+            timeout=float(RESPONSE_TIMEOUT) + 2,
+        )
+    except (TimeoutError, asyncio.TimeoutError):
+        return InferenceResult(
+            InferenceStatus.TIMEOUT,
+            provider="local-rpc",
+            detail="Local inference deadline exceeded",
+        )
+    except Exception as exc:
+        logger.warning("Local inference bridge failed: %s", type(exc).__name__)
+        return InferenceResult(
+            InferenceStatus.ERROR,
+            provider="local-rpc",
+            detail=type(exc).__name__,
+        )
+
 
 async def send_to_antigravity_and_wait(
     user_message: str,
@@ -78,548 +421,166 @@ async def send_to_antigravity_and_wait(
     context=None,
     status_msg=None,
     *,
+    cloud_consent: bool = False,
+    force_route: str = "auto",
+    reply_context: str = "",
     persist_history: bool = True,
 ) -> str:
-    """Uses agy --print for a direct response. Works standalone on Debian."""
-    try:
-        with open(LATEST_DIGEST_FILE, "r") as f:
-            digest_context = f.read()
-    except Exception:
-        digest_context = "No recent data available."
-        
-    try:
-        with open(BOT_CONTEXT_FILE, "r") as f:
-            brain_context = f.read()
-    except Exception:
-        brain_context = "No offline memory consolidated yet."
+    """Generate a response with privacy verification, smart auto-routing, and session continuity."""
+    if not isinstance(user_message, str) or not user_message.strip():
+        return "⚠️ Please send a non-empty message."
 
-    # ── PII CHECK: Fast regex scan before any cloud touch ──
-    # If PII is detected, route the ENTIRE request to Orange Pi Ollama.
-    # Primary: qwen2:0.5b (fast, ~53 tok/s)
-    # Fallback: qwen2.5:3b-instruct-q4_K_M (capable, ~15 tok/s)
-    # If both fail, fall through to cloud path with regex-scrubbed message.
-    from utils import check_pii
-    is_safe, scrubbed_message, pii_types = check_pii(user_message)
+    is_public, _, pii_types = check_pii(user_message)
+    selected_mode = _selected_mode(chat_id)
+    selected_model = _selected_model(chat_id)
+    decision = classify_query(user_message)
+    active_mode = selected_mode if selected_mode != "default" else decision.mode
 
-    if not is_safe:
-        pii_str = ", ".join(pii_types)
-        logger.info(f"PII detected ({pii_str}) — routing entirely via Pi Ollama")
-        if status_msg and context:
-            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🛡️ PII detected ({pii_str}) — keeping it local on Pi")
-            except Exception: pass
-
-        from llm_router import call_ollama
-        pi_prompt = (
-            "You are a helpful, knowledgeable personal assistant. "
-            "Keep your response concise and natural. Do not mention that you are an AI.\n\n"
-            f"User: {scrubbed_message}"
-        )
-        pi_models = [
-            ("qwen2:0.5b", "Pi 0.5B"),
-            ("qwen2.5:3b-instruct-q4_K_M", "Pi 3.1B"),
-        ]
-        pi_result = ""
-        for pi_model, pi_label in pi_models:
-            try:
-                pi_result = await asyncio.wait_for(
-                    asyncio.get_running_loop().run_in_executor(
-                        None,
-                        lambda m=pi_model: call_ollama(pi_prompt, model=m, timeout=60)
-                    ),
-                    timeout=65,
-                )
-                if pi_result:
-                    logger.info(f"{pi_label} responded: {len(pi_result)} chars")
-                    return pi_result
-                logger.warning(f"{pi_label} returned empty")
-            except Exception as e:
-                logger.warning(f"{pi_label} failed ({e})")
-
-        logger.warning("All Pi models failed for PII request — failing closed to prevent cloud leak.")
-        return "⚠️ Local privacy models are currently unavailable to process this PII-containing request. Cloud fallback is disabled for your privacy."
-
-    if status_msg and context:
-        try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="🔍 Classifying topic...")
-        except Exception: pass
-    # Detect topic and load the matching history file
-    topic = await detect_topic(user_message, chat_id)
-    history_file = os.path.join(BASE_DIR, f"chat_history_{chat_id}_{topic}.txt")
-    logger.info(f"Topic detected: {topic} -> {os.path.basename(history_file)}")
-
-    system = (
-        f"You are a powerful personal assistant AI for Sanel Lathiya running on his personal Debian server. "
-        f"You DO NOT have root privileges or automatic arbitrary shell execution capabilities. "
-        f"Please instruct the user to use vetted bot commands or standard typed operations if they need to perform server actions.\n\n"
-        f"CURRENT CONVERSATION TOPIC: {topic}\n"
-        f"You are in a focused conversation about this topic. Stay on topic unless Sanel switches subjects.\n\n"
-    )
-
-    capabilities_str = (
-        "OTHER CAPABILITIES:\n"
-        "--- SERVER MANAGEMENT ---\n"
-        "- Server Status: Direct the user to use /server or other built-in commands.\n"
-        "- Minecraft Server: Direct the user to use /mc start or /mc stop commands.\n"
-        "- Activity Log: Direct the user to check bot logs directly.\n\n"
-        "--- ACADEMIC & STUDY ---\n"
-        "- DEEP-DIVE KNOWLEDGE BASE: An offline researcher runs every night to compile massive study sheets on your current topics. If Sanel asks a question about an academic topic, check if a guide exists in the knowledge base.\n\n"
-        "--- LIFE MANAGEMENT ---\n"
-        "- Every 4 hours: auto-digest from Canvas, Classroom, Gmail, GroupMe\n"
-        "- Notion: assignments auto-pushed to Tasks Tracker\n\n"
-        "--- BE PROACTIVE ---\n"
-        "- Do not wait for permission. If the user asks about the server, check it! If the user asks about Minecraft, check its status and offer to start it! Take initiative.\n\n"
-        "- /summary: manual digest trigger | /server: server dashboard\n\n"
-    )
-
-    system = system + capabilities_str + (
-        f"Here is the core context of your life and active classes (from your compressed Memory Index):\n\n{brain_context}\n\n"
-        f"Here is the latest live data digest:\n\n{digest_context}\n\n"
-        f"Be direct and take action immediately when asked. Never ask for permission."
-    )
-
-    try:
-        with open(history_file, "r") as f:
-            chat_history = f.read()
-    except Exception:
-        chat_history = ""
-
-    # Cap history to last 4000 chars per topic
-    if len(chat_history) > 4000:
-        chat_history = "[earlier messages trimmed]\n" + chat_history[-4000:]
-
-    # Add semantic retrieval for academic questions
-    retrieval_context = ""
-    try:
-        from scrapers.semantic_retrieval import get_context_for_prompt
-        retrieval_result = get_context_for_prompt(user_message, top_k=5)
-        if retrieval_result and "SEMANTIC RETRIEVAL" in retrieval_result:
-            retrieval_context = f"\n\n=== SEMANTIC RETRIEVAL FROM KNOWLEDGE BASE ===\n{retrieval_result}\n=== END RETRIEVAL ===\n"
-            logger.info(f"Semantic retrieval added to prompt for topic: {topic}")
-    except Exception as e:
-        logger.warning(f"Semantic retrieval failed: {e}")
-
-    full_prompt = (system + "\n\n"
-                   f"--- {topic.upper()} CONVERSATION HISTORY ---\n"
-                   + chat_history +
-                   f"\n--- END HISTORY ---\n"
-                   + retrieval_context +
-                   f"\nUser: " + user_message)
-    
-    state = load_state()
-    model = state["user_models"].get(str(chat_id), "auto")
-    cloud_classification = "PRIVATE"
-
-    # A user-selected cloud model is not permission to send private context.
-    # Screen both automatic and manually selected cloud routes locally first.
-    if model == "auto" or model.startswith("openrouter:"):
-        if status_msg and context:
-            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text="🛡️ Running local PII privacy filter...")
-            except Exception: pass
-        logger.info("Running PII privacy filter via flash...")
-        privacy_prompt = (
-            "Analyze the following conversation context. Does it contain ANY highly personal "
-            "information (e.g. real names, personal emails, physical addresses, private academic grades, "
-            "bank details, or intimate personal stories)?\n\n"
-            f"Context to check:\n{chat_history}\n\nUser: {user_message}\n\n"
-            "Reply with EXACTLY ONE WORD: 'YES' if it contains personal info, or 'NO' if it is safe general/academic knowledge."
-        )
-        try:
-            p_result = await asyncio.wait_for(
-                asyncio.get_running_loop().run_in_executor(
-                    None,
-                    lambda: subprocess.run(
-                        [AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", privacy_prompt],
-                        capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL
-                    )
-                ),
-                timeout=65
-            )
-            is_private = "yes" in p_result.stdout.lower()
-        except Exception as e:
-            logger.error(f"Privacy filter failed, defaulting to secure: {e}")
-            is_private = True # Fail safe
-            
-        if is_private:
-            logger.info("Routing to FLASH because the cloud privacy screen detected private context")
-            model = "flash"
-        else:
-            cloud_classification = "PUBLIC"
-            if model == "auto":
-                if len(user_message) > 300:
-                    logger.info("Auto-routing to NEMOTRON (Long/Complex query)")
-                    model = "openrouter:nvidia/nemotron-3-ultra-550b-a55b:free"
-                else:
-                    from config import OR_FALLBACK_MODEL
-                    logger.info(f"Auto-routing to fallback model ({OR_FALLBACK_MODEL}) (Short/Academic query)")
-                    model = f"openrouter:{OR_FALLBACK_MODEL}"
-    
-    out = ""
-    actual_model_used = model
-    if model.startswith("openrouter:"):
-        or_model_name = model.split("openrouter:", 1)[1]
-        logger.info(f"OpenRouter model={or_model_name} processing request...")
-        log_llm_call(or_model_name, "chat", 0, is_local=False)
-
-        # ``system`` and ``full_prompt`` include the personal digest, brain,
-        # and local retrieval.  They are for local inference only.  A cloud
-        # request can use the locally screened public conversation, but never
-        # those cached private sources.
-        cloud_system_prompt = (
-            "You are a helpful assistant. Answer only from public, general "
-            "knowledge and the public conversation supplied by the user."
-        )
-        cloud_user_prompt = (
-            f"--- CONVERSATION HISTORY ---\n{chat_history}\n"
-            f"--- END HISTORY ---\n\nUser: {user_message}"
-        )
-
-        async def _call_or(m_name):
-            from llm_router import call_openrouter
-            sys_prompt = cloud_system_prompt + "\n\nProvide a direct, well-structured answer."
-            loop = asyncio.get_running_loop()
-            stream_info = (context, chat_id, status_msg, loop) if status_msg and context else None
-            try:
-                out = await loop.run_in_executor(
-                    None,
-                    lambda: call_openrouter(
-                        model=m_name,
-                        prompt=cloud_user_prompt,
-                        task=f"chat-{topic}",
-                        max_tokens=4000,
-                        system_prompt=sys_prompt,
-                        timeout=180,
-                        stream_to_status=stream_info,
-                        classification=cloud_classification,
-                    )
-                )
-                return out
-            except Exception as e:
-                logger.error(f"Streaming error: {e}")
-                return None
-                
-        try:
-            if status_msg and context:
-                try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using {or_model_name}...")
-                except Exception: pass
-            out = await _call_or(or_model_name)
-            actual_model_used = or_model_name
-            fail_phrases = ["i cannot", "i'm sorry", "i don't know", "as an ai", "unable to", "i apologize"]
-
-            # ── OpenRouter fallback chain: try OR models in order ──
-            or_fallback_models = []
-            if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
-                or_fallback_models = [OR_FALLBACK_MODEL, OR_THIRD_MODEL]
-
-            # Check if primary model failed or refused
-            if not out or (isinstance(out, str) and any(p in out.lower()[:50] for p in fail_phrases)):
-                fallback_tried = False
-                for fb_model in or_fallback_models:
-                    logger.warning(f"{or_model_name} failed. Falling back to {fb_model}...")
-                    try:
-                        if status_msg and context:
-                            await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using {fb_model}...")
-                        fb_out = await _call_or(fb_model)
-                        if fb_out and not any(p in fb_out.lower()[:50] for p in fail_phrases):
-                            out = fb_out
-                            actual_model_used = fb_model
-                            fallback_tried = True
-                            break
-                    except Exception:
-                        continue
-
-                if not fallback_tried:
-                    # ── Cross-provider: try Opencode Zen (separate rate limit bucket) ──
-                    from config import OPENCODE_ZEN_MODEL
-                    logger.warning("OpenRouter models all failed. Trying Opencode Zen (%s)...", OPENCODE_ZEN_MODEL)
-                    try:
-                        from llm_router import call_opencode
-                        zen_out = await asyncio.get_running_loop().run_in_executor(
-                            None,
-                            lambda: call_opencode(prompt=cloud_user_prompt, model=OPENCODE_ZEN_MODEL, system_prompt=cloud_system_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT, classification=cloud_classification)
-                        )
-                        if zen_out:
-                            out = zen_out
-                            actual_model_used = f"{OPENCODE_ZEN_MODEL} (Opencode Zen)"
-                        else:
-                            raise Exception("empty")
-                    except Exception as ze:
-                        logger.warning(f"Opencode Zen also failed ({ze}). Trying Hack Club AI...")
-                        try:
-                            from llm_router import call_hackclub
-                            hc_out = await asyncio.get_running_loop().run_in_executor(
-                                None,
-                                lambda: call_hackclub(prompt=cloud_user_prompt, model="qwen/qwen3-32b", system_prompt=cloud_system_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT, classification=cloud_classification)
-                            )
-                            if hc_out:
-                                out = hc_out
-                                actual_model_used = "qwen3-32b (Hack Club AI)"
-                            else:
-                                raise Exception("empty")
-                        except Exception as he:
-                            logger.warning(f"Hack Club AI also failed ({he}). Falling back to local G1 Flash...")
-                            try:
-                                result = await asyncio.wait_for(
-                                    asyncio.get_running_loop().run_in_executor(
-                                        None,
-                                        lambda: subprocess.run([AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                                    ), timeout=RESPONSE_TIMEOUT + 5)
-                                out = result.stdout.strip()
-                                actual_model_used = "flash (local fallback)"
-                            except Exception as e3:
-                                out = f"⚠️ Fallback to G1 Exception: {e3}"
-        except Exception as e:
-            if or_model_name == "nvidia/nemotron-3-ultra-550b-a55b:free":
-                from config import OR_FALLBACK_MODEL, OR_THIRD_MODEL
-                logger.warning(f"Primary model exception ({e}). Trying fallback chain...")
-                fallback_tried = False
-                for fb_model in [OR_FALLBACK_MODEL, OR_THIRD_MODEL]:
-                    try:
-                        if status_msg and context:
-                            await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Trying {fb_model}...")
-                        fb_out = await _call_or(fb_model)
-                        if fb_out:
-                            out = fb_out
-                            actual_model_used = fb_model
-                            fallback_tried = True
-                            break
-                        else:
-                            raise Exception(f"{fb_model} empty")
-                    except Exception:
-                        continue
-
-                if not fallback_tried:
-                    # ── Cross-provider: Opencode Zen ──
-                    from config import OPENCODE_ZEN_MODEL
-                    logger.warning("All streaming OpenRouter models failed. Trying Opencode Zen (%s)...", OPENCODE_ZEN_MODEL)
-                    try:
-                        from llm_router import call_opencode
-                        zen_out = await asyncio.get_running_loop().run_in_executor(
-                            None,
-                            lambda: call_opencode(prompt=cloud_user_prompt, model=OPENCODE_ZEN_MODEL, system_prompt=cloud_system_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT, classification=cloud_classification)
-                        )
-                        if zen_out:
-                            out = zen_out
-                            actual_model_used = f"{OPENCODE_ZEN_MODEL} (Opencode Zen)"
-                        else:
-                            raise Exception("empty")
-                    except Exception as ze:
-                        logger.warning(f"Opencode Zen also failed ({ze}). Trying Hack Club AI...")
-                        try:
-                            from llm_router import call_hackclub
-                            hc_out = await asyncio.get_running_loop().run_in_executor(
-                                None,
-                                lambda: call_hackclub(prompt=cloud_user_prompt, model="qwen/qwen3-32b", system_prompt=cloud_system_prompt, task=f"chat-{topic}", timeout=RESPONSE_TIMEOUT, classification=cloud_classification)
-                            )
-                            if hc_out:
-                                out = hc_out
-                                actual_model_used = "qwen3-32b (Hack Club AI)"
-                            else:
-                                raise Exception("empty")
-                        except Exception as he:
-                            logger.warning(f"Hack Club AI also failed ({he}). Falling back to local G1 Flash...")
-                            try:
-                                result = await asyncio.wait_for(
-                                    asyncio.get_running_loop().run_in_executor(
-                                        None,
-                                        lambda: subprocess.run([AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", full_prompt], capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL)
-                                    ), timeout=RESPONSE_TIMEOUT + 5)
-                                out = result.stdout.strip()
-                                actual_model_used = "flash (local fallback)"
-                            except Exception as e3:
-                                out = f"⚠️ Fallback to G1 Exception: {e3}"
-            else:
-                out = f"⚠️ OpenRouter Exception: {e}"
-
-        if not out:
-            out = "⚠️ OpenRouter returned an empty response or failed."
+    # 1. PII Safety & Basic Question Enforcement
+    if not is_public or decision.target_engine == "local" or force_route == "local" or selected_model in ("local", "ollama", "rpc"):
+        route_to_cloud = False
+        await _edit_status(context, chat_id, status_msg, "🏠 Answering with fast local model…")
+    elif force_route in ("cloud", "code", "flash", "pro") or selected_model.startswith("openrouter:") or (cloud_consent and selected_model == "auto"):
+        route_to_cloud = True
     else:
-        if status_msg and context:
-            try: await context.bot.edit_message_text(chat_id=chat_id, message_id=status_msg.message_id, text=f"🧠 Generating response using local {model}...")
-            except Exception: pass
-        logger.info(f"agy --print model={model} processing request...")
-        log_llm_call(f"agy/{model}", "chat", 0, is_local=True)
-        try:
-            result = await asyncio.wait_for(
-                asyncio.get_running_loop().run_in_executor(
-                    None,
-                    lambda: subprocess.run(
-                        [AGENTAPI_BIN, "--model", _agy_model(model), "--dangerously-skip-permissions", "--print", full_prompt],
-                        capture_output=True, text=True, timeout=RESPONSE_TIMEOUT, stdin=subprocess.DEVNULL
-                    )
-                ),
-                timeout=RESPONSE_TIMEOUT + 5
-            )
-            out = result.stdout.strip()
-            if not out:
-                out = "⚠️ Assistant returned empty output. " + result.stderr[:200]
-        except Exception as e:
-            out = f"⚠️ Assistant timed out or failed: {e}"
+        route_to_cloud = False
+        await _edit_status(context, chat_id, status_msg, "🛡️ Using private local inference.")
 
-    if out and not out.startswith("⚠️"):
-        logger.info("Response generated successfully.")
-        # Lightweight sanity check: only run on responses that look suspicious
-        # (very short, contain error markers, or look like raw system output)
-        _suspicious = (
-            len(out.strip()) < 20
-            or "error" in out.lower()[:100] and "bash" not in out.lower()[:100]
-            or out.strip().startswith(("[", "{", "Traceback", "Error:"))
-            or "I cannot" in out and len(out.strip()) < 50
-        )
-        if _suspicious:
-            logger.warning("Response looks suspicious, running quick sanity check...")
+    topic = await detect_topic(user_message, chat_id)
+    local_prompt, history_file = _build_local_prompt(
+        user_message,
+        chat_id,
+        topic,
+        mode=active_mode,
+        reply_context=reply_context,
+    )
+
+    result: InferenceResult
+    model_label = "local"
+
+    if route_to_cloud:
+        prefer_agy = (
+            selected_model in ("auto", "flash", "pro", "gemini", "agy", "agy:flash", "agy:pro")
+            or force_route in ("agy", "flash", "pro")
+        ) and not selected_model.startswith("openrouter:")
+
+        if prefer_agy:
+            agy_alias = "pro" if (selected_model in ("pro", "agy:pro") or _is_heavy_reasoning(user_message)) else "flash"
+            display_name = "Gemini 3.7 Flash" if agy_alias == "flash" else "Gemini 3.1 Pro"
+            await _edit_status(context, chat_id, status_msg, f"☁️ Thinking with Google {display_name}…")
             try:
-                sanity_prompt = (
-                    "You are a quality-control filter. Does this AI response look coherent and helpful?\n\n"
-                    f"RESPONSE: {out[:500]}\n\n"
-                    "Reply YES if coherent, NO if broken/hallucinated."
+                result = await asyncio.to_thread(
+                    call_agy_result,
+                    prompt=local_prompt,
+                    model=agy_alias,
+                    timeout=120,
+                    sensitivity=Sensitivity.PUBLIC,
+                    cloud_consent=True,
                 )
-                sanity_result = await asyncio.wait_for(
-                    asyncio.get_running_loop().run_in_executor(
-                        None,
-                        lambda: subprocess.run(
-                            [AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", sanity_prompt],
-                            capture_output=True, text=True, timeout=15, stdin=subprocess.DEVNULL
-                        )
-                    ),
-                    timeout=20
-                )
-                if "no" in sanity_result.stdout.lower() and "yes" not in sanity_result.stdout.lower()[:5]:
-                    logger.warning("Sanity check flagged response as broken. Running recovery agent...")
-                    log_event(
-                        "error",
-                        {"error_code": "sanity_check_failed", "source": "sanity_filter"},
-                    )
-                    recovery_prompt = (
-                        "You are a Recovery AI Agent. The primary AI model hallucinated or produced broken output.\n\n"
-                        f"USER REQUEST:\n{user_message}\n\n"
-                        f"BROKEN OUTPUT:\n{out[:2000]}\n\n"
-                        "Your job is to provide a clear, coherent, correct response. Do not apologize, just answer correctly. "
-                        "Use [BASH] tags if you need to run commands."
-                    )
-                    try:
-                        recovery_result = await asyncio.wait_for(
-                            asyncio.get_running_loop().run_in_executor(
-                                None,
-                                lambda: subprocess.run(
-                                    [AGENTAPI_BIN, "--model", _agy_model("flash"), "--dangerously-skip-permissions", "--print", recovery_prompt],
-                                    capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL
-                                )
-                            ),
-                            timeout=65
-                        )
-                        recovered_text = recovery_result.stdout.strip()
-                        if recovered_text:
-                            out = recovered_text
-                            actual_model_used = "flash (Recovery Agent)"
-                            logger.info("Recovery agent produced a corrected response.")
-                        else:
-                            out = "⚠️ The AI hallucinated and the Recovery Agent failed to fix it. Please try again."
-                    except Exception as e:
-                        logger.error(f"Recovery agent timeout or error: {e}")
-                        out = "⚠️ The AI hallucinated and the Recovery Agent timed out. Please try your request again."
-                else:
-                    logger.info("Sanity check passed.")
-            except Exception:
-                pass  # Don't let sanity check failures block responses
+            except Exception as exc:
+                logger.warning("AGY inference failed: %s", exc)
+                result = InferenceResult(InferenceStatus.ERROR)
 
-    if out and not out.startswith("⚠️"):
-        disp_model = actual_model_used.replace("openrouter:", "") if "openrouter" in actual_model_used else actual_model_used
-        out += f"\n\n_(Generated by: `{disp_model}`)_"
+            if result.ok and is_valid_response(result.text):
+                model_label = f"⚡ {result.model or display_name} (Google)"
+            else:
+                logger.info("AGY returned no usable output; falling back to OpenRouter/local")
+                result = InferenceResult(InferenceStatus.UNAVAILABLE)
 
-    # Auto-execute any <BASH>...</BASH> blocks in the response
-    import re as _re
-    
-    # BASH execution now uses run_bash_safely from utils (with audit log + rate limit)
+        if not result.ok:
+            # Fallback or explicit OpenRouter request
+            if force_route == "code" or _is_code_request(user_message):
+                target_model = "qwen/qwen3-coder:free"
+                display_name = "Qwen Coder"
+            elif selected_model.startswith("openrouter:"):
+                target_model = selected_model.removeprefix("openrouter:")
+                display_name = target_model.split("/")[-1].replace(":free", "")
+            elif _is_heavy_reasoning(user_message):
+                target_model = "meta-llama/llama-3.3-70b-instruct:free"
+                display_name = "Llama 3.3 70B"
+            else:
+                target_model = "meta-llama/llama-3.3-70b-instruct:free"
+                display_name = "Llama 3.3 70B"
 
-    def _replace_bash(m):
-        cmd = m.group(1).strip()
-        logger.info(f"Auto-executing: {cmd[:80]}")
-        output = run_bash_safely(cmd, chat_id=chat_id)
-        return f"\n💻 `{cmd}`\n```\n{output}\n```"
-
-    original_out = out
-    out = _re.sub(r'<BASH>(.*?)</BASH>', _replace_bash, out, flags=_re.DOTALL)
-    out = _re.sub(r'\[BASH\](.*?)\[/BASH\]', _replace_bash, out, flags=_re.DOTALL)
-
-    if original_out != out and "\n```\n" in out:
-        logger.info("Command executed. Dispatching Verification Agent...")
-        
-        custom_instructions = ""
-        vrules = os.path.join(BASE_DIR, "verification_rules.txt")
-        if os.path.exists(vrules):
-            with open(vrules, "r") as f:
-                custom_instructions = f"\n\nCRITICAL CUSTOM INSTRUCTIONS FROM USER:\n{f.read()}"
-                
-        summary_prompt = (
-            "You are a Verification AI Agent. You just executed a background system command on behalf of the user.\n\n"
-            f"USER REQUEST:\n{user_message}\n\n"
-            f"COMMAND AND OUTPUT:\n{out[-3000:]}\n\n"
-            "Your job is to read the output of the command you just ran, and give the user a quick, natural summary "
-            "confirming whether the task succeeded, failed, or what the exact result was. "
-            "Speak directly to the user. Do not use any bash tags. Keep it concise."
-            f"{custom_instructions}"
-        )
-        async def _run_verification_bg(prompt_text, chat_id_to_notify):
+            await _edit_status(context, chat_id, status_msg, f"☁️ Querying {display_name}…")
             try:
-                # Use default fallback model as requested, taking as much time as needed (up to 300s)
-                from config import OR_FALLBACK_MODEL
-                res = await asyncio.wait_for(
-                    asyncio.get_running_loop().run_in_executor(
-                        None,
-                        lambda: subprocess.run(
-                            [AGENTAPI_BIN, "--model", f"openrouter:{OR_FALLBACK_MODEL}", "--dangerously-skip-permissions", "--print", prompt_text],
-                            capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL
-                        )
-                    ),
-                    timeout=310
+                result = await asyncio.to_thread(
+                    call_openrouter_result,
+                    model=target_model,
+                    prompt=user_message,
+                    task=f"chat-{topic}",
+                    max_tokens=4_000,
+                    timeout=RESPONSE_TIMEOUT,
+                    sensitivity=Sensitivity.PUBLIC,
+                    cloud_consent=True,
                 )
-                summary_text = res.stdout.strip()
-                if summary_text:
-                    from utils import sanitize_markdown
-                    safe_summary = sanitize_markdown(summary_text)
-                    await context.bot.send_message(chat_id=chat_id_to_notify, text=f"🤖 **Verification ({OR_FALLBACK_MODEL}):**\n{safe_summary}", parse_mode="Markdown")
-            except Exception as e:
-                logger.error(f"Verification Agent timeout or error: {e}")
+            except Exception as exc:
+                logger.warning("OpenRouter inference failed: %s", exc)
+                result = InferenceResult(InferenceStatus.ERROR)
 
-        if context:
-            # Tell the user we are verifying in the background
-            _track_task(asyncio.create_task(_run_verification_bg(summary_prompt, chat_id)))
-        else:
-            # Fallback for CLI standalone mode
-            try:
-                from config import OR_FALLBACK_MODEL
-                summary_result = subprocess.run([AGENTAPI_BIN, "--model", f"openrouter:{OR_FALLBACK_MODEL}", "--dangerously-skip-permissions", "--print", summary_prompt], capture_output=True, text=True, timeout=300, stdin=subprocess.DEVNULL)
-                summary_text = summary_result.stdout.strip()
-                if summary_text:
-                    out += f"\n\n🤖 **Verification:**\n{summary_text}"
-            except Exception as e:
-                logger.error(f"Summary agent error: {e}")
+            if result.ok and is_valid_response(result.text):
+                model_label = f"⚡ {display_name} (Cloud)"
+            if not result.ok:
+                # Try Opencode Zen
+                from llm_router import call_hackclub, call_opencode
+                try:
+                    logger.info("OpenRouter unavailable, trying Opencode Zen...")
+                    oc_resp = await asyncio.to_thread(
+                        call_opencode,
+                        prompt=user_message,
+                        model="mimo-v2.5-free",
+                        task=f"chat-{topic}",
+                        sensitivity=Sensitivity.PUBLIC,
+                        cloud_consent=True,
+                    )
+                    if oc_resp and is_valid_response(oc_resp):
+                        result = InferenceResult.success(oc_resp, provider="opencode", model="MiMo 2.5")
+                        model_label = "⚡ MiMo 2.5 (Opencode)"
+                except Exception as exc:
+                    logger.warning("Opencode Zen inference failed: %s", exc)
 
-    # Append turn to custom history file (with atomic write + rotation).  OCR
-    # photo requests opt out: their raw recognized text must not be retained.
+            if not result.ok:
+                # Try Hack Club AI proxy (Last resort online)
+                try:
+                    logger.info("Opencode unavailable, trying Hack Club AI (Last Resort)...")
+                    hc_resp = await asyncio.to_thread(
+                        call_hackclub,
+                        prompt=user_message,
+                        model="qwen/qwen3-32b",
+                        task=f"chat-{topic}",
+                        sensitivity=Sensitivity.PUBLIC,
+                        cloud_consent=True,
+                    )
+                    if hc_resp and is_valid_response(hc_resp):
+                        result = InferenceResult.success(hc_resp, provider="hackclub", model="Qwen 3 32B")
+                        model_label = "⚡ Qwen 3 32B (HackClub)"
+                except Exception as exc:
+                    logger.warning("Hack Club AI inference failed: %s", exc)
+
+            if not result.ok:
+                # Final silent fallback to local cluster
+                logger.info("All online providers exhausted; falling back to local cluster")
+                await _edit_status(context, chat_id, status_msg, "🛡️ Falling back to private local cluster…")
+                result = await _run_local(local_prompt)
+                log_llm_call("local-rpc", "chat", 0, is_local=True)
+                model_label = "🏠 Local Cluster (Fallback)"
+    else:
+        result = await _run_local(local_prompt)
+        log_llm_call("local-rpc", "chat", 0, is_local=True)
+        model_label = "🏠 Local Cluster (Private)"
+
+    if not result.ok or not is_valid_response(result.text):
+        logger.warning("Inference did not produce usable output (status=%s)", result.status.value)
+        return _LOCAL_UNAVAILABLE_MESSAGE
+
+    response = _render_command_suggestions(result.text.strip())
+    response += f"\n\n_(Generated by: `{model_label}`)_"
+
     if persist_history:
         try:
-            with open(history_file, "a", encoding="utf-8") as f:
-                f.write(f"User: {user_message}\nModel: {out}\n\n")
-            os.chmod(history_file, 0o600)
-        # Rotate if file exceeds 50KB to prevent unbounded growth
-            if os.path.getsize(history_file) > 50000:
-                with open(history_file, "r", encoding="utf-8") as f:
-                    content = f.read()
-                # Atomic write: write to temp then rename
-                import tempfile
-                fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(history_file), suffix='.tmp')
-                try:
-                    with os.fdopen(fd, 'w', encoding="utf-8") as f:
-                        f.write(content[-40000:])  # Keep last 40KB
-                    os.replace(tmp_path, history_file)
-                    logger.info(f"Rotated history file: {os.path.basename(history_file)}")
-                except Exception:
-                    try:
-                        os.unlink(tmp_path)
-                    except Exception:
-                        pass
-        except Exception:
-            pass
-        
-    return out
+            append_session_turn(chat_id, user_message, response)
+            _append_history(history_file, user_message, response)
+        except OSError:
+            logger.warning("Unable to persist chat history", exc_info=True)
+
+    return response
