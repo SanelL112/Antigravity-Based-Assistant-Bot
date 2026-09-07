@@ -151,7 +151,7 @@ def test_junk_page_titles_never_enter_section(tmp_path):
 
 def test_digest_appends_notebooks_section(tmp_path, monkeypatch):
     """assemble_digest gains a third 'From your notebooks' section."""
-    due = (date.fromisoformat(_TODAY) + timedelta(days=5)).isoformat()
+    due = (date.today() + timedelta(days=5)).isoformat()
     (tmp_path / "onenote_page_extractions.json").write_text(
         json.dumps({"AP Calc/sec/Notes": [_generic_task(due_date=due)]}),
         encoding="utf-8",
