@@ -76,7 +76,7 @@ if [ -f "$BOT_DIR/latest_digest.txt" ]; then
 fi
 
 # Google scrapers / Composio
-USE_COMPOSIO=$(grep USE_COMPOSIO "$BOT_DIR/.env" 2>/dev/null | cut -d= -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+USE_COMPOSIO=$( (grep USE_COMPOSIO "$BOT_DIR/.env" 2>/dev/null || true) | cut -d= -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
 [ -z "$USE_COMPOSIO" ] && USE_COMPOSIO="true"
 
 if [ "$USE_COMPOSIO" = "true" ] || [ "$USE_COMPOSIO" = "1" ] || [ "$USE_COMPOSIO" = "yes" ]; then
