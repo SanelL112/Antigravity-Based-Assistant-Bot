@@ -870,8 +870,11 @@ def call_local_rpc(
     allow_cloud: bool = False,
     *,
     sensitivity: Sensitivity | str = Sensitivity.PERSONAL,
+    classification: str | None = None,
     cloud_consent: bool = False,
 ) -> str:
+    if classification is not None:
+        sensitivity = classification
     """
     Primary local inference path — tries cluster nodes in order.
 
@@ -1300,8 +1303,11 @@ def call_llamacpp_rpc_with_fallback(
     skip_cloud_fallback: bool = True,
     *,
     sensitivity: Sensitivity | str = Sensitivity.PERSONAL,
+    classification: str | None = None,
     cloud_consent: bool = False,
 ) -> str:
+    if classification is not None:
+        sensitivity = classification
     """
     Call Surface orchestrator API with full OOM protection and fallback chain.
 
