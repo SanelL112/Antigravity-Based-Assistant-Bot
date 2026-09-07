@@ -18,10 +18,12 @@ echo "============================================================" | tee -a "$L
 echo "🚀 STARTING DAILY ACADEMIC SYNC: $(date)" | tee -a "$LOG_FILE"
 echo "============================================================" | tee -a "$LOG_FILE"
 
-# 1. Clean stale locks & orphan geckodriver processes
-pkill -9 -f "firefox" 2>/dev/null || true
-pkill -9 -f "geckodriver" 2>/dev/null || true
-rm -f "$HOME/.local/share/personal-assistant-bot/canvas-firefox-profile/.parentlock" 2>/dev/null || true
+# 1. Clean stale locks & orphan geckodriver processes only if the browser daemon is NOT running
+if ! systemctl is-active --quiet canvas-browser.service; then
+    pkill -9 -f "firefox" 2>/dev/null || true
+    pkill -9 -f "geckodriver" 2>/dev/null || true
+    rm -f "$HOME/.local/share/personal-assistant-bot/canvas-firefox-profile/.parentlock" 2>/dev/null || true
+fi
 
 # 2. Warm up local LFM 2.6B model in Ollama
 echo "[1/4] Preloading LFM 2.6B model..." | tee -a "$LOG_FILE"
