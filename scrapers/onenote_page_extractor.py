@@ -31,6 +31,7 @@ import logging
 import os
 import re
 import sys
+import time
 from typing import Any, Callable
 
 from bs4 import BeautifulSoup
@@ -56,6 +57,31 @@ from scrapers.canvas_page_extractor import (  # noqa: E402
 _VISION_URL = os.getenv("ONENOTE_VISION_URL", "http://10.42.0.1:8081")
 _VISION_MODEL = os.getenv("ONENOTE_VISION_MODEL", "LFM2-VL-1.6B")
 _VISION_TIMEOUT = float(os.getenv("ONENOTE_VISION_TIMEOUT_SECONDS", "300"))
+_VISION_CONNECT_TIMEOUT = float(os.getenv("ONENOTE_VISION_CONNECT_TIMEOUT_SECONDS", "3.0"))
+_VISION_COOLDOWN_SECONDS = float(os.getenv("ONENOTE_VISION_COOLDOWN_SECONDS", "60.0"))
+_vision_disabled_until: float = 0.0
+
+
+def _is_vision_available() -> bool:
+    """Return False if the vision endpoint is currently in a failure cooldown."""
+    return time.monotonic() >= _vision_disabled_until
+
+
+def _trip_vision_circuit_breaker(reason: str) -> None:
+    """Disable vision requests for a cooldown window after a connection failure."""
+    global _vision_disabled_until
+    _vision_disabled_until = time.monotonic() + _VISION_COOLDOWN_SECONDS
+    logger.warning(
+        "Vision endpoint unavailable (%s); disabling vision calls for %ds cooldown",
+        reason,
+        int(_VISION_COOLDOWN_SECONDS),
+    )
+
+
+def _reset_vision_circuit_breaker() -> None:
+    """Reset the circuit breaker (for unit tests)."""
+    global _vision_disabled_until
+    _vision_disabled_until = 0.0
 
 # Row band (px): text blocks whose ``top`` differs by less than this are treated
 # as the same visual line and ordered by ``left``.
@@ -297,6 +323,9 @@ def _call_vision_llm(image_bytes: bytes, prompt: str, timeout: float) -> str:
     """
     if not image_bytes:
         return ""
+    if not _is_vision_available():
+        logger.debug("Vision circuit breaker active; skipping vision call")
+        return ""
     import requests
 
     b64 = base64.b64encode(image_bytes).decode("ascii")
@@ -317,11 +346,12 @@ def _call_vision_llm(image_bytes: bytes, prompt: str, timeout: float) -> str:
         "temperature": 0.0,
         "stream": False,
     }
+    connect_timeout = min(_VISION_CONNECT_TIMEOUT, timeout)
     try:
         resp = requests.post(
             _VISION_URL.rstrip("/") + "/v1/chat/completions",
             json=payload,
-            timeout=timeout,
+            timeout=(connect_timeout, timeout),
         )
         if resp.status_code != 200:
             logger.debug("Vision endpoint returned HTTP %s", resp.status_code)
@@ -333,6 +363,9 @@ def _call_vision_llm(image_bytes: bytes, prompt: str, timeout: float) -> str:
         message = choices[0].get("message", {}) if isinstance(choices[0], dict) else {}
         text = message.get("content", "") if isinstance(message, dict) else ""
         return text.strip() if isinstance(text, str) else ""
+    except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as exc:
+        _trip_vision_circuit_breaker(type(exc).__name__)
+        return ""
     except Exception as exc:
         logger.debug("Vision endpoint failed: %s", type(exc).__name__)
         return ""

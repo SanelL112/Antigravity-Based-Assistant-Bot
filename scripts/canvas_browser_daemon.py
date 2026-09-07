@@ -920,19 +920,23 @@ class BrowserDaemon:
             pages_scanned = 0
             tasks_total = 0
 
-            for nb_name in notebooks:
+            for i, nb_name in enumerate(notebooks):
                 if pages_scanned >= max_pages:
                     note("page budget reached; stopping")
                     break
+                remaining_nbs = len(notebooks) - i
+                nb_budget = max(1, (max_pages - pages_scanned) // remaining_nbs)
                 seen_titles = seen_titles_by_nb.setdefault(nb_name, set())
+                nb_pages_start = pages_scanned
                 for attempt in range(3):
                     pages_before = len(cache_data)
                     tasks_before = sum(len(v) for v in cache_data.values())
+                    nb_remaining = max(1, nb_budget - (pages_scanned - nb_pages_start))
                     try:
                         stats = self._harvest_notebook(
                             driver, nb_name, cache_data, trace, errors,
                             extract_tasks_from_page,
-                            remaining=max_pages - pages_scanned,
+                            remaining=nb_remaining,
                             seen_titles=seen_titles,
                         )
                         pages_scanned += stats["pages"]
@@ -1343,20 +1347,66 @@ class BrowserDaemon:
 
         # Cold SharePoint loads can take >40s before the section rail
         # renders; give it a full minute before declaring the notebook empty.
+        # Poll group expansion and leaf section discovery until sections are found
+        # or the deadline expires.
         deadline = time.monotonic() + 60
-        while time.monotonic() < deadline:
-            if self._editor_js(driver,
-                               "return document.querySelectorAll('.sectionListItem, [role=\"treeitem\"], [aria-label*=\"Section Group\" i]').length;"):
-                break
-            time.sleep(3)
-
-        # Class Notebooks nest sections inside collapsed section groups
-        # ("_Content Library", per-student spaces, unit resources, etc.).
-        # Handle section groups (role="treeitem" with child containers / aria-expanded):
-        # clicking each group toggles aria-expanded="true" and recurses into nested child sections.
         total_expanded = 0
-        for _pass in range(6):
-            expanded = self._editor_js(
+        sections: list[str] = []
+
+        while time.monotonic() < deadline:
+            # Class Notebooks nest sections inside collapsed section groups
+            # ("_Content Library", per-student spaces, unit resources, etc.).
+            # Handle section groups (role="treeitem" with child containers / aria-expanded):
+            # clicking each group toggles aria-expanded="true" and recurses into nested child sections.
+            for _pass in range(4):
+                expanded = self._editor_js(
+                    driver,
+                    """
+                    const isGroup = (el) => {
+                        if (!el) return false;
+                        if (el.hasAttribute('aria-expanded') || el.getAttribute('aria-expanded') !== null) return true;
+                        const label = (el.getAttribute('aria-label') || '').toLowerCase();
+                        if (label.includes('section group')) return true;
+                        const cls = (el.className || '').toString().toLowerCase();
+                        if (cls.includes('sectiongroup') || cls.includes('groupitemwrap')) return true;
+                        if (el.getAttribute('role') === 'treeitem') {
+                            if (el.querySelector('[role="group"], [class*="childContainer" i], [class*="groupItems" i], [class*="chevron" i], [class*="expander" i]')) return true;
+                            const next = el.nextElementSibling;
+                            if (next && next.getAttribute('role') === 'group') return true;
+                        }
+                        return false;
+                    };
+                    const candidates = Array.from(document.querySelectorAll(
+                        '[role="treeitem"], .sectionListItem, [aria-label*="Section Group" i], [class*="sectionGroup"]'
+                    ));
+                    let count = 0;
+                    const seen = new Set();
+                    for (const el of candidates) {
+                        if (!isGroup(el)) continue;
+                        if (seen.has(el)) continue;
+                        seen.add(el);
+                        if (el.getAttribute('aria-expanded') === 'false') {
+                            const target = el.querySelector('[class*="chevron" i], [class*="expander" i], [data-icon-name*="Chevron" i], [aria-expanded]') || el;
+                            const targets = [target, ...Array.from(target.querySelectorAll('*'))];
+                            const opts = {bubbles: true, cancelable: true, view: window};
+                            for (const t of targets) {
+                                t.dispatchEvent(new MouseEvent('mousedown', opts));
+                                t.dispatchEvent(new MouseEvent('mouseup', opts));
+                                t.dispatchEvent(new MouseEvent('click', opts));
+                            }
+                            count++;
+                        }
+                    }
+                    return count;
+                    """
+                ) or 0
+                if not expanded:
+                    break
+                total_expanded += expanded
+                time.sleep(2)
+
+            # Query only leaf sections — never section group headers.
+            sections = self._editor_js(
                 driver,
                 """
                 const isGroup = (el) => {
@@ -1373,69 +1423,28 @@ class BrowserDaemon:
                     }
                     return false;
                 };
-                const candidates = Array.from(document.querySelectorAll(
-                    '[role="treeitem"], .sectionListItem, [aria-label*="Section Group" i], [class*="sectionGroup"]'
-                ));
-                let count = 0;
+                const els = Array.from(document.querySelectorAll('.sectionListItem, [role="treeitem"]'));
+                const leaves = [];
                 const seen = new Set();
-                for (const el of candidates) {
-                    if (!isGroup(el)) continue;
-                    if (seen.has(el)) continue;
-                    seen.add(el);
-                    if (el.getAttribute('aria-expanded') === 'false') {
-                        const target = el.querySelector('[class*="chevron" i], [class*="expander" i], [data-icon-name*="Chevron" i], [aria-expanded]') || el;
-                        const targets = [target, ...Array.from(target.querySelectorAll('*'))];
-                        const opts = {bubbles: true, cancelable: true, view: window};
-                        for (const t of targets) {
-                            t.dispatchEvent(new MouseEvent('mousedown', opts));
-                            t.dispatchEvent(new MouseEvent('mouseup', opts));
-                            t.dispatchEvent(new MouseEvent('click', opts));
-                        }
-                        count++;
-                    }
+                for (const el of els) {
+                    if (isGroup(el)) continue;  // Never treat section group headers as leaf sections
+                    const name = ((el.querySelector('content') || {}).textContent || el.innerText || '').trim();
+                    if (!name || name.length < 2 || seen.has(name)) continue;
+                    seen.add(name);
+                    leaves.push(name);
                 }
-                return count;
+                return leaves;
                 """
-            ) or 0
-            if not expanded:
+            ) or []
+
+            if sections:
                 break
-            total_expanded += expanded
             time.sleep(3)
+
         if total_expanded:
             trace.append(f"{nb_name}: expanded {total_expanded} section group(s)")
             note(f"{nb_name}: expanded {total_expanded} section group(s)")
 
-        # Query only leaf sections — never section group headers.
-        sections = self._editor_js(
-            driver,
-            """
-            const isGroup = (el) => {
-                if (!el) return false;
-                if (el.hasAttribute('aria-expanded') || el.getAttribute('aria-expanded') !== null) return true;
-                const label = (el.getAttribute('aria-label') || '').toLowerCase();
-                if (label.includes('section group')) return true;
-                const cls = (el.className || '').toString().toLowerCase();
-                if (cls.includes('sectiongroup') || cls.includes('groupitemwrap')) return true;
-                if (el.getAttribute('role') === 'treeitem') {
-                    if (el.querySelector('[role="group"], [class*="childContainer" i], [class*="groupItems" i], [class*="chevron" i], [class*="expander" i]')) return true;
-                    const next = el.nextElementSibling;
-                    if (next && next.getAttribute('role') === 'group') return true;
-                }
-                return false;
-            };
-            const els = Array.from(document.querySelectorAll('.sectionListItem, [role="treeitem"]'));
-            const leaves = [];
-            const seen = new Set();
-            for (const el of els) {
-                if (isGroup(el)) continue;  // Never treat section group headers as leaf sections
-                const name = ((el.querySelector('content') || {}).textContent || el.innerText || '').trim();
-                if (!name || name.length < 2 || seen.has(name)) continue;
-                seen.add(name);
-                leaves.push(name);
-            }
-            return leaves;
-            """
-        ) or []
         trace.append(f"{nb_name}: sections {sections}")
         note(f"{nb_name}: sections {sections}")
 
@@ -1574,12 +1583,13 @@ class BrowserDaemon:
                         # (Phase 1 RAG).  Ink-only pages yield no text here;
                         # ink transcription is the Phase 3 pipeline.
                         try:
-                            from scrapers.onenote_page_extractor import parse_spatial_layout
+                            from scrapers.onenote_page_extractor import parse_spatial_layout, strip_page_header_lines
                             from scrapers.onenote_web_scraper import save_harvested_page
 
                             text = parse_spatial_layout(html)
-                            if text:
-                                save_harvested_page(nb_name, sec, pg, text)
+                            clean_text = strip_page_header_lines(text, pg) or text
+                            if clean_text:
+                                save_harvested_page(nb_name, sec, pg, clean_text)
                         except Exception as exc:
                             errors.append(f"{nb_name}/{sec}/{pg}: retention failed ({exc})")
                         for t in tasks:

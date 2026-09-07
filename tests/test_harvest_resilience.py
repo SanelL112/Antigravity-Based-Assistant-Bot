@@ -442,5 +442,90 @@ class TestScopingAndAccountingRefactors:
         assert state["switched_frame"] is True
         assert state["default_content_calls"] == 2
 
+    def test_balanced_budget_allocation_shares_pages_fairly(self, monkeypatch, tmp_path):
+        """Budget must be divided fairly among remaining notebooks with unused rollover."""
+        daemon = make_daemon(monkeypatch, tmp_path)
+        stub_crawl(monkeypatch, daemon)
+
+        captured_remaining: dict[str, int] = {}
+
+        def fake_harvest_notebook(driver, nb_name, cache_data, trace, errors, extract_fn, remaining, seen_titles=None):
+            captured_remaining[nb_name] = remaining
+            if nb_name == "NB1":
+                cache_data["NB1/S1/P1"] = [{"title": "T1", "due_date": "2026-09-10"}]
+                return {"pages": 5, "tasks": 1}
+            elif nb_name == "NB2":
+                cache_data["NB2/S1/P1"] = [{"title": "T2", "due_date": "2026-09-11"}]
+                return {"pages": 10, "tasks": 1}
+            return {"pages": 0, "tasks": 0}
+
+        monkeypatch.setattr(daemon, "_harvest_notebook", fake_harvest_notebook)
+
+        res = daemon.harvest_onenote(notebooks=["NB1", "NB2"], max_pages=40)
+
+        # NB1 is 1 of 2 notebooks: gets (40 - 0) // 2 = 20
+        assert captured_remaining["NB1"] == 20
+        # NB1 only consumed 5 pages, so NB2 gets (40 - 5) // 1 = 35 (unused quota rolled over!)
+        assert captured_remaining["NB2"] == 35
+        assert res["pages_scanned"] == 15
+        assert res["tasks_extracted"] == 2
+
+    def test_harvest_notebook_polls_until_leaf_sections_found(self, monkeypatch, tmp_path):
+        """_harvest_notebook should poll for sections on cold loads rather than exiting immediately."""
+        daemon = make_daemon(monkeypatch, tmp_path)
+
+        poll_count = [0]
+
+        def fake_editor_js(driver, script, *args, **kwargs):
+            if "expanded" in script or "isGroup" in script:
+                if "querySelectorAll('.sectionListItem" in script:
+                    # Querying leaf sections
+                    poll_count[0] += 1
+                    if poll_count[0] < 3:
+                        return []  # Rail still loading
+                    return ["Unit 1 Notes"]
+                return 0
+            return []
+
+        monkeypatch.setattr(daemon, "_ensure_notebooks_view", lambda d: True)
+        monkeypatch.setattr(daemon, "_editor_js", fake_editor_js)
+        monkeypatch.setattr(daemon, "_focus_live_tab", lambda d: True)
+
+        class FakeDriver:
+            current_url = "https://tenant.sharepoint.com/teams/doc.aspx"
+            title = "NB1"
+            window_handles = ["h1"]
+
+            def switch_to_default_content(self): pass
+
+            class SwitchTo:
+                def default_content(self): pass
+                def window(self, h): pass
+                def frame(self, f): pass
+            switch_to = SwitchTo()
+
+            def execute_script(self, *a, **k):
+                return True
+
+            def find_element(self, *a, **k):
+                return "frame_el"
+
+        driver = FakeDriver()
+        cache_data: dict[str, list[dict]] = {}
+        trace: list[str] = []
+        errors: list[str] = []
+
+        # Remaining 0 so section loop exits before page processing
+        stats = daemon._harvest_notebook(
+            driver, "NB1", cache_data, trace, errors,
+            extract_fn=lambda *a, **k: [],
+            remaining=0,
+        )
+
+        assert poll_count[0] == 3
+        assert "NB1: sections ['Unit 1 Notes']" in trace
+        assert stats["pages"] == 0
+
+
 
 

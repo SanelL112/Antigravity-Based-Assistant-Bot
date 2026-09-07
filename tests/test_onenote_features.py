@@ -510,3 +510,45 @@ def test_empty_page_returns_empty():
     assert onenote_extractor.parse_spatial_layout("") == ""
     prof = onenote_extractor.detect_visual_content("")
     assert not any(prof.values())
+
+
+def test_vision_circuit_breaker_trips_on_connection_error(monkeypatch):
+    onenote_extractor._reset_vision_circuit_breaker()
+    call_count = [0]
+
+    def fake_post(url, json=None, timeout=None):
+        call_count[0] += 1
+        raise requests.exceptions.ConnectTimeout("Connection timed out")
+
+    monkeypatch.setattr(requests, "post", fake_post)
+
+    # First call encounters ConnectTimeout and trips breaker
+    out1 = onenote_extractor._call_vision_llm(b"PNG", "prompt", 10.0)
+    assert out1 == ""
+    assert call_count[0] == 1
+    assert not onenote_extractor._is_vision_available()
+
+    # Second call short-circuits immediately without calling requests.post
+    out2 = onenote_extractor._call_vision_llm(b"PNG", "prompt", 10.0)
+    assert out2 == ""
+    assert call_count[0] == 1  # Not incremented!
+
+    # Reset breaker allows calls again
+    onenote_extractor._reset_vision_circuit_breaker()
+    assert onenote_extractor._is_vision_available()
+
+
+def test_vision_connect_timeout_tuple_passed(monkeypatch):
+    onenote_extractor._reset_vision_circuit_breaker()
+    captured_timeout = {}
+
+    def fake_post(url, json=None, timeout=None):
+        captured_timeout["timeout"] = timeout
+        return FakeResponse(json_data={"choices": [{"message": {"content": "[]"}}]})
+
+    monkeypatch.setattr(requests, "post", fake_post)
+    onenote_extractor._call_vision_llm(b"PNG", "prompt", 60.0)
+    assert isinstance(captured_timeout["timeout"], tuple)
+    assert captured_timeout["timeout"] == (3.0, 60.0)
+    onenote_extractor._reset_vision_circuit_breaker()
+
