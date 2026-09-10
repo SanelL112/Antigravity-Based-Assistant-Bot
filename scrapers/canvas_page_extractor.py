@@ -424,21 +424,26 @@ def _clean_task_title(title: str, max_len: int = 55) -> str:
     # tasks; keep only the first so the title stays a single actionable item.
     t = re.split(r"\s+\d+\)\s*", t, maxsplit=1)[0].strip()
 
-    # If title is still too long, truncate cleanly at word boundary
-    if len(t) > max_len:
-        t = t[:max_len].rsplit(" ", 1)[0].rstrip(" ,.-:")
-
-    core = t.rstrip(":;-–—. ").strip()
+    # Junk/prose rejection runs on the FULL row, before length truncation:
+    # truncation can cut a row right before the phrase that identifies it as
+    # prose (", so describe ..."), and the gate never truncates, so deciding
+    # here first is what keeps the two filters in agreement.
+    core_full = t.rstrip(":;-–—. ").strip()
     if (
-        not core
-        or _JUNK_TITLE_RE.fullmatch(core)
-        or re.fullmatch(r"[\d\s./&-]+", core)
-        or _SENTENCE_OPENER_RE.match(core)
-        or _DATE_HEADER_RE.fullmatch(core)
-        or re.search(r"&#|#[xX][0-9a-fA-F]{1,4};", core)
+        not core_full
+        or _JUNK_TITLE_RE.fullmatch(core_full)
+        or re.fullmatch(r"[\d\s./&-]+", core_full)
+        or _DATE_HEADER_RE.fullmatch(core_full)
+        or re.search(r"&#|#[xX][0-9a-fA-F]{1,4};", core_full)
+        or _prose_title_reject(core_full)
     ):
         return ""
-    return core
+
+    # If title is still too long, truncate cleanly at word boundary
+    if len(core_full) > max_len:
+        core_full = core_full[:max_len].rsplit(" ", 1)[0].rstrip(" ,.-:").strip()
+
+    return core_full
 
 
 def _valid_ymd(year: int, month: int, day: int) -> str | None:
@@ -536,6 +541,11 @@ _JUNK_TITLE_RE = re.compile(
         | standards?
         | materials?
         | notes?
+        | important\s+topics?
+        | main\s+ideas?
+        | guiding\s+questions?
+        | college\s+readiness
+        | final\s+exam\s+exemptions?
         | day\s*\d+
         | (?:mon|tue|wed|thu|fri|sat|sun)(?:day)?
     )
@@ -554,10 +564,138 @@ _DATE_HEADER_RE = re.compile(
 # submit an individual report for credit").
 _SENTENCE_OPENER_RE = re.compile(
     r"^(?:each\s|you\s|your\s|please\b|make\s+sure\b|be\s+sure\b|if\s+you\b"
-    r"|students\s+(?:will|should|can)\b|we\s+will\b|click\s+here\b"
-    r"|use\s+this\b|this\s+link\b)",
+    r"|students?\s+(?:will|should|can|are|must|may|who|missing)\b|ap\s+teachers?\b|many\s+of\s+you\b|as\s+you\b|it\s+is\b"
+    r"|in\s+order\b|namely\b|in\s+this\s+lesson\b|the\s+above\b|the\s+total\b"
+    r"|all\s+(?:formative|summative|work)\b|take\s+an?\b|i\s+(?:will|am)\b"
+    r"|and\s+|in\s+a\b|in\s+the\b|before\s|of\s+the\b|first\s+major\b"
+    r"|suppose\b|find\s+(?:the|a)\b|identify\b|graph\s+(?:a|the)\b|main\b"
+    r"|using\s+the\s+(?:diagram|graph|table|image)\b|completes\b"
+    r"|resource\s+\d+\b|notes?\s+(?:for|on)\b|important\s+topics?\b"
+    r"|chapter\s+\d|lesson\s+\d|contact\s+for\b|phonetic\b|name\s+you\b"
+    r"|college\s+readiness\b|eoc\s+courses\b"
+    r"|guiding\s+questions?\b|random\s+sampling\b|students\s+will\b"
+    r"|we\s+will\b|click\s+here\b|use\s+this\b|this\s+link\b"
+    r"|use\s+the\s+(?:graph|table|diagram|image|figure)\b)",
     re.IGNORECASE,
 )
+
+# Question openers are note-page fragments ("Which type of bond creates...").
+_PROSE_OPENERS_RE = re.compile(
+    r"^(?:which\s|what\s|who\s|when\s|where\s|why\s|how\s)",
+    re.IGNORECASE,
+)
+
+# Real tasks occasionally open with a junk-shaped word ("Chapter 4 Reading
+# Quiz", "The Lab Report Draft"); these strong task keywords keep them alive
+# when an opener or short-heading rule matches.
+_PROSE_OPENER_EXEMPT_RE = re.compile(
+    r"\b(?:quiz|quizzes|tests?|homework|hw|due|reading|essay|project|lab|report)\b",
+    re.IGNORECASE,
+)
+
+# Phrases that only occur inside syllabus-policy prose, note fragments, or
+# lesson text — never inside a real task title.
+_PROSE_CONTAINS_RE = re.compile(
+    r"""(?xi)
+    (?:
+        course\s+and\s+exam\b
+        | include,?\s+but\s+are\s+not\s+limited
+        | work\s+that\s+is\b
+        | allows\s+us\s+to\b
+        | will\s+(?:prove|need)\b
+        | must\s+be\s+(?:completed|submitted|turned)\b
+        | is\s+(?:undefined|defined)\b
+        | \bmight\b
+        | ideal\s+for\b
+        | ,\s*so\s+describe\b
+        | describe\s+what\s+(?:they|it)\s+look
+        | digesting\s+it\s+outside
+        | additional\s+\d+\s+cents?
+    )
+    """
+)
+
+# Lowercase sentence openers that ARE action verbs stay alive ("read pages
+# 41-45 of unit packet" is a real reading task even mid-sentence).
+_ACTION_VERB_START_RE = re.compile(
+    r"^(?:read|reading|review|study|finish|complete|work|write|submit|prep"
+    r"|bring|turn|sign|register|apply|attend|watch|take\s+notes)\b",
+    re.IGNORECASE,
+)
+
+# A title that carries an equation is prose unless it names math WORK.
+_MATHY_TASK_RE = re.compile(
+    r"\b(?:homework|worksheet|practice|problems?|equations?)\b",
+    re.IGNORECASE,
+)
+
+
+def _prose_title_reject(core: str) -> bool:
+    """Reject syllabus-policy prose, note fragments, and lesson text.
+
+    Mirror of the gate-side filter in ``assignment_calendar`` (kept in sync by
+    hand — importing it back would create a circular import). These rows
+    arrive from syllabi ("Summative = 75%"), OneNote note pages ("Main ideas
+    / Questions for class:"), and lesson text ("In order for theorems to be
+    properly applied, we need..."). None are actionable tasks.
+    """
+    if "%" in core:
+        return True
+    if "=" in core and not _MATHY_TASK_RE.search(core):
+        return True
+    if core and core[0] in "\"\u201c\u201d":
+        return True
+    # Numbered-list fragment from a broken table row ("4. pH 9 is times more
+    # acidic than pH 8."). Section numbers ("1.2 Homework") have no space
+    # after the dot and do not match.
+    if re.match(r"^\d{1,2}\.\s+\S", core):
+        return True
+    # Comma-separated topic list from lesson notes ("Limit laws, left and
+    # right hand limits, limits at infinity") — no digits, no task keyword,
+    # and enough commas that no real assignment title looks like this.
+    if (
+        core.count(",") >= 2
+        and not any(ch.isdigit() for ch in core)
+        and not _PROSE_OPENER_EXEMPT_RE.search(core)
+    ):
+        return True
+    # Short "The X" note headings ("The Nucleus", "The Cell Wall"). Real
+    # titles of that shape name work ("The Lab Report Draft") and survive via
+    # the task-keyword exemption above.
+    if len(core.split()) <= 3 and re.match(r"^the\b", core, re.IGNORECASE):
+        return True
+    # Mangled multi-item agenda row ("... - 1) do X 2) do Y") — the split
+    # above keeps only the first item, so a surviving two-item row is a
+    # stale duplicate of a cleaner variant elsewhere.
+    if re.search(r"\d\)\s+\S.*\d\)\s+\S", core):
+        return True
+    # Long lowercase sentences are prose ("in a grocery bag, every bag of
+    # candy must be visible"), not titles — unless they start with an action
+    # verb ("read pages 41-45 of unit packet").
+    words = core.split()
+    if len(words) >= 5 and core[0].islower() and not _ACTION_VERB_START_RE.match(core):
+        return True
+    # Third-person curriculum outcome statements ("Completes BioBuilder
+    # project and presents at symposium") are never titles — teachers write
+    # imperatives ("Complete ..."), never "Completes ...". Checked BEFORE the
+    # task-keyword exemption, which these rows otherwise survive via their
+    # embedded "project"/"lab" words.
+    if re.match(
+        r"^(?:completes|creates|describes|demonstrates|develops|designs"
+        r"|applies|analyzes|evaluates|explains|identifies|investigates"
+        r"|presents|produces)\b",
+        core,
+        re.IGNORECASE,
+    ):
+        return True
+    if _PROSE_CONTAINS_RE.search(core):
+        return True
+    if (
+        _SENTENCE_OPENER_RE.match(core)
+        or _PROSE_OPENERS_RE.match(core)
+    ) and not _PROSE_OPENER_EXEMPT_RE.search(core):
+        return True
+    return False
 
 
 def _heuristic_rule_extraction(text: str) -> list[dict]:

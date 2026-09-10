@@ -557,10 +557,27 @@ _SOURCE_LABELS = {
 }
 
 
-def _compact_digest_lines(text: str, limit: int = 3) -> list[str]:
-    """Turn raw scraper output into a few safe, readable Telegram bullets."""
-    import re
+# Decorative sub-headers the Canvas/Classroom formatters emit between content
+# groups. These carry no data on their own, so they stay out of the digest —
+# but the assignment lines under them must survive, which is why matching is
+# anchored to the whole line instead of a bare substring check.
+_HEADER_LINE_RE = re.compile(
+    r"^(?:🎯|✅|🚨|📅|📢|📄|📋|🏫)?\s*(?:\\?\*\\?\*)?"
+    r"(?:canvas: what to do next|missing / overdue|due soon|recently completed"
+    r"|canvas announcements|recently updated canvas pages"
+    r"|google classroom announcements|recent classroom"
+    r"|recent google docs|pending notion tasks)"
+)
 
+
+def _compact_digest_lines(text: str, limit: int = 8) -> list[str]:
+    """Turn raw scraper output into a few safe, readable Telegram bullets.
+
+    Only lines that are pure boilerplate (empty source markers, decorative
+    whole-line headers, repeated source headings) are dropped; real content is
+    kept.  A tiny limit silently hides everything past the first few lines,
+    which is how late-month Canvas items used to vanish from the dashboard.
+    """
     lines: list[str] = []
     for raw_line in (text or "").splitlines():
         line = re.sub(r"\s+", " ", raw_line).strip()
@@ -571,6 +588,9 @@ def _compact_digest_lines(text: str, limit: int = 3) -> list[str]:
             continue
         # Drop source headings—the digest supplies consistent headings itself.
         if normalized.startswith(("canvas assignments", "google classroom assignments", "recent google docs")):
+            continue
+        # Drop decorative sub-headers only when the WHOLE line is one.
+        if _HEADER_LINE_RE.match(normalized):
             continue
         line = line.lstrip("-• ")
         if len(line) > 220:
@@ -637,11 +657,24 @@ def _deterministic_digest(summaries: dict[str, str]) -> tuple[str, list[dict]]:
             action_lines.append(f"• {task['title']} — due {task['due_date']}")
         sections.append("⚡ **Needs attention**\n" + "\n".join(action_lines))
 
+    # Per-source sections. Lines whose (title, due-date) pair is already shown
+    # in the Needs attention highlight are dropped to avoid duplication — but
+    # ONLY those. The old blanket "drop any line containing due:" also hid
+    # missing/overdue work older than the 7-day task window, due-soon items
+    # past the 5-item highlight cap, announcements, and completed lists.
+    dated_pair_re = re.compile(
+        r"^(?:\[[^\]]*\]\s*)?(.*?)\s*[—–-]\s*Due:\s*(\d{4}-\d{2}-\d{2})",
+        re.IGNORECASE,
+    )
+    highlighted = {(t["title"].strip().lower(), t["due_date"]) for t in tasks[:5]}
     for source_key, label in _SOURCE_LABELS.items():
         lines = _compact_digest_lines(summaries.get(source_key, ""))
-        # Dated coursework is already shown in Needs attention.
         if source_key in {"canvas", "classroom"}:
-            lines = [line for line in lines if "due:" not in line.lower()]
+            lines = [
+                line for line in lines
+                if (pair := dated_pair_re.match(line)) is None
+                or (pair.group(1).strip().lower(), pair.group(2)) not in highlighted
+            ]
         if lines:
             sections.append(label + "\n" + "\n".join(f"• {line}" for line in lines))
 
@@ -719,52 +752,72 @@ def assemble_digest(summaries: dict) -> dict:
     # ── Deduplication: bullet-level comparison using persistent hash set ────
     # Uses seen_bullets.json to track ALL bullets ever seen, preventing
     # oscillation where old bullets are forgotten and re-notified.
+    #
+    # Suppression is deliberately REFRESH-BASED for assignment bullets: a
+    # bullet that reappears in the freshly assembled digest proves the task
+    # is still current, so it is shown again and its timestamp is renewed.
+    # The original forget-once-forever behavior permanently hid multi-week
+    # items like "Enzyme lab final draft — due 2026-09-11" after their first
+    # appearance, which is how real deadlines vanished from the dashboard.
+    # Only long-stale entries (DIGEST_BULLET_STALE_DAYS) age out of the set.
     import re as _re
+    import time as _time
+
     previous_digest_path = LATEST_DIGEST_FILE
     seen_bullets_path = CACHE_DIR / "seen_bullets.json"
-    seen_bullets: set = set()
+    seen_bullets: dict = {}
     try:
         if seen_bullets_path.exists():
-            seen_bullets = set(json.loads(seen_bullets_path.read_text()))
+            loaded = json.loads(seen_bullets_path.read_text())
+            if isinstance(loaded, dict):
+                seen_bullets = loaded
+            elif isinstance(loaded, list):
+                # Legacy list format: treat every existing entry as fresh.
+                seen_bullets = {bullet: _time.time() for bullet in loaded}
     except Exception as e:
         logger.debug("seen_bullets unreadable, starting fresh: %r", e)
 
-    if seen_bullets:
-        kept = []
-        new_bullet_count = 0
-        for line in digest.split("\n"):
-            stripped = line.strip()
-            if stripped.startswith(("•", "-", "✅", "📎", "▶️")):
-                normalized = _re.sub(r'[^\w\s]', '', stripped).strip().lower()
-                if normalized not in seen_bullets:
-                    kept.append(line)
-                    seen_bullets.add(normalized)
-                    new_bullet_count += 1
-                # else: duplicate bullet, skip
-            else:
-                kept.append(line)  # keep headers, blank lines, etc.
-
-        if new_bullet_count == 0:
-            digest = "✅ Nothing new since the last digest — all caught up!"
-            logger.info("Deduplication: no new updates found (bullet-level).")
-        else:
-            digest = "\n".join(kept)
-            logger.info(f"Deduplication: kept {new_bullet_count} new bullets, removed duplicates.")
-    else:
-        # First run: seed the persistent set with all current bullets
-        for line in digest.split("\n"):
-            stripped = line.strip()
-            if stripped.startswith(("•", "-", "✅", "📎", "▶️")):
-                normalized = _re.sub(r'[^\w\s]', '', stripped).strip().lower()
-                seen_bullets.add(normalized)
-
-    # Persist seen bullets (cap at 5000 to prevent unbounded growth)
     try:
-        bullet_list = list(seen_bullets)
-        if len(bullet_list) > 5000:
-            bullet_list = bullet_list[-5000:]
-        seen_bullets_path.write_text(json.dumps(bullet_list))
-        logger.info(f"Persisted {len(bullet_list)} seen bullets to {seen_bullets_path}")
+        stale_days = max(1, int(os.getenv("DIGEST_BULLET_STALE_DAYS", "7")))
+    except ValueError:
+        stale_days = 7
+    stale_cutoff = _time.time() - stale_days * 86400
+    seen_bullets = {
+        bullet: ts for bullet, ts in seen_bullets.items()
+        if isinstance(ts, (int, float)) and ts >= stale_cutoff
+    }
+
+    kept = []
+    new_bullet_count = 0
+    for line in digest.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith(("•", "-", "✅", "📎", "▶️")):
+            normalized = _re.sub(r'[^\w\s]', '', stripped).strip().lower()
+            if not normalized:
+                kept.append(line)
+                continue
+            if normalized not in seen_bullets:
+                new_bullet_count += 1
+            # Either way the bullet is shown now and its freshness is renewed:
+            # recurrence in the live digest means the item is still relevant.
+            seen_bullets[normalized] = _time.time()
+            kept.append(line)
+        else:
+            kept.append(line)  # keep headers, blank lines, etc.
+
+    if new_bullet_count == 0:
+        logger.info("Deduplication: no brand-new bullets this run; existing items refreshed.")
+    else:
+        logger.info(f"Deduplication: kept {new_bullet_count} new bullets; recurring items refreshed.")
+    digest = "\n".join(kept)
+
+    # Persist seen bullets (cap to prevent unbounded growth)
+    try:
+        bullet_items = sorted(seen_bullets.items(), key=lambda kv: kv[1])
+        if len(bullet_items) > 5000:
+            bullet_items = bullet_items[-5000:]
+        seen_bullets_path.write_text(json.dumps(dict(bullet_items)))
+        logger.info(f"Persisted {len(bullet_items)} seen bullets to {seen_bullets_path}")
     except Exception as e:
         logger.error(f"Failed to persist seen bullets: {e}")
 

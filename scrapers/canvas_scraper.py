@@ -1168,6 +1168,7 @@ def _get_calendar_assignments(
     """Return structured Canvas deadlines for the calendar sync service."""
     courses = courses if courses is not None else canvas.get_favorite_courses()
     now = datetime.now(timezone.utc)
+    overdue_grace = max(0, int(get_setting("CANVAS_ASSIGNMENT_OVERDUE_GRACE_DAYS", "7")))
     result: list[dict[str, str]] = []
 
     # Start a fresh per-pass budget for AI page extraction so a slow/cold
@@ -1196,10 +1197,28 @@ def _get_calendar_assignments(
         if not course_id:
             continue
         try:
+            # Canvas sorts on due_at, so a window-anchored query returns the
+            # full schedule — including unit tests and deadlines weeks away —
+            # instead of silently clipping everything beyond two weeks. The
+            # per-assignment _assignment_is_actionable() check below still
+            # drops prior-year/stale rows, so old courses stay quiet.
+            calendar_window_days = max(1, int(get_setting("CANVAS_CALENDAR_WINDOW_DAYS", "180")))
+            window_start = (now - timedelta(days=overdue_grace)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            window_end = (now + timedelta(days=calendar_window_days)).strftime("%Y-%m-%dT%H:%M:%SZ")
             assignments = canvas.get_paginated(
-                f"/api/v1/courses/{course_id}/assignments?include[]=submission&order_by=due_at&order=asc&per_page=100",
+                f"/api/v1/courses/{course_id}/assignments?include[]=submission"
+                f"&due_at[{window_start}..{window_end}]&order_by=due_at&order=asc&per_page=100",
                 max_pages=1,
             )
+            if not assignments:
+                # Defensive fallback: if the endpoint ignored the due_at range
+                # and nothing else matched, retry without it so a quirk in one
+                # deployment can't blank out the calendar feed entirely.
+                logger.debug("due_at window query empty for %s; retrying without range", course_name)
+                assignments = canvas.get_paginated(
+                    f"/api/v1/courses/{course_id}/assignments?include[]=submission&order_by=due_at&order=asc&per_page=100",
+                    max_pages=1,
+                )
         except CanvasSessionError as exc:
             logger.info("Could not fetch Canvas calendar assignments for %s: %s", course_name, exc)
             continue
